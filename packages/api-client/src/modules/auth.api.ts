@@ -1,0 +1,78 @@
+import { z } from 'zod';
+import { api, setAccessToken } from '../api';
+
+// ─── Schemas ────────────────────────────────────────
+
+export const SendOtpRequestSchema = z.object({
+  phone: z.string().min(10, 'Phone number must be at least 10 digits'),
+});
+
+export const SendOtpResponseSchema = z.object({
+  success: z.boolean(),
+  message: z.string(),
+});
+
+export const VerifyOtpRequestSchema = z.object({
+  phone: z.string().min(10),
+  otp: z.string().length(6, 'OTP must be 6 digits'),
+});
+
+export const VerifyOtpResponseSchema = z.object({
+  accessToken: z.string(),
+  user: z.object({
+    id: z.string(),
+    phone: z.string(),
+    role: z.string(),
+    name: z.string().optional(),
+    email: z.string().optional(),
+  }),
+});
+
+export const UserSchema = z.object({
+  id: z.string(),
+  phone: z.string(),
+  role: z.string(),
+  name: z.string().optional(),
+  email: z.string().optional(),
+});
+
+// ─── Types ──────────────────────────────────────────
+
+export type SendOtpRequest = z.infer<typeof SendOtpRequestSchema>;
+export type SendOtpResponse = z.infer<typeof SendOtpResponseSchema>;
+export type VerifyOtpRequest = z.infer<typeof VerifyOtpRequestSchema>;
+export type VerifyOtpResponse = z.infer<typeof VerifyOtpResponseSchema>;
+export type User = z.infer<typeof UserSchema>;
+
+// ─── API Functions ──────────────────────────────────
+
+export async function sendOtp(phone: string): Promise<SendOtpResponse> {
+  const body = SendOtpRequestSchema.parse({ phone });
+  const { data } = await api.post('/auth/send-otp', body);
+  return SendOtpResponseSchema.parse(data);
+}
+
+export async function verifyOtp(phone: string, otp: string): Promise<VerifyOtpResponse> {
+  const body = VerifyOtpRequestSchema.parse({ phone, otp });
+  const { data } = await api.post('/auth/verify-otp', body);
+  const parsed = VerifyOtpResponseSchema.parse(data);
+  // Store the access token in memory
+  setAccessToken(parsed.accessToken);
+  return parsed;
+}
+
+export async function refreshToken(): Promise<{ accessToken: string }> {
+  const { data } = await api.post('/auth/refresh');
+  setAccessToken(data.accessToken);
+  return data;
+}
+
+export async function logout(): Promise<void> {
+  await api.post('/auth/logout');
+  setAccessToken(null);
+}
+
+export async function getProfile(): Promise<User> {
+  const { data } = await api.get('/auth/profile');
+  return UserSchema.parse(data);
+}
