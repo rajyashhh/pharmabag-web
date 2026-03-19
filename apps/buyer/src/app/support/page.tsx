@@ -15,18 +15,18 @@ export default function SupportPage() {
   const createTicket = useCreateTicket();
   const { toast } = useToast();
   const [showForm, setShowForm] = useState(false);
-  const [form, setForm] = useState({ subject: '', description: '', category: 'General', priority: 'medium' as const });
+  const [form, setForm] = useState({ subject: '', message: '' });
 
   const tickets = data?.data ?? [];
 
   const handleCreateTicket = () => {
-    if (!form.subject.trim() || !form.description.trim()) return;
+    if (!form.subject.trim() || !form.message.trim()) return;
     createTicket.mutate(
-      { subject: form.subject, description: form.description, category: form.category, priority: form.priority },
+      { subject: form.subject, message: form.message },
       {
         onSuccess: () => {
           setShowForm(false);
-          setForm({ subject: '', description: '', category: 'General', priority: 'medium' });
+          setForm({ subject: '', message: '' });
           toast('Ticket created successfully!', 'success');
         },
         onError: () => toast('Failed to create ticket', 'error'),
@@ -89,8 +89,8 @@ export default function SupportPage() {
                     <X className="w-5 h-5 text-gray-400" />
                   </button>
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="md:col-span-2">
+                <div className="grid grid-cols-1 gap-6">
+                  <div>
                     <label className="text-[11px] font-bold text-gray-400 uppercase tracking-widest block mb-2">Subject</label>
                     <input
                       value={form.subject}
@@ -100,36 +100,10 @@ export default function SupportPage() {
                     />
                   </div>
                   <div>
-                    <label className="text-[11px] font-bold text-gray-400 uppercase tracking-widest block mb-2">Category</label>
-                    <select
-                      value={form.category}
-                      onChange={(e) => setForm((f) => ({ ...f, category: e.target.value }))}
-                      className="w-full px-5 py-3 bg-white/60 rounded-2xl border border-gray-200 text-gray-900 font-medium focus:outline-none focus:ring-2 focus:ring-lime-300"
-                    >
-                      <option>General</option>
-                      <option>Delivery</option>
-                      <option>Billing</option>
-                      <option>Product</option>
-                      <option>Technical</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label className="text-[11px] font-bold text-gray-400 uppercase tracking-widest block mb-2">Priority</label>
-                    <select
-                      value={form.priority}
-                      onChange={(e) => setForm((f) => ({ ...f, priority: e.target.value as 'low' | 'medium' | 'high' }))}
-                      className="w-full px-5 py-3 bg-white/60 rounded-2xl border border-gray-200 text-gray-900 font-medium focus:outline-none focus:ring-2 focus:ring-lime-300"
-                    >
-                      <option value="low">Low</option>
-                      <option value="medium">Medium</option>
-                      <option value="high">High</option>
-                    </select>
-                  </div>
-                  <div className="md:col-span-2">
-                    <label className="text-[11px] font-bold text-gray-400 uppercase tracking-widest block mb-2">Description</label>
+                    <label className="text-[11px] font-bold text-gray-400 uppercase tracking-widest block mb-2">Message</label>
                     <textarea
-                      value={form.description}
-                      onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
+                      value={form.message}
+                      onChange={(e) => setForm((f) => ({ ...f, message: e.target.value }))}
                       rows={4}
                       placeholder="Provide details about your issue..."
                       className="w-full px-5 py-3 bg-white/60 rounded-2xl border border-gray-200 text-gray-900 font-medium focus:outline-none focus:ring-2 focus:ring-lime-300 resize-none"
@@ -140,7 +114,7 @@ export default function SupportPage() {
                   <motion.button
                     whileTap={{ scale: 0.95 }}
                     onClick={handleCreateTicket}
-                    disabled={createTicket.isPending || !form.subject.trim() || !form.description.trim()}
+                    disabled={createTicket.isPending || !form.subject.trim() || !form.message.trim()}
                     className="px-8 py-3 bg-lime-300 text-gray-900 rounded-full font-bold flex items-center gap-2 hover:bg-lime-400 shadow-lg shadow-lime-200 transition-all disabled:opacity-50"
                   >
                     <Send className="w-4 h-4" />

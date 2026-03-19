@@ -1,0 +1,47 @@
+"use client";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { sendOtp, verifyOtp, getCurrentUser } from "@/api/auth.api";
+import { getSellerDashboard, getSellerProducts, getSellerOrders, getSellerSettlements, getSellerSettlementSummary, createSellerProduct, updateSellerProduct, deleteSellerProduct, updateSellerOrderStatus, getSellerProfile, updateSellerProfile } from "@/api/seller.api";
+import { useSellerAuth } from "@/store";
+
+export function useSendOtp() { return useMutation({ mutationFn: sendOtp }); }
+
+export function useVerifyOtp() {
+  const queryClient = useQueryClient();
+  const { setUser } = useSellerAuth();
+  return useMutation({
+    mutationFn: verifyOtp,
+    onSuccess: (data) => {
+      if (typeof window !== "undefined") {
+        localStorage.setItem("pb_token", data.accessToken);
+      }
+      setUser(data.user);
+      void queryClient.invalidateQueries({ queryKey: ["seller", "dashboard"] });
+    },
+  });
+}
+
+export function useSellerMe() {
+  return useQuery({ queryKey: ["seller", "me"], queryFn: getCurrentUser, enabled: false, staleTime: 60_000, retry: 1 });
+}
+
+export function useSellerDashboard() { return useQuery({ queryKey: ["seller", "dashboard"], queryFn: getSellerDashboard, staleTime: 60_000, retry: 1 }); }
+
+export function useSellerProfile() { return useQuery({ queryKey: ["seller", "profile"], queryFn: getSellerProfile, staleTime: 60_000, retry: 1 }); }
+export function useUpdateSellerProfile() { const qc = useQueryClient(); return useMutation({ mutationFn: updateSellerProfile, onSuccess: () => void qc.invalidateQueries({ queryKey: ["seller", "profile"] }) }); }
+
+export function useSellerProducts() { return useQuery({ queryKey: ["seller", "products"], queryFn: getSellerProducts, staleTime: 60_000, retry: 1 }); }
+
+export function useCreateSellerProduct() { const qc = useQueryClient(); return useMutation({ mutationFn: createSellerProduct, onSuccess: () => void qc.invalidateQueries({ queryKey: ["seller", "products"] }) }); }
+
+export function useUpdateSellerProduct() { const qc = useQueryClient(); return useMutation({ mutationFn: ({ productId, input }: { productId: string; input: any }) => updateSellerProduct(productId, input), onSuccess: () => void qc.invalidateQueries({ queryKey: ["seller", "products"] }) }); }
+
+export function useDeleteSellerProduct() { const qc = useQueryClient(); return useMutation({ mutationFn: (productId: string) => deleteSellerProduct(productId), onSuccess: () => void qc.invalidateQueries({ queryKey: ["seller", "products"] }) }); }
+
+export function useSellerOrders() { return useQuery({ queryKey: ["seller", "orders"], queryFn: getSellerOrders, staleTime: 60_000, retry: 1 }); }
+
+export function useUpdateSellerOrderStatus() { const qc = useQueryClient(); return useMutation({ mutationFn: ({ orderId, status }: { orderId: string; status: string }) => updateSellerOrderStatus(orderId, status), onSuccess: () => void qc.invalidateQueries({ queryKey: ["seller", "orders"] }) }); }
+
+export function useSellerSettlements() { return useQuery({ queryKey: ["seller", "settlements"], queryFn: getSellerSettlements, staleTime: 60_000, retry: 1 }); }
+
+export function useSellerSettlementSummary() { return useQuery({ queryKey: ["seller", "settlement-summary"], queryFn: getSellerSettlementSummary, staleTime: 60_000, retry: 1 }); }

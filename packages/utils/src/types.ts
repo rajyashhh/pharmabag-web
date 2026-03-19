@@ -1,0 +1,120 @@
+// ─── Shared Types ───────────────────────────────────────
+
+export type OrderStatus =
+  | 'PLACED'
+  | 'ACCEPTED'
+  | 'SHIPPED'
+  | 'DELIVERED'
+  | 'CANCELLED'
+  | 'RETURNED'
+  | 'placed'
+  | 'accepted'
+  | 'shipped'
+  | 'delivered'
+  | 'cancelled'
+  | 'returned'
+  | 'pending'
+  | 'confirmed'
+  | 'processing'
+  | 'completed';
+
+export type ApprovalStatus =
+  | 'PENDING'
+  | 'APPROVED'
+  | 'REJECTED'
+  | 'BLOCKED'
+  | 'pending'
+  | 'approved'
+  | 'rejected'
+  | 'blocked';
+
+export interface User {
+  id: string;
+  name: string;
+  phone: string;
+  email?: string;
+  role: 'BUYER' | 'SELLER' | 'ADMIN' | 'buyer' | 'seller' | 'admin';
+  status: ApprovalStatus;
+  avatar?: string;
+  businessName?: string;
+  storeName?: string;
+  isActive?: boolean;
+  isVerified?: boolean;
+  createdAt: string;
+  updatedAt?: string;
+}
+
+export interface Product {
+  id: string;
+  name: string;
+  description?: string;
+  price: number;
+  mrp?: number;
+  categoryId?: string;
+  subCategoryId?: string;
+  manufacturer?: string;
+  chemicalComposition?: string;
+  images?: string[];
+  stock?: number;
+  minimumOrderQuantity?: number;
+  maximumOrderQuantity?: number;
+  gstPercent?: number;
+  expiryDate?: string;
+  sellerId?: string;
+  sellerName?: string;
+  discount?: number;
+  isEnabled?: boolean;
+  approvalStatus?: ApprovalStatus;
+  category?: string;
+  genericName?: string;
+  gst?: number;
+  rating?: number;
+  reviewCount?: number;
+  createdAt: string;
+  updatedAt?: string;
+}
+
+export interface OrderItem {
+  id: string;
+  productId: string;
+  productName?: string;
+  price: number;
+  quantity: number;
+  total?: number;
+}
+
+export interface Order {
+  id: string;
+  orderNumber?: string;
+  buyerId?: string;
+  buyerName?: string;
+  buyerBusiness?: string;
+  sellerId?: string;
+  sellerName?: string;
+  status: OrderStatus;
+  items?: OrderItem[];
+  subtotal?: number;
+  tax?: number;
+  deliveryCharge?: number;
+  total?: number;
+  amount?: number;
+  finalAmount?: number;
+  paymentStatus?: string;
+  createdAt: string;
+  updatedAt?: string;
+}
+
+export interface Payout {
+  id: string;
+  sellerId?: string;
+  sellerName?: string;
+  amount: number;
+  status: 'PENDING' | 'PAID' | 'REJECTED' | 'pending' | 'paid' | 'rejected' | 'completed' | 'processing' | 'failed';
+  method?: string;
+  reference?: string;
+  bankAccount?: string;
+  utr?: string;
+  initiatedAt?: string;
+  createdAt: string;
+  paidAt?: string;
+}

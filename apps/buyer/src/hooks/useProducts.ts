@@ -7,7 +7,8 @@ export function useProducts(params?: {
   page?: number;
   limit?: number;
   search?: string;
-  category?: string;
+  categoryId?: string;
+  subCategoryId?: string;
   manufacturer?: string;
   sortBy?: string;
   sortOrder?: 'asc' | 'desc';

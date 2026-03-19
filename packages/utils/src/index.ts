@@ -1,5 +1,28 @@
+// Types
+export type {
+  User,
+  Product,
+  Order,
+  OrderItem,
+  Payout,
+  OrderStatus,
+  ApprovalStatus,
+} from './types';
+
+// Mock data
+export {
+  SELLER_STATS,
+  ADMIN_STATS,
+  USERS,
+  PRODUCTS,
+  ORDERS,
+  INVENTORY,
+  PAYOUTS,
+  CHART_DATA,
+} from './mockData';
+
 // Currency formatting
-export { formatCurrency, parseCurrency, formatNumber } from './formatCurrency';
+export { formatCurrency, parseCurrency, formatNumber, formatCompact } from './formatCurrency';
 
 // Date formatting
 export { formatDate, formatRelativeTime, toISODateString, formatDateTime } from './formatDate';

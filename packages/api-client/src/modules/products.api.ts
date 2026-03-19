@@ -27,12 +27,20 @@ export const ProductListResponseSchema = z.object({
 
 export const CreateProductSchema = z.object({
   name: z.string().min(1),
-  description: z.string().optional(),
-  price: z.number().positive(),
-  mrp: z.number().positive().optional(),
-  category: z.string().optional(),
+  categoryId: z.string().min(1),
+  subCategoryId: z.string().optional(),
   manufacturer: z.string().optional(),
+  chemicalComposition: z.string().optional(),
+  description: z.string().optional(),
+  mrp: z.number().positive(),
+  gstPercent: z.number().optional(),
+  minimumOrderQuantity: z.number().int().positive().optional(),
+  maximumOrderQuantity: z.number().int().positive().optional(),
   stock: z.number().int().nonnegative().optional(),
+  expiryDate: z.string().optional(),
+  images: z.array(z.string()).optional(),
+  discountType: z.string().optional(),
+  discountMeta: z.record(z.unknown()).optional(),
 });
 
 // ─── Types ──────────────────────────────────────────
@@ -59,7 +67,8 @@ export async function getProducts(params?: {
   page?: number;
   limit?: number;
   search?: string;
-  category?: string;
+  categoryId?: string;
+  subCategoryId?: string;
   manufacturer?: string;
   sortBy?: string;
   sortOrder?: 'asc' | 'desc';

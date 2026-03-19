@@ -31,9 +31,7 @@ export const TicketListResponseSchema = z.object({
 
 export const CreateTicketSchema = z.object({
   subject: z.string().min(1),
-  description: z.string().min(1),
-  category: z.string().optional(),
-  priority: z.enum(['low', 'medium', 'high']).optional(),
+  message: z.string().min(1),
 });
 
 // ─── Types ──────────────────────────────────────────

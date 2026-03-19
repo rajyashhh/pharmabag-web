@@ -39,7 +39,7 @@ export async function getProductReviews(
   productId: string,
   params?: { page?: number; limit?: number },
 ): Promise<ReviewListResponse> {
-  const { data } = await api.get(`/products/${productId}/reviews`, { params });
+  const { data } = await api.get(`/reviews/product/${productId}`, { params });
   return ReviewListResponseSchema.parse(data);
 }
 

@@ -73,6 +73,6 @@ export async function logout(): Promise<void> {
 }
 
 export async function getProfile(): Promise<User> {
-  const { data } = await api.get('/auth/profile');
+  const { data } = await api.get('/auth/me');
   return UserSchema.parse(data);
 }

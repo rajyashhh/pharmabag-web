@@ -39,3 +39,13 @@ export function parseCurrency(value: string): number {
 export function formatNumber(value: number, locale: string = 'en-IN'): string {
   return new Intl.NumberFormat(locale).format(value);
 }
+
+/**
+ * Format a number in compact notation (e.g., 1.2K, 4.8M).
+ */
+export function formatCompact(value: number): string {
+  if (value >= 1_00_00_000) return `${(value / 1_00_00_000).toFixed(1)}Cr`;
+  if (value >= 1_00_000) return `${(value / 1_00_000).toFixed(1)}L`;
+  if (value >= 1_000) return `${(value / 1_000).toFixed(1)}K`;
+  return String(value);
+}
