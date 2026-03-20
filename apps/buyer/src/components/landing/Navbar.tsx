@@ -8,12 +8,14 @@ import { Bell, User, CreditCard, Package, ShoppingCart, HelpCircle } from 'lucid
 import BrandsMegaMenu from '@/components/landing/BrandsMegaMenu';
 import CartDrawer from '@/components/cart/CartDrawer';
 import SearchBar from '@/components/shared/SearchBar';
+import { useAuth } from '@pharmabag/api-client';
 
 interface NavbarProps {
   onLoginClick?: () => void;
 }
 
 export default function Navbar({ onLoginClick }: NavbarProps) {
+  const { isAuthenticated, user } = useAuth();
   const [isBrandsMenuOpen, setIsBrandsMenuOpen] = useState(false);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -74,8 +76,6 @@ export default function Navbar({ onLoginClick }: NavbarProps) {
               ))}
             </div>
 
-            {/* Search Bar */}
-            <SearchBar />
 
             {/* Right Side Actions */}
             <div className="flex items-center gap-4 md:gap-6">
@@ -107,13 +107,23 @@ export default function Navbar({ onLoginClick }: NavbarProps) {
                 </Link>
               </div>
 
-              {/* Login Button */}
-              <button
-                onClick={onLoginClick}
-                className="px-6 py-2.5 rounded-full bg-lime-300 hover:bg-lime-400 font-bold text-gray-900 transition-all hover:shadow-[0_8px_16px_rgba(217,255,0,0.3)] shadow-md text-sm"
-              >
-                Login
-              </button>
+              {/* Login Button / User State */}
+              {!isAuthenticated ? (
+                <button
+                  onClick={onLoginClick}
+                  className="px-6 py-2.5 rounded-full bg-lime-300 hover:bg-lime-400 font-bold text-gray-900 transition-all hover:shadow-[0_8px_16px_rgba(217,255,0,0.3)] shadow-md text-sm"
+                >
+                  Login
+                </button>
+              ) : (
+                <Link
+                  href="/products"
+                  className="px-6 py-2.5 rounded-full bg-gray-900 text-white hover:bg-black font-bold transition-all shadow-md text-sm flex items-center gap-2"
+                >
+                  <User className="w-4 h-4" />
+                  <span>Dashboard</span>
+                </Link>
+              )}
             </div>
           </div>
         </div>

@@ -76,17 +76,22 @@ export async function getProducts(params?: {
   maxPrice?: number;
 }): Promise<ProductListResponse> {
   const { data } = await api.get('/products', { params });
-  return data;
+  return {
+    data: data.data.products,
+    total: data.data.meta.total,
+    page: data.data.meta.page,
+    limit: data.data.meta.limit,
+  };
 }
 
 export async function getProductById(id: string): Promise<Product> {
   const { data } = await api.get(`/products/${id}`);
-  return data;
+  return data.data;
 }
 
 export async function getCategories(): Promise<Category[]> {
   const { data } = await api.get('/products/categories');
-  return data;
+  return data.data;
 }
 
 export async function createProduct(input: CreateProductInput): Promise<Product> {

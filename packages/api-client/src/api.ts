@@ -1,14 +1,35 @@
 import axios, { type AxiosInstance, type AxiosError, type InternalAxiosRequestConfig } from 'axios';
 
-// In-memory token storage
-let accessToken: string | null = null;
+// In-memory + LocalStorage token storage
+let accessToken: string | null = typeof window !== 'undefined' ? localStorage.getItem('pb_access_token') : null;
+let refreshTokenStored: string | null = typeof window !== 'undefined' ? localStorage.getItem('pb_refresh_token') : null;
 
-export function setAccessToken(token: string | null) {
+export function setAccessToken(token: string | null, refreshToken?: string | null) {
   accessToken = token;
+  if (typeof window !== 'undefined') {
+    if (token) {
+      localStorage.setItem('pb_access_token', token);
+    } else {
+      localStorage.removeItem('pb_access_token');
+    }
+    
+    if (refreshToken !== undefined) {
+      refreshTokenStored = refreshToken;
+      if (refreshToken) {
+        localStorage.setItem('pb_refresh_token', refreshToken);
+      } else {
+        localStorage.removeItem('pb_refresh_token');
+      }
+    }
+  }
 }
 
 export function getAccessToken(): string | null {
   return accessToken;
+}
+
+export function getRefreshToken(): string | null {
+  return refreshTokenStored;
 }
 
 // Determine base URL dynamically
@@ -28,7 +49,7 @@ const api: AxiosInstance = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
-  withCredentials: true, // Send cookies for httpOnly refresh tokens
+  withCredentials: true,
 });
 
 // Flag to prevent multiple refresh requests
@@ -85,15 +106,20 @@ api.interceptors.response.use(
       isRefreshing = true;
 
       try {
-        // Attempt to refresh the token (cookie-based)
+        // Attempt to refresh the token
+        const rt = getRefreshToken();
+        if (!rt) throw new Error('No refresh token');
+
+        // Use a clean axios instance to avoid infinite loops
         const { data } = await axios.post(
           `${getBaseURL()}/auth/refresh`,
-          {},
-          { withCredentials: true },
+          { refreshToken: rt },
+          { withCredentials: true }
         );
 
         const newToken = data.accessToken;
-        setAccessToken(newToken);
+        const newRefreshToken = data.refreshToken;
+        setAccessToken(newToken, newRefreshToken);
         processQueue(null, newToken);
 
         if (originalRequest.headers) {
@@ -103,11 +129,7 @@ api.interceptors.response.use(
         return api(originalRequest);
       } catch (refreshError) {
         processQueue(refreshError, null);
-        setAccessToken(null);
-        // Redirect to login page on refresh failure
-        if (typeof window !== 'undefined') {
-          window.location.href = '/login';
-        }
+        setAccessToken(null, null);
         return Promise.reject(refreshError);
       } finally {
         isRefreshing = false;

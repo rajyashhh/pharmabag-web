@@ -30,12 +30,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     async function initAuth() {
       const token = getAccessToken();
-      if (token) {
+      const rt = typeof window !== 'undefined' ? localStorage.getItem('pb_refresh_token') : null;
+      
+      if (token || rt) {
         try {
           const profile = await getProfile();
           setUser(profile);
         } catch {
-          setAccessToken(null);
+          // If profile fetch fails even after refresh attempt, clear everything
+          setAccessToken(null, null);
           setUser(null);
         }
       }

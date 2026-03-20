@@ -1,8 +1,8 @@
-'use client';
-
-import React from 'react';
+import React, { useState } from 'react';
 import Image from 'next/image';
-import { X } from 'lucide-react';
+import { X, Loader2 } from 'lucide-react';
+import { sendOtp, verifyOtp } from '@pharmabag/api-client';
+import { useToast } from '@/components/shared/Toast';
 
 interface LoginModalProps {
   isOpen: boolean;
@@ -17,7 +17,50 @@ const TRUST_HIGHLIGHTS = [
 ];
 
 export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
+  const [phone, setPhone] = useState('');
+  const [otp, setOtp] = useState('');
+  const [step, setStep] = useState<'phone' | 'otp'>('phone');
+  const [isLoading, setIsLoading] = useState(false);
+  const { toast } = useToast();
+
   if (!isOpen) return null;
+
+  const handleSendOtp = async () => {
+    if (phone.length < 10) {
+      toast('Please enter a valid 10-digit phone number', 'error');
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      await sendOtp(phone);
+      setStep('otp');
+      toast('OTP sent successfully!', 'success');
+    } catch (error: any) {
+      toast(error?.response?.data?.message || 'Failed to send OTP', 'error');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleVerifyOtp = async () => {
+    if (otp.length < 4) {
+      toast('Please enter the OTP', 'error');
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      await verifyOtp(phone, otp);
+      toast('Login successful!', 'success');
+      onClose();
+      window.location.href = '/products'; // Redirect to products after login
+    } catch (error: any) {
+      toast(error?.response?.data?.message || 'Invalid OTP', 'error');
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-8 md:p-20 overflow-y-auto">
@@ -73,31 +116,60 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
             <p className="text-xl md:text-2xl text-black font-medium">No Signup Required</p>
           </div>
 
-          <div className="w-full space-y-5">
-            <div className="space-y-1.5">
-              <label className="block text-lg md:text-xl font-semibold text-black/70 text-center">
-                Phone number
-              </label>
-              <input 
-                type="tel" 
-                placeholder=""
-                className="w-full h-14 md:h-16 bg-white rounded-2xl shadow-[0_10px_40px_-15px_rgba(0,0,0,0.1)] text-xl md:text-2xl px-8 text-center focus:ring-4 focus:ring-lime-300 outline-none transition-all"
-              />
-            </div>
+          <form 
+            onSubmit={(e) => {
+              e.preventDefault();
+              step === 'phone' ? handleSendOtp() : handleVerifyOtp();
+            }}
+            className="w-full space-y-5"
+          >
+            {step === 'phone' ? (
+              <div className="space-y-1.5">
+                <label className="block text-lg md:text-xl font-semibold text-black/70 text-center">
+                  Phone number
+                </label>
+                <input 
+                  type="tel" 
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                  placeholder="Enter 10-digit number"
+                  autoFocus
+                  className="w-full h-14 md:h-16 bg-white rounded-2xl shadow-[0_10px_40px_-15px_rgba(0,0,0,0.1)] text-xl md:text-2xl px-8 text-center focus:ring-4 focus:ring-lime-300 outline-none transition-all"
+                />
+              </div>
+            ) : (
+              <div className="space-y-1.5">
+                <label className="block text-lg md:text-xl font-semibold text-black/70 text-center">
+                  OTP
+                </label>
+                <input 
+                  type="text" 
+                  value={otp}
+                  onChange={(e) => setOtp(e.target.value)}
+                  placeholder="_ _ _ _"
+                  autoFocus
+                  className="w-full h-14 md:h-16 bg-white rounded-2xl shadow-[0_10px_40px_-15px_rgba(0,0,0,0.1)] text-xl md:text-2xl px-8 text-center focus:ring-4 focus:ring-lime-300 outline-none transition-all"
+                />
+                <button 
+                  type="button" 
+                  onClick={handleSendOtp}
+                  className="w-full text-center text-lg font-bold text-black/40 hover:text-black/80 tracking-widest transition-colors mt-2"
+                >
+                  RESEND OTP
+                </button>
+              </div>
+            )}
 
-            <div className="space-y-1.5">
-              <label className="block text-lg md:text-xl font-semibold text-black/70 text-center">
-                OTP
-              </label>
-              <input 
-                type="text" 
-                placeholder=""
-                className="w-full h-14 md:h-16 bg-white rounded-2xl shadow-[0_10px_40px_-15px_rgba(0,0,0,0.1)] text-xl md:text-2xl px-8 text-center focus:ring-4 focus:ring-lime-300 outline-none transition-all"
-              />
-            </div>
-
-            <button type="button" className="w-full text-center text-lg font-bold text-black/40 hover:text-black/80 tracking-widest transition-colors">
-              RESEND OTP
+            <button 
+              type="submit"
+              disabled={isLoading}
+              className="w-full h-16 bg-lime-300 hover:bg-lime-400 text-gray-900 rounded-2xl text-xl font-black shadow-xl shadow-lime-300/20 transition-all active:scale-95 flex items-center justify-center gap-3"
+            >
+              {isLoading ? (
+                <Loader2 className="w-6 h-6 animate-spin" />
+              ) : (
+                <span>{step === 'phone' ? 'Send OTP' : 'Continue'}</span>
+              )}
             </button>
 
             {/* App Store Badges */}
@@ -117,7 +189,7 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
                 className="flex-1 h-auto transition-transform hover:scale-105"
               />
             </div>
-          </div>
+          </form>
         </div>
       </div>
     </div>

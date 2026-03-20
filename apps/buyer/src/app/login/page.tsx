@@ -1,10 +1,13 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import Image from 'next/image';
 import { motion } from 'framer-motion';
+import { Loader2 } from 'lucide-react';
 import Navbar from '@/components/landing/Navbar';
 import Footer from '@/components/landing/Footer';
+import { sendOtp, verifyOtp } from '@pharmabag/api-client';
+import { useToast } from '@/components/shared/Toast';
 
 const TRUST_HIGHLIGHTS = [
   { label: 'Fastest Delivery' },
@@ -14,6 +17,48 @@ const TRUST_HIGHLIGHTS = [
 ];
 
 export default function LoginPage() {
+  const [phone, setPhone] = useState('');
+  const [otp, setOtp] = useState('');
+  const [step, setStep] = useState<'phone' | 'otp'>('phone');
+  const [isLoading, setIsLoading] = useState(false);
+  const { toast } = useToast();
+
+  const handleSendOtp = async () => {
+    if (phone.length < 10) {
+      toast('Please enter a valid 10-digit phone number', 'error');
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      await sendOtp(phone);
+      setStep('otp');
+      toast('OTP sent successfully!', 'success');
+    } catch (error: any) {
+      toast(error?.response?.data?.message || 'Failed to send OTP', 'error');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleVerifyOtp = async () => {
+    if (otp.length < 4) {
+      toast('Please enter the OTP', 'error');
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      await verifyOtp(phone, otp);
+      toast('Login successful!', 'success');
+      window.location.href = '/products'; // Redirect to products after login
+    } catch (error: any) {
+      toast(error?.response?.data?.message || 'Invalid OTP', 'error');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
     <main className="min-h-screen relative overflow-hidden bg-[#f8fbfa]">
       <Navbar />
@@ -85,36 +130,64 @@ export default function LoginPage() {
                 <p className="text-lg md:text-xl text-black/50 font-medium">No Signup Required</p>
               </div>
 
-              <div className="space-y-6">
-                <div className="space-y-2">
-                  <label className="block text-sm font-bold text-gray-400 uppercase tracking-widest text-center">
-                    Phone number
-                  </label>
-                  <input 
-                    type="tel" 
-                    placeholder="Enter your 10-digit number"
-                    className="w-full h-16 bg-white/70 rounded-2xl shadow-[0_10px_40px_-15px_rgba(0,0,0,0.08)] text-xl md:text-2xl px-8 text-center focus:ring-4 focus:ring-lime-300 focus:bg-white outline-none transition-all placeholder:text-gray-300 border border-white/50"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <label className="block text-sm font-bold text-gray-400 uppercase tracking-widest text-center">
-                    OTP
-                  </label>
-                  <input 
-                    type="text" 
-                    placeholder="_ _ _ _"
-                    className="w-full h-16 bg-white/70 rounded-2xl shadow-[0_10px_40px_-15px_rgba(0,0,0,0.08)] text-xl md:text-2xl px-8 text-center focus:ring-4 focus:ring-lime-300 focus:bg-white outline-none transition-all placeholder:text-gray-300 border border-white/50"
-                  />
-                </div>
+              <form 
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  step === 'phone' ? handleSendOtp() : handleVerifyOtp();
+                }}
+                className="space-y-6"
+              >
+                {step === 'phone' ? (
+                  <div className="space-y-2">
+                    <label className="block text-sm font-bold text-gray-400 uppercase tracking-widest text-center">
+                      Phone number
+                    </label>
+                    <input 
+                      type="tel" 
+                      value={phone}
+                      onChange={(e) => setPhone(e.target.value)}
+                      placeholder="Enter your 10-digit number"
+                      autoFocus
+                      className="w-full h-16 bg-white/70 rounded-2xl shadow-[0_10px_40px_-15px_rgba(0,0,0,0.08)] text-xl md:text-2xl px-8 text-center focus:ring-4 focus:ring-lime-300 focus:bg-white outline-none transition-all placeholder:text-gray-300 border border-white/50"
+                    />
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    <label className="block text-sm font-bold text-gray-400 uppercase tracking-widest text-center">
+                      OTP
+                    </label>
+                    <input 
+                      type="text" 
+                      value={otp}
+                      onChange={(e) => setOtp(e.target.value)}
+                      placeholder="_ _ _ _"
+                      autoFocus
+                      className="w-full h-16 bg-white/70 rounded-2xl shadow-[0_10px_40px_-15px_rgba(0,0,0,0.08)] text-xl md:text-2xl px-8 text-center focus:ring-4 focus:ring-lime-300 focus:bg-white outline-none transition-all placeholder:text-gray-300 border border-white/50"
+                    />
+                  </div>
+                )}
 
                 <div className="pt-2">
-                  <button className="w-full h-16 bg-lime-300 hover:bg-lime-400 text-gray-900 rounded-2xl text-xl font-black shadow-xl shadow-lime-300/20 transition-all active:scale-95">
-                    Continue
+                  <button 
+                    type="submit"
+                    disabled={isLoading}
+                    className="w-full h-16 bg-lime-300 hover:bg-lime-400 text-gray-900 rounded-2xl text-xl font-black shadow-xl shadow-lime-300/20 transition-all active:scale-95 flex items-center justify-center gap-3"
+                  >
+                    {isLoading ? (
+                      <Loader2 className="w-6 h-6 animate-spin" />
+                    ) : (
+                      <span>{step === 'phone' ? 'Send OTP' : 'Continue'}</span>
+                    )}
                   </button>
-                  <button type="button" className="w-full mt-6 text-center text-sm font-bold text-gray-400 hover:text-black tracking-widest transition-colors uppercase">
-                    RESEND OTP
-                  </button>
+                  {step === 'otp' && (
+                    <button 
+                      type="button" 
+                      onClick={handleSendOtp}
+                      className="w-full mt-6 text-center text-sm font-bold text-gray-400 hover:text-black tracking-widest transition-colors uppercase"
+                    >
+                      RESEND OTP
+                    </button>
+                  )}
                 </div>
 
                 <div className="pt-8 border-t border-gray-100">
@@ -136,7 +209,7 @@ export default function LoginPage() {
                     />
                   </div>
                 </div>
-              </div>
+              </form>
             </div>
           </motion.div>
         </div>

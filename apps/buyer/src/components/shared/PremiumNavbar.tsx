@@ -1,19 +1,20 @@
 'use client';
 
 import Link from 'next/link';
-import Image from 'next/image';
 import { useState, useRef, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Bell, User, CreditCard, ShoppingCart, HelpCircle, Search, Menu, X } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { X } from 'lucide-react';
 import PremiumBrandsMegaMenu from '@/components/shared/PremiumBrandsMegaMenu';
 import CartDrawer from '@/components/cart/CartDrawer';
-import SearchBar from '@/components/shared/SearchBar';
+
+import { useAuth } from '@pharmabag/api-client';
 
 interface PremiumNavbarProps {
   onLoginClick?: () => void;
 }
 
 export default function PremiumNavbar({ onLoginClick }: PremiumNavbarProps) {
+  const { user, isAuthenticated, logout } = useAuth();
   const [isBrandsMenuOpen, setIsBrandsMenuOpen] = useState(false);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
@@ -47,49 +48,30 @@ export default function PremiumNavbar({ onLoginClick }: PremiumNavbarProps) {
 
   return (
     <>
-      <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ease-out flex justify-center py-6 px-4 ${scrolled ? 'pt-4' : 'pt-8'}`}>
-        <motion.div 
-          initial={{ y: -20, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          className={`max-w-[1400px] w-full mx-auto px-8 py-4 rounded-[32px] backdrop-blur-3xl transition-all duration-500 border ${
-            scrolled 
-              ? 'bg-white/60 border-white/60 shadow-[0_32px_64px_-16px_rgba(0,0,0,0.1)] py-3 scale-[0.98]' 
-              : 'bg-white/40 border-white/40 shadow-[0_8px_32px_rgba(0,0,0,0.06)]'
-          }`}
-        >
-          <div className="flex items-center justify-between gap-8">
+      <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ease-out ${scrolled ? 'bg-white/80 backdrop-blur-md shadow-sm py-4' : 'bg-transparent py-5'} px-6 md:px-12`}>
+        <div className="max-w-[1600px] w-full mx-auto flex items-center justify-between">
             {/* Logo Section */}
-            <Link href="/" className="flex items-center gap-3 group relative shrink-0">
-              <div className="absolute -inset-2 bg-lime-400/20 blur-xl rounded-full opacity-0 group-hover:opacity-100 transition-opacity" />
-              <Image
-                src="/pharmabag_logo.png"
-                alt="PharmaBag Logo"
-                width={120}
-                height={36}
-                className="h-8 w-auto relative z-10 transition-transform group-hover:scale-105"
-              />
+            <Link href="/" className="flex items-center gap-2 group transition-transform hover:scale-105">
+              <span className="text-3xl font-black text-black tracking-tighter italic pr-2">P</span>
             </Link>
 
-            {/* Navigation Engine */}
-            <div className="hidden xl:flex items-center gap-1.5 p-1.5 bg-gray-950/5 rounded-2xl border border-white/40">
+            {/* Navigation Links */}
+            <div className="hidden lg:flex items-center gap-10">
               {navItems.map((item) => (
                 item.type === 'menu' ? (
                   <div
                     key={item.label}
                     onMouseEnter={handleMouseEnter}
                     onMouseLeave={handleMouseLeave}
-                    className="relative"
+                    className="relative cursor-pointer py-2"
                   >
-                    <button className="px-5 py-2.5 text-[11px] font-black uppercase tracking-[0.2em] text-gray-500 hover:text-gray-950 hover:bg-white rounded-xl transition-all flex items-center gap-2">
-                      {item.label}
-                      <div className={`w-1 h-1 rounded-full bg-lime-500 transition-all duration-300 ${isBrandsMenuOpen ? 'scale-100 opacity-100' : 'scale-0 opacity-0'}`} />
-                    </button>
+                    <span className="text-[14px] font-semibold text-gray-800 hover:text-black transition-colors">{item.label}</span>
                   </div>
                 ) : (
                   <Link
                     key={item.label}
                     href={item.href}
-                    className="px-5 py-2.5 text-[11px] font-black uppercase tracking-[0.2em] text-gray-500 hover:text-gray-950 hover:bg-white rounded-xl transition-all"
+                    className="text-[14px] font-semibold text-gray-800 hover:text-black transition-colors py-2"
                   >
                     {item.label}
                   </Link>
@@ -97,61 +79,45 @@ export default function PremiumNavbar({ onLoginClick }: PremiumNavbarProps) {
               ))}
             </div>
 
-            {/* Global Search Integration */}
-            <div className="hidden lg:block flex-1 max-w-md">
-               <SearchBar />
-            </div>
+            {/* Right Icons */}
+            <div className="flex items-center gap-6">
+               <button className="text-black hover:text-gray-600 transition-colors">
+                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"/></svg>
+               </button>
+               
+               <button 
+                 onClick={() => setIsCartOpen(true)}
+                 className="text-black hover:text-gray-600 transition-colors"
+               >
+                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+               </button>
 
-            {/* Utility Signals */}
-            <div className="flex items-center gap-3">
-              <div className="hidden md:flex items-center gap-2 pr-6 border-r border-gray-100">
-                {[
-                  { icon: HelpCircle, href: '/support', label: 'Support' },
-                  { icon: CreditCard, href: '/payments', label: 'Ledger' },
-                  { icon: Bell, href: '/notifications', label: 'Signals', badge: true },
-                ].map((action) => (
-                  <Link 
-                    key={action.label}
-                    href={action.href} 
-                    className="w-11 h-11 flex items-center justify-center text-gray-500 hover:text-gray-950 hover:bg-white rounded-xl transition-all relative group shadow-sm bg-white/40 border border-white/60"
-                  >
-                    <action.icon className="w-[18px] h-[18px]" />
-                    {action.badge && <span className="absolute top-2.5 right-2.5 w-2 h-2 bg-rose-500 border-2 border-white rounded-full ring-4 ring-rose-500/10"></span>}
-                    <span className="absolute -bottom-10 left-1/2 -translate-x-1/2 px-3 py-1.5 bg-gray-950 text-white text-[9px] font-black uppercase tracking-widest rounded-lg opacity-0 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0 transition-all whitespace-nowrap z-50 pointer-events-none">
-                      {action.label}
-                    </span>
-                  </Link>
-                ))}
-                
-                <button 
-                  onClick={() => setIsCartOpen(true)}
-                  className="w-11 h-11 flex items-center justify-center text-gray-500 hover:text-gray-950 hover:bg-white rounded-xl transition-all relative group shadow-sm bg-white/40 border border-white/60"
+               <Link href="/profile" className="text-black hover:text-gray-600 transition-colors">
+                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="8" r="5"/><path d="M20 21a8 8 0 0 0-16 0"/></svg>
+               </Link>
+
+              {/* Login/Logout Protocol for Auth */}
+              {!isAuthenticated ? (
+                <button
+                  onClick={onLoginClick}
+                  className="hidden md:flex ml-2 px-5 py-2 rounded-full bg-black text-white hover:bg-gray-800 font-medium text-sm transition-all"
                 >
-                  <ShoppingCart className="w-[18px] h-[18px]" />
-                  <span className="absolute -top-1.5 -right-1.5 bg-lime-400 text-[10px] font-black text-gray-900 px-2 py-0.5 rounded-full border-2 border-white shadow-lg ring-4 ring-lime-400/10">3</span>
-                  <span className="absolute -bottom-10 left-1/2 -translate-x-1/2 px-3 py-1.5 bg-gray-950 text-white text-[9px] font-black uppercase tracking-widest rounded-lg opacity-0 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0 transition-all whitespace-nowrap z-50 pointer-events-none">Cart</span>
+                  Sign In
                 </button>
-
-                <Link 
-                  href="/profile" 
-                  className="w-11 h-11 flex items-center justify-center text-gray-500 hover:text-gray-950 hover:bg-white rounded-xl transition-all relative group shadow-sm bg-white/40 border border-white/60"
-                >
-                  <User className="w-[18px] h-[18px]" />
-                  <span className="absolute -bottom-10 left-1/2 -translate-x-1/2 px-3 py-1.5 bg-gray-950 text-white text-[9px] font-black uppercase tracking-widest rounded-lg opacity-0 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0 transition-all whitespace-nowrap z-50 pointer-events-none">Account</span>
-                </Link>
-              </div>
-
-              {/* Login Protocol */}
-              <button
-                onClick={onLoginClick}
-                className="px-8 py-3.5 rounded-2xl bg-gray-950 text-white hover:bg-black font-black text-[10px] uppercase tracking-[0.2em] transition-all hover:shadow-2xl shadow-xl flex items-center gap-3 group ml-2"
-              >
-                Access Portal
-                <div className="w-1.5 h-1.5 rounded-full bg-lime-400 group-hover:animate-ping" />
-              </button>
+              ) : (
+                <div className="hidden sm:flex items-center gap-3 ml-2 border-l border-gray-300 pl-4">
+                  <span className="text-xs font-bold text-gray-900">{user?.phone}</span>
+                  <button 
+                    onClick={() => logout()}
+                    className="w-8 h-8 flex items-center justify-center bg-gray-100 rounded-full hover:bg-gray-200 transition-colors"
+                    title="Logout"
+                  >
+                    <X className="w-4 h-4 text-black" />
+                  </button>
+                </div>
+              )}
             </div>
-          </div>
-        </motion.div>
+        </div>
       </nav>
 
       <PremiumBrandsMegaMenu

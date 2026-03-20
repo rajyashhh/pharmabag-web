@@ -2,63 +2,96 @@
 
 import Image from 'next/image';
 import { motion } from 'framer-motion';
-import { ShoppingCart, Eye, Star } from 'lucide-react';
+import { Share2, Plus, ArrowUpRight } from 'lucide-react';
 
 interface PremiumProductCardProps {
   name: string;
-  price: string;
+  price: number | string;
+  mrp?: number | string;
   image: string;
+  moq?: number;
+  ptr?: number | string;
+  discountTag?: string; // e.g., "15% Off (9+0)"
   onClick?: () => void;
 }
 
-export default function PremiumProductCard({ name, price, image, onClick }: PremiumProductCardProps) {
+export default function PremiumProductCard({ 
+  name, 
+  price, 
+  mrp,
+  image, 
+  moq = 162,
+  ptr,
+  discountTag = "15% Off (9+0)",
+  onClick 
+}: PremiumProductCardProps) {
   return (
     <motion.div
-      whileHover={{ y: -8 }}
-      transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-      className="bg-white/40 backdrop-blur-3xl border border-white/60 rounded-[40px] p-6 shadow-xl hover:shadow-2xl transition-all duration-500 group cursor-pointer relative overflow-hidden"
+      whileHover={{ y: -4 }}
+      transition={{ duration: 0.3, ease: 'easeOut' }}
+      className="bg-[#f2fcf6] rounded-2xl p-4 shadow-sm hover:shadow-md transition-all duration-300 relative cursor-pointer flex flex-col w-full max-w-[280px]"
       onClick={onClick}
     >
-      <div className="absolute top-6 right-6 z-10">
-         <div className="w-10 h-10 bg-white/80 backdrop-blur-md rounded-2xl flex items-center justify-center border border-white shadow-lg opacity-0 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0 transition-all duration-500">
-            <Eye className="w-5 h-5 text-gray-950" />
-         </div>
+      {/* Top Left Discount Tag - Overlapping */}
+      <div className="absolute -top-3 -left-3 bg-white border border-gray-200 rounded-full px-3 py-1 text-[11px] font-medium text-gray-800 shadow-sm z-10">
+        {discountTag}
       </div>
 
-      <div className="relative aspect-square mb-6 overflow-hidden rounded-[32px] bg-white border border-gray-100 p-8 flex items-center justify-center group-hover:bg-lime-50/30 transition-colors duration-500">
+      {/* Top Actions */}
+      <div className="flex justify-between items-start w-full relative z-10">
+        <button className="p-1.5 text-black hover:text-gray-600 transition-colors mt-2">
+          <Share2 className="w-5 h-5" strokeWidth={1.5} />
+        </button>
+        <button className="p-1 text-black hover:text-gray-600 transition-colors">
+          <Plus className="w-8 h-8" strokeWidth={1.5} />
+        </button>
+      </div>
+
+      {/* Product Image */}
+      <div className="relative aspect-square w-full flex items-center justify-center -mt-4 mb-2">
         <Image
-          src={image}
-          alt={name}
-          fill
-          className="object-contain p-4 mix-blend-multiply group-hover:scale-110 transition-transform duration-700 ease-out"
+           src={image === '/product_placeholder.png' ? '/product_placeholder.png' : image}
+           alt={name}
+           fill
+           className="object-contain p-4 mix-blend-multiply"
         />
-        <div className="absolute inset-x-4 bottom-4 translate-y-full group-hover:translate-y-0 transition-transform duration-500">
-           <button className="w-full h-12 bg-gray-950 text-white rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] shadow-2xl flex items-center justify-center gap-2">
-              <ShoppingCart className="w-3.5 h-3.5" />
-              Quick Add
-           </button>
+        {/* Teal right arrow ribbon */}
+        <div className="absolute right-0 top-1/2 -translate-y-1/2 w-8 h-10 bg-[#14b8a6] flex items-center justify-center -mr-4 clip-path-arrow">
+           {/* The ribbon has a cutout on the left, but CSS clip-path can do it, or just a simple block */}
+           <div className="absolute left-0 w-0 h-0 border-y-[20px] border-y-transparent border-l-[12px] border-l-[#f2fcf6]"></div>
         </div>
       </div>
 
-      <div className="space-y-3">
-        <div className="flex items-center gap-1.5">
-           <div className="flex gap-0.5">
-             {[1, 2, 3, 4, 5].map(i => (
-               <Star key={i} className="w-2.5 h-2.5 fill-lime-400 text-lime-400" />
-             ))}
-           </div>
-           <span className="text-[10px] font-black text-gray-300 uppercase tracking-widest">(48)</span>
-        </div>
-        
-        <div>
-           <h3 className="text-xl font-black text-gray-900 leading-none mb-1 group-hover:text-lime-600 transition-colors">{name}</h3>
-           <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">GSK Pharmaceuticals</p>
+      {/* Product Details */}
+      <div className="flex flex-col flex-grow justify-end">
+        <div className="flex items-center justify-between mb-3">
+          <h3 className="text-xl font-medium text-gray-900 leading-tight truncate pr-2">
+            {name}
+          </h3>
+          <div className="w-6 h-6 bg-black rounded-full flex items-center justify-center flex-shrink-0">
+            <ArrowUpRight className="w-4 h-4 text-white" strokeWidth={3} />
+          </div>
         </div>
 
-        <div className="flex items-center justify-between pt-2 border-t border-gray-100/50">
-          <p className="text-2xl font-black text-gray-950 tracking-tighter">{price}</p>
-          <div className="px-3 py-1 bg-lime-100 rounded-lg">
-             <span className="text-[10px] font-black text-lime-700 uppercase tracking-widest">In Stock</span>
+        <div className="w-full h-px bg-gray-300 mb-3"></div>
+
+        <div className="grid grid-cols-3 gap-2 items-end pb-1 w-full">
+          {/* MRP */}
+          <div className="flex flex-col overflow-hidden">
+             <span className="text-[11px] font-bold text-black uppercase mb-1">MRP</span>
+             <span className="text-sm font-medium text-black truncate">₹{mrp || price}</span>
+          </div>
+          
+          {/* MOQ */}
+          <div className="flex flex-col items-center">
+             <span className="text-[11px] font-bold text-black uppercase mb-1 whitespace-nowrap">MOQ {moq}</span>
+             <span className="text-sm font-medium text-black h-5"></span> {/* Empty space for alignment */}
+          </div>
+
+          {/* N. RATE / PTR */}
+          <div className="flex flex-col items-end overflow-hidden">
+             <span className="text-[11px] font-bold text-black uppercase mb-1 whitespace-nowrap">{ptr ? 'PTR' : 'N. RATE'}</span>
+             <span className="text-sm font-medium text-black truncate">₹{ptr || price}</span>
           </div>
         </div>
       </div>

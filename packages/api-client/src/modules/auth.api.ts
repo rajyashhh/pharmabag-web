@@ -8,7 +8,6 @@ export const SendOtpRequestSchema = z.object({
 });
 
 export const SendOtpResponseSchema = z.object({
-  success: z.boolean(),
   message: z.string(),
 });
 
@@ -19,21 +18,21 @@ export const VerifyOtpRequestSchema = z.object({
 
 export const VerifyOtpResponseSchema = z.object({
   accessToken: z.string(),
+  refreshToken: z.string(),
   user: z.object({
     id: z.string(),
     phone: z.string(),
     role: z.string(),
-    name: z.string().optional(),
-    email: z.string().optional(),
+    email: z.string().nullable().optional(),
   }),
+  isNewUser: z.boolean().optional(),
 });
 
 export const UserSchema = z.object({
   id: z.string(),
   phone: z.string(),
   role: z.string(),
-  name: z.string().optional(),
-  email: z.string().optional(),
+  email: z.string().nullable().optional(),
 });
 
 // ─── Types ──────────────────────────────────────────
@@ -56,14 +55,14 @@ export async function verifyOtp(phone: string, otp: string): Promise<VerifyOtpRe
   const body = VerifyOtpRequestSchema.parse({ phone, otp });
   const { data } = await api.post('/auth/verify-otp', body);
   const parsed = VerifyOtpResponseSchema.parse(data);
-  // Store the access token in memory
-  setAccessToken(parsed.accessToken);
+  // Store tokens in persistent storage
+  setAccessToken(parsed.accessToken, parsed.refreshToken);
   return parsed;
 }
 
 export async function refreshToken(): Promise<{ accessToken: string }> {
   const { data } = await api.post('/auth/refresh');
-  setAccessToken(data.accessToken);
+  setAccessToken(data.accessToken, data.refreshToken);
   return data;
 }
 
