@@ -24,13 +24,13 @@ export function useVerifyOtp() {
   });
 }
 
-export function useSellerMe() {
-  return useQuery({ queryKey: ["seller", "me"], queryFn: getCurrentUser, enabled: false, staleTime: 60_000, retry: 1 });
+export function useSellerMe(enabled: boolean = false) {
+  return useQuery({ queryKey: ["seller", "me"], queryFn: getCurrentUser, enabled, staleTime: 60_000, retry: 1 });
 }
 
 export function useSellerDashboard() { return useQuery({ queryKey: ["seller", "dashboard"], queryFn: getSellerDashboard, staleTime: 60_000, retry: 1 }); }
 
-export function useSellerProfile() { return useQuery({ queryKey: ["seller", "profile"], queryFn: getSellerProfile, staleTime: 60_000, retry: 1 }); }
+export function useSellerProfile(enabled: boolean = true) { return useQuery({ queryKey: ["seller", "profile"], queryFn: getSellerProfile, enabled, staleTime: 60_000, retry: 1 }); }
 export function useUpdateSellerProfile() { const qc = useQueryClient(); return useMutation({ mutationFn: updateSellerProfile, onSuccess: () => void qc.invalidateQueries({ queryKey: ["seller", "profile"] }) }); }
 
 export function useSellerProducts() { return useQuery({ queryKey: ["seller", "products"], queryFn: getSellerProducts, staleTime: 60_000, retry: 1 }); }

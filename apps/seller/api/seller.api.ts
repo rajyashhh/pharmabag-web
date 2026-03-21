@@ -7,13 +7,13 @@ export async function getSellerDashboard() {
 }
 
 export async function getSellerProfile() {
-  const { data } = await apiClient.get<{ profile: any }>("/sellers/profile");
-  return data.profile;
+  const { data } = await apiClient.get<any>("/sellers/profile");
+  return data.data ?? data.profile ?? data;
 }
 
 export async function updateSellerProfile(payload: Partial<any>) {
-  const { data } = await apiClient.patch<{ profile: any }>("/sellers/profile", payload);
-  return data.profile;
+  const { data } = await apiClient.patch<any>("/sellers/profile", payload);
+  return data.data ?? data.profile ?? data;
 }
 
 import { ProductPayload } from "@pharmabag/utils";

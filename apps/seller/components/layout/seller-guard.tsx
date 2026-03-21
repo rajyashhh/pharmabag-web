@@ -2,15 +2,30 @@
 import { useEffect, useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { useSellerAuth } from "@/store";
+import { useSellerProfile } from "@/hooks/useSeller";
 import { Loader2, ShieldAlert, Store } from "lucide-react";
 import { SellerSidebar } from "./sidebar";
 import { motion } from "framer-motion";
 
 export function SellerGuard({ children }: { children: React.ReactNode }) {
-  const { user, isAuth } = useSellerAuth();
+  const { user, isAuth, setUser } = useSellerAuth();
   const router = useRouter();
   const pathname = usePathname();
   const [mounted, setMounted] = useState(false);
+
+  const { data: currentProfile, isSuccess } = useSellerProfile(isAuth && mounted);
+
+  useEffect(() => {
+    if (isSuccess && currentProfile) {
+      const state = useSellerAuth.getState();
+      if (state.user && (state.user as any).sellerProfile?.verificationStatus !== currentProfile.verificationStatus) {
+        state.setUser({
+          ...state.user,
+          sellerProfile: currentProfile
+        } as any);
+      }
+    }
+  }, [isSuccess, currentProfile]);
 
   useEffect(() => {
     setMounted(true);
@@ -38,7 +53,7 @@ export function SellerGuard({ children }: { children: React.ReactNode }) {
   }
 
   // Check verification status
-  const verificationStatus = user.sellerProfile?.verificationStatus || "UNVERIFIED";
+  const verificationStatus = (user as any).sellerProfile?.verificationStatus || "UNVERIFIED";
 
   if (verificationStatus === "UNVERIFIED" && pathname !== "/onboarding" && pathname !== "/auth") {
     router.replace("/onboarding");
@@ -88,6 +103,16 @@ export function SellerGuard({ children }: { children: React.ReactNode }) {
             </button>
           </div>
         </motion.div>
+      </div>
+    );
+  }
+
+  // Redirect away from onboarding if already submitted/verified
+  if (pathname === "/onboarding" && verificationStatus !== "UNVERIFIED") {
+    router.replace("/dashboard");
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-background">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
   }
