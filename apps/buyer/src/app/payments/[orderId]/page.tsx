@@ -39,7 +39,7 @@ export default function PaymentIdPage({ params }: { params: { orderId: string } 
   if (isLoading) {
     return (
       <main className="min-h-screen bg-gray-50/50">
-        <Navbar />
+        <Navbar showUserActions={true} />
         <div className="pt-32 pb-20 flex items-center justify-center">
           <Loader2 className="w-8 h-8 text-gray-300 animate-spin" />
         </div>
@@ -54,7 +54,7 @@ export default function PaymentIdPage({ params }: { params: { orderId: string } 
 
   return (
     <main className="min-h-screen bg-gray-50/50">
-      <Navbar />
+      <Navbar showUserActions={true} />
       
       <div className="pt-32 pb-20 max-w-4xl mx-auto px-6">
         <motion.div

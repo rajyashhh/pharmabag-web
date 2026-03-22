@@ -50,8 +50,12 @@ export default function PremiumNavbar({ onLoginClick }: PremiumNavbarProps) {
 
   return (
     <>
-      <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ease-out ${scrolled ? 'bg-white/80 backdrop-blur-md shadow-sm py-4' : 'bg-transparent py-5'} px-6 md:px-12`}>
-        <div className="max-w-[1600px] w-full mx-auto flex items-center justify-between">
+      <nav className="fixed top-0 left-0 right-0 z-50 flex justify-center pt-4 px-4 transition-all duration-300 ease-out">
+        <div className={`max-w-[1600px] w-full mx-auto flex items-center justify-between px-6 md:px-12 py-3 rounded-2xl transition-all duration-300 ${
+          scrolled 
+            ? 'bg-white/80 backdrop-blur-md shadow-sm border border-gray-100' 
+            : 'bg-white/40 backdrop-blur-xl shadow-xl border border-white/40'
+        }`}>
             {/* Logo Section */}
             <Link href="/" className="flex items-center gap-2 group transition-transform hover:scale-105">
               <span className="text-3xl font-black text-black tracking-tighter italic pr-2">P</span>
@@ -111,7 +115,7 @@ export default function PremiumNavbar({ onLoginClick }: PremiumNavbarProps) {
                   <div className="hidden sm:flex items-center gap-3 ml-2 border-l border-gray-300 pl-4">
                     <span className="text-xs font-bold text-gray-900">{user?.phone}</span>
                     <button 
-                      onClick={() => logout()}
+                       onClick={() => logout()}
                       className="w-8 h-8 flex items-center justify-center bg-gray-100 rounded-full hover:bg-gray-200 transition-colors"
                       title="Logout"
                     >

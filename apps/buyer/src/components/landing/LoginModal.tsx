@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import Image from 'next/image';
 import { X, Loader2 } from 'lucide-react';
-import { sendOtp, verifyOtp } from '@pharmabag/api-client';
+import { useAuth } from '@pharmabag/api-client';
 import { useToast } from '@/components/shared/Toast';
 
 interface LoginModalProps {
@@ -22,6 +22,7 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
   const [step, setStep] = useState<'phone' | 'otp'>('phone');
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
+  const { sendOtp, verifyOtp } = useAuth();
 
   if (!isOpen) return null;
 
@@ -71,19 +72,9 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
 
     setIsLoading(true);
     try {
-      // Dev bypass: Skip real verifyOtp for this specific number
-      if (cleanPhone === '9831864222' && (otp === '123456' || otp === '1234')) {
-        toast('Login successful! (Dev Bypass)', 'success');
-        localStorage.setItem('pb_access_token', 'dev_bypass_token');
-        onClose();
-        window.location.href = '/products';
-        return;
-      }
-
       await verifyOtp(cleanPhone, otp);
       toast('Login successful!', 'success');
       onClose();
-      window.location.href = '/products'; // Redirect to products after login
     } catch (error: any) {
       console.error('Verify OTP failed:', error?.response?.data || error);
       toast(error?.response?.data?.message || 'Invalid OTP', 'error');

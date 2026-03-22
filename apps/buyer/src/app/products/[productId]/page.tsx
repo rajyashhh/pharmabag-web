@@ -36,7 +36,7 @@ export default function ProductDetailPage({ params }: { params: { productId: str
   if (isLoading) {
     return (
       <main className="min-h-screen bg-gray-50/50">
-        <Navbar />
+        <Navbar showUserActions={true} />
         <div className="pt-32 pb-20 flex items-center justify-center">
           <Loader2 className="w-8 h-8 text-gray-300 animate-spin" />
         </div>
@@ -48,7 +48,7 @@ export default function ProductDetailPage({ params }: { params: { productId: str
   if (isError || !product) {
     return (
       <main className="min-h-screen bg-gray-50/50">
-        <Navbar />
+        <Navbar showUserActions={true} />
         <div className="pt-32 pb-20 flex flex-col items-center justify-center gap-3">
           <AlertCircle className="w-10 h-10 text-gray-300" />
           <p className="text-lg font-bold text-gray-400">Product not found</p>
@@ -64,7 +64,7 @@ export default function ProductDetailPage({ params }: { params: { productId: str
 
   return (
     <main className="min-h-screen bg-gray-50/50">
-      <Navbar />
+      <Navbar showUserActions={true} />
 
       <div className="pt-32 pb-20 max-w-6xl mx-auto px-6">
         <motion.div
@@ -101,7 +101,7 @@ export default function ProductDetailPage({ params }: { params: { productId: str
             <div className="space-y-8">
               <div>
                 {product.category && (
-                  <span className="text-[10px] font-bold text-lime-700 bg-lime-100 px-3 py-1 rounded-full uppercase tracking-widest">
+                  <span className="text-[10px] font-bold text-lime-700 bg-lime-100 px-3 py-1 rounded-2xl uppercase tracking-widest">
                     {typeof product.category === 'object' ? (product.category as any).name : product.category}
                   </span>
                 )}
@@ -118,7 +118,7 @@ export default function ProductDetailPage({ params }: { params: { productId: str
                   {product.mrp && product.mrp > (product.price ?? 0) && (
                     <>
                       <span className="text-xl text-gray-400 line-through">₹{product.mrp.toLocaleString('en-IN')}</span>
-                      <span className="text-sm font-bold text-green-600 bg-green-50 px-3 py-1 rounded-full">
+                      <span className="text-sm font-bold text-green-600 bg-green-50 px-3 py-1 rounded-2xl">
                         {discount}% OFF
                       </span>
                     </>
@@ -159,7 +159,7 @@ export default function ProductDetailPage({ params }: { params: { productId: str
                     whileTap={{ scale: 0.95 }}
                     onClick={handleAddToCart}
                     disabled={addToCart.isPending || added}
-                    className={`flex-1 py-4 rounded-full font-bold flex items-center justify-center gap-3 shadow-xl transition-all disabled:opacity-70 ${
+                    className={`flex-1 py-4 rounded-2xl font-bold flex items-center justify-center gap-3 shadow-xl transition-all disabled:opacity-70 ${
                       added
                         ? 'bg-green-500 text-white shadow-green-200'
                         : 'bg-gray-900 text-white hover:bg-black shadow-black/20'
@@ -268,7 +268,7 @@ function ReviewsSection({ productId }: { productId: string }) {
         <h2 className="text-2xl font-bold text-gray-900 tracking-tight">Reviews</h2>
         <button
           onClick={() => setShowForm(!showForm)}
-          className="px-6 py-2.5 bg-gray-900 text-white rounded-full font-bold text-sm flex items-center gap-2 hover:bg-black transition-colors shadow-lg"
+          className="px-6 py-2.5 bg-gray-900 text-white rounded-2xl font-bold text-sm flex items-center gap-2 hover:bg-black transition-colors shadow-lg"
         >
           <Star className="w-4 h-4" />
           Write a Review
@@ -328,14 +328,14 @@ function ReviewsSection({ productId }: { productId: string }) {
               <div className="flex justify-end gap-3">
                 <button
                   onClick={() => setShowForm(false)}
-                  className="px-6 py-2.5 bg-white border border-gray-200 rounded-full font-bold text-sm text-gray-600 hover:bg-gray-50"
+                  className="px-6 py-2.5 bg-white border border-gray-200 rounded-2xl font-bold text-sm text-gray-600 hover:bg-gray-50"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={handleSubmit}
                   disabled={createReview.isPending || !newComment.trim()}
-                  className="px-6 py-2.5 bg-lime-300 text-gray-900 rounded-full font-bold text-sm flex items-center gap-2 hover:bg-lime-400 shadow-lg shadow-lime-200 transition-all disabled:opacity-50"
+                  className="px-6 py-2.5 bg-lime-300 text-gray-900 rounded-2xl font-bold text-sm flex items-center gap-2 hover:bg-lime-400 shadow-lg shadow-lime-200 transition-all disabled:opacity-50"
                 >
                   <Send className="w-4 h-4" />
                   {createReview.isPending ? 'Submitting...' : 'Submit Review'}

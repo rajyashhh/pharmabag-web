@@ -10,21 +10,17 @@ import Footer from '@/components/landing/Footer';
 import LoginModal from '@/components/landing/LoginModal';
 
 export default function HomePage() {
-  const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
+  const [isLoginOpen, setIsLoginOpen] = useState(false);
 
   return (
     <main className="w-full">
-      <Navbar onLoginClick={() => setIsLoginModalOpen(true)} />
+      <Navbar showUserActions={true} onLoginClick={() => setIsLoginOpen(true)} />
       <HeroSection />
       <ProductCarousel />
       <TrustSection />
       <Testimonials />
       <Footer />
-      
-      <LoginModal 
-        isOpen={isLoginModalOpen} 
-        onClose={() => setIsLoginModalOpen(false)} 
-      />
+      <LoginModal isOpen={isLoginOpen} onClose={() => setIsLoginOpen(false)} />
     </main>
   );
 }

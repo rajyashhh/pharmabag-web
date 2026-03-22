@@ -102,7 +102,7 @@ export default function CartDrawer({ isOpen, onClose }: { isOpen: boolean; onClo
                           </button>
                         </div>
                         <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-3 bg-gray-50 rounded-full px-3 py-1">
+                          <div className="flex items-center gap-3 bg-gray-50 rounded-2xl px-3 py-1">
                             <button
                               onClick={() => updateItem.mutate({ itemId: item.id, quantity: Math.max(1, item.quantity - 1) })}
                               disabled={updateItem.isPending || item.quantity <= 1}
@@ -148,7 +148,7 @@ export default function CartDrawer({ isOpen, onClose }: { isOpen: boolean; onClo
                 <Link
                   href="/orders"
                   onClick={onClose}
-                  className="w-full py-4 bg-lime-300 hover:bg-lime-400 text-gray-900 rounded-full font-bold shadow-lg shadow-lime-200 transition-all block text-center"
+                  className="w-full py-4 bg-lime-300 hover:bg-lime-400 text-gray-900 rounded-2xl font-bold shadow-lg shadow-lime-200 transition-all block text-center"
                 >
                   Checkout Now
                 </Link>

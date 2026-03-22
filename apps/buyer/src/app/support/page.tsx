@@ -49,7 +49,7 @@ export default function SupportPage() {
 
   return (
     <main className="min-h-screen bg-gray-50/50">
-      <Navbar />
+      <Navbar showUserActions={true} />
       
       <div className="pt-32 pb-20 max-w-5xl mx-auto px-6">
         <motion.div

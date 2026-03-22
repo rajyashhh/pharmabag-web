@@ -43,7 +43,7 @@ export default function NotificationsPage() {
 
   return (
     <main className="min-h-screen bg-gray-50/50">
-      <Navbar />
+      <Navbar showUserActions={true} />
       
       <div className="pt-32 pb-20 max-w-4xl mx-auto px-6">
         <motion.div

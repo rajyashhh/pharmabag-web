@@ -4,7 +4,8 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Search, Filter, SlidersHorizontal, ChevronRight, LayoutGrid, List } from 'lucide-react';
 import Navbar from '@/components/landing/Navbar';
-import PremiumFooter from '@/components/shared/PremiumFooter';
+import LoginModal from '@/components/landing/LoginModal';
+import Footer from '@/components/landing/Footer';
 import PremiumProductCard from '@/components/shared/PremiumProductCard';
 import { SkeletonCard } from '@/components/shared/LoaderSkeleton';
 import EmptyState from '@/components/shared/EmptyState';
@@ -16,6 +17,7 @@ export default function ProductsPage() {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [priceRange, setPriceRange] = useState<[number, number]>([0, 10000]);
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+  const [isLoginOpen, setIsLoginOpen] = useState(false);
   
   const debouncedSearch = useDebounce(searchTerm, 500);
   
@@ -35,7 +37,7 @@ export default function ProductsPage() {
       <div className="absolute bottom-[-10%] left-[-5%] w-[50vw] h-[50vw] bg-[#e6fa64] rounded-full mix-blend-multiply filter blur-[150px] opacity-50 animate-pulse pointer-events-none" style={{ animationDuration: '10s', animationDelay: '2s' }}></div>
       <div className="absolute top-[30%] right-[-10%] w-[40vw] h-[40vw] bg-[#9cf1d4] rounded-full mix-blend-multiply filter blur-[130px] opacity-40 scroll-smooth pointer-events-none"></div>
 
-<Navbar showUserActions={true} />
+<Navbar showUserActions={true} onLoginClick={() => setIsLoginOpen(true)} />
 
       <div className="pt-24 pb-20 px-4 md:px-8 max-w-[1600px] mx-auto relative z-10 w-full">
         <div className="flex flex-col lg:flex-row gap-8">
@@ -121,7 +123,7 @@ export default function ProductsPage() {
                 <ChevronRight className="w-4 h-4 opacity-30" />
                 <span className="cursor-pointer hover:text-black transition-colors">Products</span>
                 <ChevronRight className="w-4 h-4 opacity-30" />
-                <div className="flex items-center gap-1 font-black text-gray-900 bg-white/60 px-4 py-2 rounded-full cursor-pointer ml-1 shadow-sm border border-white/40 group hover:bg-white transition-all">
+                <div className="flex items-center gap-1 font-black text-gray-900 bg-white/60 px-4 py-2 rounded-2xl cursor-pointer ml-1 shadow-sm border border-white/40 group hover:bg-white transition-all">
                   <span className="uppercase tracking-tight">{selectedCategory ? categories.find((c: any) => c.slug === selectedCategory)?.name || 'ALL PRODUCTS' : 'ALL PRODUCTS'}</span>
                   <ChevronRight className="w-4 h-4 rotate-90 opacity-40 group-hover:opacity-100 transition-opacity" />
                 </div>
@@ -137,7 +139,7 @@ export default function ProductsPage() {
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                     placeholder="Search for Brands, Products or manufacturers"
-                    className="w-full h-12 bg-white/60 backdrop-blur-md border border-white/60 rounded-full pl-6 pr-14 text-sm text-gray-900 font-bold placeholder:text-gray-400 focus:ring-4 focus:ring-lime-300 focus:bg-white outline-none transition-all shadow-sm"
+                    className="w-full h-12 bg-white/60 backdrop-blur-md border border-white/60 rounded-2xl pl-6 pr-14 text-sm text-gray-900 font-bold placeholder:text-gray-400 focus:ring-4 focus:ring-lime-300 focus:bg-white outline-none transition-all shadow-sm"
                   />
                   <button className="absolute inset-y-0 right-5 flex items-center text-gray-400 hover:text-gray-900 transition-colors">
                     <Search className="w-5 h-5" strokeWidth={3} />
@@ -227,7 +229,8 @@ export default function ProductsPage() {
         </div>
       </div>
 
-      <PremiumFooter />
+      <Footer />
+      <LoginModal isOpen={isLoginOpen} onClose={() => setIsLoginOpen(false)} />
     </main>
   );
 }

@@ -26,30 +26,23 @@ export default function ProductCarousel() {
   const scrollProducts = [...FEATURED_PRODUCTS, ...FEATURED_PRODUCTS, ...FEATURED_PRODUCTS];
 
   return (
-    <div className="w-full py-12 overflow-hidden bg-gray-50/30">
-      <div className="max-w-7xl mx-auto px-6 mb-8 flex items-end justify-between">
-        <div>
-          <h2 className="text-3xl font-bold text-gray-900 tracking-tight">Featured Products</h2>
-          <p className="text-gray-500 font-medium mt-1">Top picks for your pharmacy</p>
-        </div>
-      </div>
-
+    <div className="w-full py-12 overflow-hidden bg-transparent">
       {/* Auto-scrolling Container using Framer Motion for better control */}
       <div className="relative">
         <motion.div 
-          animate={{ x: [0, -1600] }}
+          animate={{ x: [0, -1360] }}
           transition={{ 
             x: {
               repeat: Infinity,
               repeatType: "loop",
-              duration: 40,
+              duration: 30,
               ease: "linear",
             }
           }}
-          className="flex gap-8 px-6"
+          className="flex gap-2.5 px-6"
         >
           {scrollProducts.map((product, index) => (
-            <div key={`${product.id}-${index}`} className="flex-shrink-0 w-72">
+            <div key={`${product.id}-${index}`} className="flex-shrink-0 w-40">
               <ProductCard 
                 name={product.name} 
                 price={product.price} 
@@ -59,9 +52,7 @@ export default function ProductCarousel() {
           ))}
         </motion.div>
         
-        {/* Gradient overlays for smooth fading edges */}
-        <div className="absolute top-0 left-0 w-32 h-full bg-gradient-to-r from-gray-50 to-transparent z-10 pointers-events-none"></div>
-        <div className="absolute top-0 right-0 w-32 h-full bg-gradient-to-l from-gray-50 to-transparent z-10 pointers-events-none"></div>
+
       </div>
     </div>
   );

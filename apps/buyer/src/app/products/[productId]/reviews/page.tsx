@@ -65,7 +65,7 @@ export default function ProductReviewsPage() {
 
   return (
     <main className="min-h-screen bg-[#f8fbfa]">
-      <Navbar />
+      <Navbar showUserActions={true} />
 
       <div className="pt-32 pb-20 px-6 max-w-5xl mx-auto">
         <Link 

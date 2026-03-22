@@ -39,7 +39,7 @@ export default function OrderIdPage({ params }: { params: { orderId: string } })
   if (isLoading) {
     return (
       <main className="min-h-screen bg-gray-50/50">
-        <Navbar />
+        <Navbar showUserActions={true} />
         <div className="pt-32 pb-20 flex items-center justify-center">
           <Loader2 className="w-8 h-8 text-gray-300 animate-spin" />
         </div>
@@ -51,7 +51,7 @@ export default function OrderIdPage({ params }: { params: { orderId: string } })
   if (isError || !order) {
     return (
       <main className="min-h-screen bg-gray-50/50">
-        <Navbar />
+        <Navbar showUserActions={true} />
         <div className="pt-32 pb-20 flex flex-col items-center justify-center gap-4">
           <AlertCircle className="w-12 h-12 text-red-300" />
           <p className="text-lg font-bold text-gray-400">Order not found</p>
@@ -74,7 +74,7 @@ export default function OrderIdPage({ params }: { params: { orderId: string } })
 
   return (
     <main className="min-h-screen bg-gray-50/50">
-      <Navbar />
+      <Navbar showUserActions={true} />
       
       <div className="pt-32 pb-20 max-w-5xl mx-auto px-6">
         <motion.div
@@ -87,7 +87,7 @@ export default function OrderIdPage({ params }: { params: { orderId: string } })
               <ChevronLeft className="w-5 h-5" />
               Back to Orders
             </Link>
-            <span className={`px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider ${badge.cls}`}>
+            <span className={`px-4 py-1.5 rounded-2xl text-xs font-bold uppercase tracking-wider ${badge.cls}`}>
               {badge.label}
             </span>
           </div>
@@ -158,7 +158,7 @@ export default function OrderIdPage({ params }: { params: { orderId: string } })
                     onError: () => toast('Failed to cancel order', 'error'),
                   })}
                   disabled={cancelMutation.isPending}
-                  className="flex items-center gap-2 px-6 py-3 bg-red-50 hover:bg-red-100 text-red-600 rounded-full font-bold transition-colors disabled:opacity-50"
+                  className="flex items-center gap-2 px-6 py-3 bg-red-50 hover:bg-red-100 text-red-600 rounded-2xl font-bold transition-colors disabled:opacity-50"
                 >
                   <XCircle className="w-4 h-4" />
                   {cancelMutation.isPending ? 'Cancelling...' : 'Cancel Order'}
@@ -179,7 +179,7 @@ export default function OrderIdPage({ params }: { params: { orderId: string } })
 
                 <Link
                   href={`/payments/${order.id}`}
-                  className="w-full mt-8 py-4 bg-lime-300 hover:bg-lime-400 text-gray-900 rounded-full font-bold transition-all shadow-lg shadow-lime-200/50 flex items-center justify-center gap-2"
+                  className="w-full mt-8 py-4 bg-lime-300 hover:bg-lime-400 text-gray-900 rounded-2xl font-bold transition-all shadow-lg shadow-lime-200/50 flex items-center justify-center gap-2"
                 >
                   <FileText className="w-5 h-5" />
                   View Payment

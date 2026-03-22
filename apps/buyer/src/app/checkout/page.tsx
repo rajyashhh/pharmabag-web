@@ -13,8 +13,8 @@ import {
   ShieldCheck,
   ArrowLeft
 } from 'lucide-react';
-import PremiumNavbar from '@/components/shared/PremiumNavbar';
-import PremiumFooter from '@/components/shared/PremiumFooter';
+import Navbar from '@/components/landing/Navbar';
+import Footer from '@/components/landing/Footer';
 import { useCart } from '@/hooks/useCart';
 import { useCreateOrder } from '@/hooks/useOrders';
 import { useBuyerProfile } from '@/hooks/useBuyerProfile';
@@ -88,7 +88,7 @@ export default function CheckoutPage() {
 
   return (
     <main className="min-h-screen bg-[#f8fbfa]">
-      <PremiumNavbar />
+      <Navbar showUserActions={true} />
 
       <div className="pt-32 pb-20 px-6 max-w-7xl mx-auto">
         <Link 
@@ -298,7 +298,7 @@ export default function CheckoutPage() {
         </div>
       </div>
 
-      <PremiumFooter />
+      <Footer />
     </main>
   );
 }

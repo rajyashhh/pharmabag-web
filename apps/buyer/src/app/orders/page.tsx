@@ -27,7 +27,7 @@ export default function OrdersPage() {
 
   return (
     <main className="min-h-screen bg-gray-50/50">
-      <Navbar />
+      <Navbar showUserActions={true} />
 
       <div className="pt-32 pb-20 max-w-5xl mx-auto px-6">
         <motion.div
@@ -53,7 +53,7 @@ export default function OrdersPage() {
                 key={s}
                 whileTap={{ scale: 0.95 }}
                 onClick={() => { setStatusFilter(s); setPage(1); }}
-                className={`px-4 py-2 rounded-full text-xs font-bold uppercase tracking-wider transition-all whitespace-nowrap ${
+                className={`px-4 py-2 rounded-2xl text-xs font-bold uppercase tracking-wider transition-all whitespace-nowrap ${
                   statusFilter === s
                     ? 'bg-gray-900 text-white shadow-lg'
                     : 'bg-white text-gray-500 hover:bg-gray-100 border border-gray-100'
@@ -118,7 +118,7 @@ export default function OrdersPage() {
                 whileTap={{ scale: 0.95 }}
                 onClick={() => setPage((p) => Math.max(1, p - 1))}
                 disabled={page <= 1}
-                className="px-6 py-2 bg-white border border-gray-100 rounded-full font-bold text-sm text-gray-600 hover:bg-gray-50 disabled:opacity-30"
+                className="px-6 py-2 bg-white border border-gray-100 rounded-2xl font-bold text-sm text-gray-600 hover:bg-gray-50 disabled:opacity-30"
               >
                 Previous
               </motion.button>
@@ -127,7 +127,7 @@ export default function OrdersPage() {
                 whileTap={{ scale: 0.95 }}
                 onClick={() => setPage((p) => p + 1)}
                 disabled={orders.length < 10}
-                className="px-6 py-2 bg-white border border-gray-100 rounded-full font-bold text-sm text-gray-600 hover:bg-gray-50 disabled:opacity-30"
+                className="px-6 py-2 bg-white border border-gray-100 rounded-2xl font-bold text-sm text-gray-600 hover:bg-gray-50 disabled:opacity-30"
               >
                 Next
               </motion.button>
