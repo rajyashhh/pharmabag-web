@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { api } from '../api';
+import { PRODUCTS } from '@pharmabag/utils';
 
 // ─── Schemas ────────────────────────────────────────
 
@@ -75,23 +76,85 @@ export async function getProducts(params?: {
   minPrice?: number;
   maxPrice?: number;
 }): Promise<ProductListResponse> {
-  const { data } = await api.get('/products', { params });
-  return {
-    data: data.data.products,
-    total: data.data.meta.total,
-    page: data.data.meta.page,
-    limit: data.data.meta.limit,
-  };
+  try {
+    const { data } = await api.get('/products', { params });
+    return {
+      data: data.data.products,
+      total: data.data.meta.total,
+      page: data.data.meta.page,
+      limit: data.data.meta.limit,
+    };
+  } catch (error) {
+    // Fallback to mock data when backend is unavailable
+    console.warn('Backend unavailable, using mock products data');
+    const mockProducts = PRODUCTS as any[];
+    
+    // Filter by search term if provided
+    let filtered = mockProducts;
+    if (params?.search) {
+      const searchLower = params.search.toLowerCase();
+      filtered = filtered.filter(p => 
+        p.name.toLowerCase().includes(searchLower) ||
+        p.description?.toLowerCase().includes(searchLower) ||
+        p.manufacturer?.toLowerCase().includes(searchLower)
+      );
+    }
+    
+    // Filter by price range if provided
+    if (params?.minPrice !== undefined || params?.maxPrice !== undefined) {
+      filtered = filtered.filter(p => {
+        const price = p.price;
+        if (params.minPrice !== undefined && price < params.minPrice) return false;
+        if (params.maxPrice !== undefined && price > params.maxPrice) return false;
+        return true;
+      });
+    }
+
+    const page = params?.page || 1;
+    const limit = params?.limit || 10;
+    const start = (page - 1) * limit;
+    const paginatedData = filtered.slice(start, start + limit);
+    
+    return {
+      data: paginatedData,
+      total: filtered.length,
+      page,
+      limit,
+    };
+  }
 }
 
 export async function getProductById(id: string): Promise<Product> {
-  const { data } = await api.get(`/products/${id}`);
-  return data.data;
+  try {
+    const { data } = await api.get(`/products/${id}`);
+    return data.data;
+  } catch (error) {
+    // Fallback to mock data when backend is unavailable
+    const mockProducts = PRODUCTS as any[];
+    const product = mockProducts.find(p => p.id === id);
+    if (!product) {
+      throw new Error('Product not found');
+    }
+    return product;
+  }
 }
 
 export async function getCategories(): Promise<Category[]> {
-  const { data } = await api.get('/products/categories');
-  return data.data;
+  try {
+    const { data } = await api.get('/products/categories');
+    return data.data;
+  } catch (error) {
+    // Fallback to mock categories when backend is unavailable
+    console.warn('Backend unavailable, using default categories');
+    return [
+      { id: 'cat1', name: 'Tablets & Capsules', slug: 'tablets-capsules' },
+      { id: 'cat2', name: 'Supplements', slug: 'supplements' },
+      { id: 'cat3', name: 'Pain Relief', slug: 'pain-relief' },
+      { id: 'cat4', name: 'Cold & Cough', slug: 'cold-cough' },
+      { id: 'cat5', name: 'Digestive Health', slug: 'digestive' },
+      { id: 'cat6', name: 'Vitamins', slug: 'vitamins' },
+    ];
+  }
 }
 
 export async function createProduct(input: CreateProductInput): Promise<Product> {
