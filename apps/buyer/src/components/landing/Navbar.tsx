@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Bell, User, CreditCard, Package, ShoppingCart, HelpCircle } from 'lucide-react';
 import BrandsMegaMenu from '@/components/landing/BrandsMegaMenu';
@@ -19,7 +19,12 @@ export default function Navbar({ onLoginClick, showUserActions = false }: Navbar
   const { isAuthenticated, user } = useAuth();
   const [isBrandsMenuOpen, setIsBrandsMenuOpen] = useState(false);
   const [isCartOpen, setIsCartOpen] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
   const navItems = ['Brands', 'Ethical', 'Generic', 'Surgical', 'Ayurvedic', 'OTC'];
 
   const handleMouseEnter = () => {
@@ -81,7 +86,7 @@ export default function Navbar({ onLoginClick, showUserActions = false }: Navbar
             {/* Right Side Actions */}
             <div className="flex items-center gap-4 md:gap-6">
               {/* User Action Icons - Only show when logged in and showUserActions is true */}
-              {isAuthenticated && showUserActions && (
+              {isMounted && isAuthenticated && showUserActions && (
               <div className="hidden md:flex items-center gap-4 pr-6 border-r border-gray-200">
                 <Link href="/support" className="p-2 text-gray-700 hover:text-sky-600 transition-colors relative group">
                   <HelpCircle className="w-5 h-5" />
@@ -112,21 +117,25 @@ export default function Navbar({ onLoginClick, showUserActions = false }: Navbar
               )}
 
               {/* Login Button / User State */}
-              {!isAuthenticated ? (
-                <button
-                  onClick={onLoginClick}
-                  className="px-6 py-2.5 rounded-full bg-lime-300 hover:bg-lime-400 font-bold text-gray-900 transition-all hover:shadow-[0_8px_16px_rgba(217,255,0,0.3)] shadow-md text-sm"
-                >
-                  Login
-                </button>
+              {isMounted ? (
+                !isAuthenticated ? (
+                  <button
+                    onClick={onLoginClick}
+                    className="px-6 py-2.5 rounded-full bg-lime-300 hover:bg-lime-400 font-bold text-gray-900 transition-all hover:shadow-[0_8px_16px_rgba(217,255,0,0.3)] shadow-md text-sm"
+                  >
+                    Login
+                  </button>
+                ) : (
+                  <Link
+                    href="/products"
+                    className="px-6 py-2.5 rounded-full bg-gray-900 text-white hover:bg-black font-bold transition-all shadow-md text-sm flex items-center gap-2"
+                  >
+                    <User className="w-4 h-4" />
+                    <span>Dashboard</span>
+                  </Link>
+                )
               ) : (
-                <Link
-                  href="/products"
-                  className="px-6 py-2.5 rounded-full bg-gray-900 text-white hover:bg-black font-bold transition-all shadow-md text-sm flex items-center gap-2"
-                >
-                  <User className="w-4 h-4" />
-                  <span>Dashboard</span>
-                </Link>
+                <div className="px-6 py-2.5 rounded-full bg-gray-200 text-gray-400 font-bold text-sm">Loading...</div>
               )}
             </div>
           </div>
