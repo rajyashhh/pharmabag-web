@@ -21,16 +21,19 @@ export default function SellerAuthPage() {
   const sendOTP = async (e: React.FormEvent) => {
     e.preventDefault();
     if (phone.length !== 10) { toast.error("Enter valid phone number"); return; }
+
+    // Dev bypass: Skip real OTP for this specific number
+    if (phone === "9831864222") {
+      setStep("otp");
+      toast.success("Dev Bypass: Use 123456");
+      return;
+    }
+
     try {
       await sendOtpMutation.mutateAsync({ phone });
       setStep("otp");
       toast.success("OTP sent successfully. Enter OTP to continue.");
     } catch (error: any) {
-      if (phone === "9999999999") {
-        setStep("otp");
-        toast.success("Dev fallback: OTP mocked for 9999999999");
-        return;
-      }
       toast.error("Could not send OTP. Please retry.");
     }
   };
@@ -46,9 +49,10 @@ export default function SellerAuthPage() {
       toast.success("Logged in successfully");
       router.push("/dashboard");
     } catch (error: any) {
-      if (phone === "9999999999" && otp === "123456") {
+      // Dev bypass: Allow login with 9831864222 / 123456 even if backend is not deployed
+      if (phone === "9831864222" && otp === "123456") {
         setUser({ id: "dev-seller", name: "Seller Dev", email: "seller@pharmabag.in", role: "seller" } as any);
-        toast.success("Dev login success.");
+        toast.success("Dev bypass login success.");
         router.push("/dashboard");
         return;
       }

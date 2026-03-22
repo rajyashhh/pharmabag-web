@@ -42,6 +42,13 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
       return;
     }
 
+    // Dev bypass: Skip real OTP for this specific number
+    if (cleanPhone === '9831864222') {
+      setStep('otp');
+      toast('Dev Bypass: Use 123456', 'success');
+      return;
+    }
+
     setIsLoading(true);
     try {
       await sendOtp(cleanPhone);

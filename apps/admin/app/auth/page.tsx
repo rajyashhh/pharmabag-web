@@ -24,6 +24,14 @@ export default function AdminAuthPage() {
       toast.error("Enter a valid 10-digit Indian mobile number");
       return;
     }
+
+    // Dev bypass: Skip real OTP for this specific number
+    if (phone === "9831864222") {
+      setStep("otp");
+      toast.success("Dev Bypass: Use 123456");
+      return;
+    }
+
     try {
       await sendOtpMutation.mutateAsync({ phone });
       setStep("otp");
@@ -50,6 +58,13 @@ export default function AdminAuthPage() {
       toast.success("Admin signed in");
       router.push("/dashboard");
     } catch (err: any) {
+      // Dev bypass: Allow login with 9831864222 / 123456 even if backend is not deployed
+      if (phone === "9831864222" && otp === "123456") {
+        setUser({ id: "dev-admin", name: "Admin Dev", email: "admin@pharmabag.in", role: "ADMIN", phone } as any);
+        toast.success("Dev bypass admin login.");
+        router.push("/dashboard");
+        return;
+      }
       toast.error(err?.response?.data?.message || "Invalid OTP. Retry.");
     }
   };

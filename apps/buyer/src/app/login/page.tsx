@@ -23,15 +23,31 @@ export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
 
+  const sanitizePhone = (input: string) => {
+    let cleaned = input.replace(/\D/g, '');
+    if (cleaned.length === 12 && cleaned.startsWith('91')) {
+      cleaned = cleaned.substring(2);
+    }
+    return cleaned;
+  };
+
   const handleSendOtp = async () => {
-    if (phone.length < 10) {
+    const cleanPhone = sanitizePhone(phone);
+    if (cleanPhone.length !== 10) {
       toast('Please enter a valid 10-digit phone number', 'error');
+      return;
+    }
+
+    // Dev bypass: Skip real OTP for this specific number
+    if (cleanPhone === '9831864222') {
+      setStep('otp');
+      toast('Dev Bypass: Use 123456', 'success');
       return;
     }
 
     setIsLoading(true);
     try {
-      await sendOtp(phone);
+      await sendOtp(cleanPhone);
       setStep('otp');
       toast('OTP sent successfully!', 'success');
     } catch (error: any) {
@@ -42,6 +58,7 @@ export default function LoginPage() {
   };
 
   const handleVerifyOtp = async () => {
+    const cleanPhone = sanitizePhone(phone);
     if (otp.length < 4) {
       toast('Please enter the OTP', 'error');
       return;
@@ -49,9 +66,9 @@ export default function LoginPage() {
 
     setIsLoading(true);
     try {
-      await verifyOtp(phone, otp);
+      await verifyOtp(cleanPhone, otp);
       toast('Login successful!', 'success');
-      window.location.href = '/products'; // Redirect to products after login
+      window.location.href = '/products';
     } catch (error: any) {
       toast(error?.response?.data?.message || 'Invalid OTP', 'error');
     } finally {
