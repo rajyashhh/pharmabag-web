@@ -64,8 +64,8 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
   const handleVerifyOtp = async () => {
     const cleanPhone = sanitizePhone(phone);
     console.log('Verifying OTP:', { phone: cleanPhone, otp });
-    if (otp.length < 4) {
-      toast('Please enter the OTP', 'error');
+    if (otp.length !== 6) {
+      toast('Please enter the 6-digit OTP', 'error');
       return;
     }
 
@@ -176,7 +176,8 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
                   type="text" 
                   value={otp}
                   onChange={(e) => setOtp(e.target.value)}
-                  placeholder="_ _ _ _"
+                  placeholder="_ _ _ _ _ _"
+                  maxLength={6}
                   autoFocus
                   className="w-full h-14 md:h-16 bg-white rounded-2xl shadow-[0_10px_40px_-15px_rgba(0,0,0,0.1)] text-xl md:text-2xl px-8 text-center focus:ring-4 focus:ring-lime-300 outline-none transition-all"
                 />

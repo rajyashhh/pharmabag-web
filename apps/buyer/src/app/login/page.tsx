@@ -59,13 +59,21 @@ export default function LoginPage() {
 
   const handleVerifyOtp = async () => {
     const cleanPhone = sanitizePhone(phone);
-    if (otp.length < 4) {
-      toast('Please enter the OTP', 'error');
+    if (otp.length !== 6) {
+      toast('Please enter the 6-digit OTP', 'error');
       return;
     }
 
     setIsLoading(true);
     try {
+      // Dev bypass: skip real verifyOtp for the dev phone number
+      if (cleanPhone === '9831864222' && (otp === '123456' || otp === '1234')) {
+        toast('Login successful! (Dev Bypass)', 'success');
+        localStorage.setItem('pb_access_token', 'dev_bypass_token');
+        window.location.href = '/products';
+        return;
+      }
+
       await verifyOtp(cleanPhone, otp);
       toast('Login successful!', 'success');
       window.location.href = '/products';
@@ -177,7 +185,8 @@ export default function LoginPage() {
                       type="text" 
                       value={otp}
                       onChange={(e) => setOtp(e.target.value)}
-                      placeholder="_ _ _ _"
+                      placeholder="_ _ _ _ _ _"
+                      maxLength={6}
                       autoFocus
                       className="w-full h-16 bg-white/70 rounded-2xl shadow-[0_10px_40px_-15px_rgba(0,0,0,0.08)] text-xl md:text-2xl px-8 text-center focus:ring-4 focus:ring-lime-300 focus:bg-white outline-none transition-all placeholder:text-gray-300 border border-white/50"
                     />

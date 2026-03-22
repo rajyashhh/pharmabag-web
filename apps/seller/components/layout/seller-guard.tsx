@@ -13,7 +13,7 @@ export function SellerGuard({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const [mounted, setMounted] = useState(false);
 
-  const { data: currentProfile, isSuccess } = useSellerProfile(isAuth && mounted);
+  const { data: currentProfile, isSuccess, isError, error } = useSellerProfile(isAuth && mounted);
 
   useEffect(() => {
     if (isSuccess && currentProfile) {
@@ -58,8 +58,8 @@ export function SellerGuard({ children }: { children: React.ReactNode }) {
   // Check verification status
   const verificationStatus = (user as any).sellerProfile?.verificationStatus || "UNVERIFIED";
 
-  if (verificationStatus === "UNVERIFIED" && pathname !== "/onboarding" && pathname !== "/auth") {
-    router.replace("/onboarding");
+  if (verificationStatus === "UNVERIFIED" && pathname !== "/dashboard" && pathname !== "/auth") {
+    router.replace("/dashboard");
     return (
       <div className="flex min-h-screen items-center justify-center bg-background">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -122,7 +122,20 @@ export function SellerGuard({ children }: { children: React.ReactNode }) {
 
   // Allow through to auth and onboarding layouts as is
   if (pathname === "/auth" || pathname === "/onboarding") {
-    return <>{children}</>;
+    return (
+      <>
+        {pathname === "/onboarding" && (
+          <div className="fixed top-0 left-0 w-full bg-red-600 text-white p-4 z-[9999] text-xs font-mono break-all whitespace-pre-wrap">
+            <p>DEBUG: verificationStatus = {String(verificationStatus)}</p>
+            <p>DEBUG: isSuccess = {String(isSuccess)}</p>
+            <p>DEBUG: currentProfile = {JSON.stringify(currentProfile)}</p>
+            <p>DEBUG: isError = {String(isError)} (Error: {error?.message || "none"})</p>
+            <p>DEBUG: latest user.sellerProfile = {JSON.stringify((user as any)?.sellerProfile)}</p>
+          </div>
+        )}
+        {children}
+      </>
+    );
   }
 
   // Fully verified users get the main dashboard layout
