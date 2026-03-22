@@ -25,15 +25,26 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
 
   if (!isOpen) return null;
 
+  const sanitizePhone = (input: string) => {
+    // Remove all non-numeric characters
+    let cleaned = input.replace(/\D/g, '');
+    // If it starts with 91 and is 12 digits, strip the 91
+    if (cleaned.length === 12 && cleaned.startsWith('91')) {
+      cleaned = cleaned.substring(2);
+    }
+    return cleaned;
+  };
+
   const handleSendOtp = async () => {
-    if (phone.length < 10) {
+    const cleanPhone = sanitizePhone(phone);
+    if (cleanPhone.length !== 10) {
       toast('Please enter a valid 10-digit phone number', 'error');
       return;
     }
 
     setIsLoading(true);
     try {
-      await sendOtp(phone);
+      await sendOtp(cleanPhone);
       setStep('otp');
       toast('OTP sent successfully!', 'success');
     } catch (error: any) {
@@ -44,6 +55,7 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
   };
 
   const handleVerifyOtp = async () => {
+    const cleanPhone = sanitizePhone(phone);
     if (otp.length < 4) {
       toast('Please enter the OTP', 'error');
       return;
@@ -51,7 +63,7 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
 
     setIsLoading(true);
     try {
-      await verifyOtp(phone, otp);
+      await verifyOtp(cleanPhone, otp);
       toast('Login successful!', 'success');
       onClose();
       window.location.href = '/products'; // Redirect to products after login
