@@ -104,6 +104,20 @@ export const PRODUCTS: Product[] = [
     isEnabled: true,
     createdAt: '2024-02-10T13:00:00Z',
   },
+  {
+    id: 'p4',
+    name: 'Aspirin 500mg',
+    description: 'Fast-acting pain reliever and fever reducer',
+    price: 45,
+    mrp: 65,
+    manufacturer: 'Bayer',
+    stock: 350,
+    rating: 4.6,
+    reviewCount: 89,
+    isEnabled: true,
+    images: ['https://images.unsplash.com/photo-1584308666744-24d5f3f2208f?w=400&h=400&fit=crop'],
+    createdAt: '2024-02-15T10:00:00Z',
+  },
 ];
 
 // ─── Mock Orders ────────────────────────────────────

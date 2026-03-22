@@ -18,6 +18,7 @@ export default function PremiumNavbar({ onLoginClick }: PremiumNavbarProps) {
   const [isBrandsMenuOpen, setIsBrandsMenuOpen] = useState(false);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
   
   const navItems = [
@@ -30,6 +31,7 @@ export default function PremiumNavbar({ onLoginClick }: PremiumNavbarProps) {
   ];
 
   useEffect(() => {
+    setIsMounted(true);
     const handleScroll = () => setScrolled(window.scrollY > 20);
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
@@ -97,24 +99,28 @@ export default function PremiumNavbar({ onLoginClick }: PremiumNavbarProps) {
                </Link>
 
               {/* Login/Logout Protocol for Auth */}
-              {!isAuthenticated ? (
-                <button
-                  onClick={onLoginClick}
-                  className="hidden md:flex ml-2 px-5 py-2 rounded-full bg-black text-white hover:bg-gray-800 font-medium text-sm transition-all"
-                >
-                  Sign In
-                </button>
-              ) : (
-                <div className="hidden sm:flex items-center gap-3 ml-2 border-l border-gray-300 pl-4">
-                  <span className="text-xs font-bold text-gray-900">{user?.phone}</span>
-                  <button 
-                    onClick={() => logout()}
-                    className="w-8 h-8 flex items-center justify-center bg-gray-100 rounded-full hover:bg-gray-200 transition-colors"
-                    title="Logout"
+              {isMounted ? (
+                !isAuthenticated ? (
+                  <button
+                    onClick={onLoginClick}
+                    className="hidden md:flex ml-2 px-5 py-2 rounded-full bg-black text-white hover:bg-gray-800 font-medium text-sm transition-all"
                   >
-                    <X className="w-4 h-4 text-black" />
+                    Sign In
                   </button>
-                </div>
+                ) : (
+                  <div className="hidden sm:flex items-center gap-3 ml-2 border-l border-gray-300 pl-4">
+                    <span className="text-xs font-bold text-gray-900">{user?.phone}</span>
+                    <button 
+                      onClick={() => logout()}
+                      className="w-8 h-8 flex items-center justify-center bg-gray-100 rounded-full hover:bg-gray-200 transition-colors"
+                      title="Logout"
+                    >
+                      <X className="w-4 h-4 text-black" />
+                    </button>
+                  </div>
+                )
+              ) : (
+                <div className="hidden md:flex ml-2 px-5 py-2 rounded-full bg-gray-200 text-gray-400 font-medium text-sm">Loading...</div>
               )}
             </div>
         </div>
