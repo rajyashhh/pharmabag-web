@@ -20,12 +20,16 @@ export function SellerGuard({ children }: { children: React.ReactNode }) {
 
   useEffect(() => { setMounted(true); }, []);
 
+  const verificationStatus = getVerificationStatus(user);
+
   useEffect(() => {
     if (!mounted) return;
     if (!isAuth && pathname !== "/auth") {
       router.replace("/auth");
+    } else if (isAuth && verificationStatus === "UNVERIFIED" && pathname !== "/onboarding" && pathname !== "/auth") {
+      router.replace("/onboarding");
     }
-  }, [isAuth, pathname, mounted, router]);
+  }, [isAuth, verificationStatus, pathname, mounted, router]);
 
   // SSR / hydration guard
   if (!mounted) return null;
@@ -44,8 +48,6 @@ export function SellerGuard({ children }: { children: React.ReactNode }) {
     );
   }
 
-  const verificationStatus = getVerificationStatus(user);
-
   // Onboarding page — render directly without dashboard layout
   if (pathname === "/onboarding") {
     if (verificationStatus !== "UNVERIFIED") {
@@ -55,7 +57,10 @@ export function SellerGuard({ children }: { children: React.ReactNode }) {
     return <>{children}</>;
   }
 
-  // UNVERIFIED sellers can view other pages now. (Removed restrictive redirect to /dashboard)
+  // UNVERIFIED sellers MUST be on onboarding
+  if (verificationStatus === "UNVERIFIED" && pathname !== "/onboarding") {
+    return null; // The useEffect will handle the redirect
+  }
 
   // PENDING — show review message
   if (verificationStatus === "PENDING") {
