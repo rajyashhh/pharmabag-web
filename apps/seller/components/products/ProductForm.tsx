@@ -27,7 +27,7 @@ const formSchema = z.object({
   expire_date: z.string().refine((val) => new Date(val) > new Date(), {
     message: "Expiry date must be in the future",
   }),
-  bulk: z.boolean(),
+  gst_percent: z.number().min(0, "GST must be >= 0"),
   image_list: z.array(z.string()).optional().default([]),
   custom_extra_fields: z.array(z.object({ key: z.string().min(1), value: z.string().min(1) })),
   discount_details: z.object({
@@ -68,7 +68,7 @@ export function ProductForm({ defaultValues, productId }: { defaultValues?: Part
       min_order_qty: 1,
       max_order_qty: 100,
       expire_date: "",
-      bulk: false,
+      gst_percent: 12,
       image_list: [],
       custom_extra_fields: [],
       discount_details: { type: "ptr_discount" } as DiscountDetails,
@@ -117,7 +117,7 @@ export function ProductForm({ defaultValues, productId }: { defaultValues?: Part
         expiryDate: new Date(data.expire_date).toISOString(),
         minimumOrderQuantity: data.min_order_qty,
         maximumOrderQuantity: data.max_order_qty,
-        bulk: data.bulk,
+        gstPercent: data.gst_percent,
         ...(realImages.length > 0 && { images: realImages }),
         ...(Object.keys(extra_fields).length > 0 && { extraFields: extra_fields }),
         ...(data.discount_details?.type && {
@@ -211,15 +211,10 @@ export function ProductForm({ defaultValues, productId }: { defaultValues?: Part
             <Input label="Current Stock *" type="number" error={errors.stock?.message} {...register("stock", { valueAsNumber: true })} />
             <Input label="Expiry Date *" type="date" error={errors.expire_date?.message} {...register("expire_date")} />
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2">
             <Input label="Minimum Order Qty *" type="number" error={errors.min_order_qty?.message} {...register("min_order_qty", { valueAsNumber: true })} />
             <Input label="Maximum Order Qty *" type="number" error={errors.max_order_qty?.message} {...register("max_order_qty", { valueAsNumber: true })} />
-          </div>
-          <div className="flex items-center gap-3 pt-2">
-            <label className="text-sm font-medium text-foreground cursor-pointer flex items-center gap-2">
-              <input type="checkbox" className="w-4 h-4 rounded text-primary focus:ring-primary accent-primary" {...register("bulk")} />
-              Bulk Order Available
-            </label>
+            <Input label="GST Percentage (%) *" type="number" error={errors.gst_percent?.message} {...register("gst_percent", { valueAsNumber: true })} />
           </div>
         </div>
 
