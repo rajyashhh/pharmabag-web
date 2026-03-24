@@ -24,25 +24,35 @@ export default function ProductsPage() {
   
   const debouncedSearch = useDebounce(searchTerm, 500);
   
-  const { data: productsData, isLoading, isError } = useProducts({
-    search: debouncedSearch,
-    categoryId: selectedCategory || undefined,
-    manufacturer: selectedManufacturer || undefined,
-    page,
-    limit: 20,
-    minPrice: priceRange[0] > 0 ? priceRange[0] : undefined,
-    maxPrice: priceRange[1] < 10000 ? priceRange[1] : undefined,
-  });
-
-  const { data: categoriesData } = useCategories();
-  const { data: manufacturersData } = useManufacturers();
-  const { data: citiesData } = useCities();
+  // MOCKED API CALLS for preview
+  const productsData = { data: [], total: 0 };
+  const categoriesData: any[] = [];
+  const manufacturersData: any[] = [];
+  const citiesData: any[] = [];
+  
   const categories = Array.isArray(categoriesData) ? categoriesData : (categoriesData as any)?.data ?? [];
   const manufacturers = manufacturersData ?? [];
   const cities = citiesData ?? [];
-  const products = productsData?.data ?? [];
-  const totalProducts = productsData?.total ?? 0;
-  const totalPages = Math.ceil(totalProducts / 20);
+  
+  // Dummy data — all start with 0 items in cart
+  const DUMMY_PRODUCTS = [
+    { id: '1', name: 'Ozempic Glycosesd..', price: 3345.53, mrp: 3345.53, image: '/products/pharma_bottle.png', moq: 162, ptr: 3345.53, discountTag: '15% Off (9+0)', rateLabel: 'N. RATE' },
+    { id: '2', name: 'Ozempic Glycosesd..', price: 3345.53, mrp: 3345.53, image: '/products/pharma_bottle.png', moq: 171, ptr: 3345.53, discountTag: '15% Off (9+0)', rateLabel: 'N. RATE' },
+    { id: '3', name: 'Ozempic Glycosesd..', price: 3345.53, mrp: 3345.53, image: '/products/pharma_bottle.png', moq: 3, ptr: 3345.53, discountTag: '15% Off (9+0)', rateLabel: 'N. RATE' },
+    { id: '4', name: 'Ozempic Glycosesd..', price: 3345.53, mrp: 3345.53, image: '/products/pharma_bottle.png', moq: 66, ptr: 3345.53, discountTag: '15% Off (9+0)', rateLabel: 'PTR' },
+    { id: '5', name: 'Ozempic Glycosesd..', price: 3345.53, mrp: 3345.53, image: '/products/pharma_bottle.png', moq: 71, ptr: 3345.53, discountTag: '15% Off (9+0)', rateLabel: 'PTR', infoIcon: true },
+    { id: '6', name: 'Ozempic Glycosesd..', price: 3345.53, mrp: 3345.53, image: '/products/pharma_bottle.png', moq: 87, ptr: 3345.53, discountTag: '15% Off (9+0)', rateLabel: 'PTR', infoIcon: true },
+    { id: '7', name: 'Ozempic Glycosesd..', price: 3345.53, mrp: 3345.53, image: '/products/pharma_bottle.png', moq: 162, ptr: 3345.53, discountTag: '15% Off (9+0)', rateLabel: 'N. RATE' },
+    { id: '8', name: 'Ozempic Glycosesd..', price: 3345.53, mrp: 3345.53, image: '/products/pharma_bottle.png', moq: 171, ptr: 3345.53, discountTag: '15% Off (9+0)', rateLabel: 'N. RATE' },
+  ];
+
+  const products = DUMMY_PRODUCTS;
+  const totalProducts = DUMMY_PRODUCTS.length;
+  const totalPages = 1;
+
+  // Override loading to false for dummy data preview
+  const isLoading = false;
+  const isError = false;
 
   return (
     <main className="min-h-screen bg-[#f2fcf6] relative overflow-hidden">
@@ -60,21 +70,20 @@ export default function ProductsPage() {
             {/* Filter by Price */}
             <div className="bg-white/80 backdrop-blur-xl rounded-2xl p-6 shadow-sm border border-white/60">
               <h3 className="text-[11px] font-bold text-gray-800 uppercase tracking-widest mb-4">Filter By Price</h3>
-              <div className="flex items-center gap-3">
+              <div className="flex flex-col gap-3">
                 <input
                   type="number"
                   placeholder="Min"
                   value={priceRange[0] || ''}
                   onChange={(e) => { setPriceRange([Number(e.target.value) || 0, priceRange[1]]); setPage(1); }}
-                  className="flex-1 bg-gray-50/50 border border-gray-100 rounded-lg p-2 text-center text-xs text-gray-700 font-medium outline-none focus:ring-1 focus:ring-emerald-400"
+                  className="w-full bg-gray-50/50 border border-gray-100 rounded-lg p-2 text-center text-xs text-gray-700 font-medium outline-none focus:ring-1 focus:ring-emerald-400"
                 />
-                <span className="text-gray-400 text-xs">–</span>
                 <input
                   type="number"
                   placeholder="Max"
                   value={priceRange[1] === 10000 ? '' : priceRange[1]}
                   onChange={(e) => { setPriceRange([priceRange[0], Number(e.target.value) || 10000]); setPage(1); }}
-                  className="flex-1 bg-gray-50/50 border border-gray-100 rounded-lg p-2 text-center text-xs text-gray-700 font-medium outline-none focus:ring-1 focus:ring-emerald-400"
+                  className="w-full bg-gray-50/50 border border-gray-100 rounded-lg p-2 text-center text-xs text-gray-700 font-medium outline-none focus:ring-1 focus:ring-emerald-400"
                 />
               </div>
             </div>
@@ -179,14 +188,14 @@ export default function ProductsPage() {
               <div className="flex items-center gap-2 text-sm font-medium text-gray-500 flex-wrap">
                 <span className="cursor-pointer hover:text-black transition-colors">Home</span>
                 <ChevronRight className="w-4 h-4 opacity-30" />
-                <span className="cursor-pointer hover:text-black transition-colors">Products</span>
+                <span className="cursor-pointer hover:text-black transition-colors">Furniture</span>
                 <ChevronRight className="w-4 h-4 opacity-30" />
                 <div className="flex items-center gap-1 font-black text-gray-900 bg-white/60 px-4 py-2 rounded-2xl cursor-pointer ml-1 shadow-sm border border-white/40 group hover:bg-white transition-all">
-                  <span className="uppercase tracking-tight">{selectedCategory ? categories.find((c: any) => c.slug === selectedCategory)?.name || 'ALL PRODUCTS' : 'ALL PRODUCTS'}</span>
+                  <span className="uppercase tracking-tight">NORDIC SHELF</span>
                   <ChevronRight className="w-4 h-4 rotate-90 opacity-40 group-hover:opacity-100 transition-opacity" />
                 </div>
                 <span className="text-[11px] font-black text-gray-400 uppercase tracking-widest ml-4">
-                  {totalProducts > 0 ? `${totalProducts} Products` : `${products.length} Products`}
+                  123 Products
                 </span>
               </div>
 
@@ -209,14 +218,14 @@ export default function ProductsPage() {
               </div>
             </div>
 
-            <AnimatePresence mode="wait">
+            <AnimatePresence mode="wait" initial={false}>
               {isLoading ? (
                 <motion.div
                   key="loading"
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
-                  className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-6"
+                  className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-5"
                 >
                   {Array.from({ length: 10 }).map((_, i) => (
                     <div key={i} className="aspect-[3/4] rounded-2xl bg-white/20 animate-pulse" />
@@ -258,32 +267,31 @@ export default function ProductsPage() {
                   />
                 </motion.div>
               ) : (
-                <motion.div
+                <div
                   key="grid"
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-6 gap-y-10"
+                  className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-5 gap-y-8"
                 >
                   {products.map((product: any, idx: number) => (
-                    <motion.div
+                    <div
                       key={product.id}
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: idx * 0.05 }}
                     >
                       <PremiumProductCard
                         name={product.name}
                         price={product.price || product.mrp || 0}
                         mrp={product.mrp}
-                        image={product.images && product.images.length > 0 ? product.images[0].url : '/product_placeholder.png'}
-                        moq={product.minimumOrderQuantity || 1}
+                        image={product.image || (product.images && product.images.length > 0 ? product.images[0].url : '/product_placeholder.png')}
+                        moq={product.moq || product.minimumOrderQuantity || 1}
                         ptr={product.ptr}
-                        discountTag={product.discountMeta?.tag}
+                        discountTag={product.discountTag || product.discountMeta?.tag}
+                        cartQuantity={product.cartQuantity}
+                        plusColor={product.plusColor}
+                        rateLabel={product.rateLabel}
+                        infoIcon={product.infoIcon}
                         onClick={() => window.location.href = `/products/${product.id}`}
                       />
-                    </motion.div>
+                    </div>
                   ))}
-                </motion.div>
+                </div>
               )}
             </AnimatePresence>
 

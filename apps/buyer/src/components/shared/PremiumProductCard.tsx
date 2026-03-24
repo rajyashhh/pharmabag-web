@@ -2,8 +2,8 @@
 
 import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Share2, Plus, ArrowUpRight, RotateCcw, Bookmark } from 'lucide-react';
-import { useState } from 'react';
+import { Share2, Plus, Minus, ArrowUpRight, Trash2, Heart } from 'lucide-react';
+import { useState, useRef } from 'react';
 
 interface PremiumProductCardProps {
   name: string;
@@ -12,9 +12,14 @@ interface PremiumProductCardProps {
   image: string;
   moq?: number;
   ptr?: number | string;
-  discountTag?: string; // e.g., "15% Off (9+0)"
+  discountTag?: string;
   isBookmarked?: boolean;
+  cartQuantity?: number | null;
+  plusColor?: string;
+  rateLabel?: string;
+  infoIcon?: boolean; 
   onBookmark?: (bookmarked: boolean) => void;
+  onCartChange?: (quantity: number | null) => void;
   onClick?: () => void;
 }
 
@@ -27,149 +32,235 @@ export default function PremiumProductCard({
   ptr,
   discountTag,
   isBookmarked = false,
+  cartQuantity = null,
+  rateLabel = 'N. RATE',
+  infoIcon = false,
   onBookmark,
+  onCartChange,
   onClick 
 }: PremiumProductCardProps) {
-  const [count, setCount] = useState<number | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const [localBookmarked, setLocalBookmarked] = useState(isBookmarked);
+  const [count, setCount] = useState<number>(cartQuantity ?? 0);
+  const [bookmarked, setBookmarked] = useState(isBookmarked);
+  // Track whether an action button was clicked so we can suppress card navigation
+  const actionClicked = useRef(false);
 
-  const handlePlusClick = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    setIsLoading(true);
-    // Simulate count start
-    setTimeout(() => {
-      setCount(1);
-      setIsLoading(false);
-    }, 600);
+  const handleCardClick = () => {
+    // Only navigate if no action button was clicked
+    if (actionClicked.current) {
+      actionClicked.current = false;
+      return;
+    }
+    onClick?.();
   };
 
-  const handleBookmarkClick = (e: React.MouseEvent) => {
+  const addToCart = (e: React.MouseEvent) => {
     e.stopPropagation();
-    const newState = !localBookmarked;
-    setLocalBookmarked(newState);
-    onBookmark?.(newState);
+    e.preventDefault();
+    actionClicked.current = true;
+    setCount(1);
+    onCartChange?.(1);
   };
+
+  const increment = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    e.preventDefault();
+    actionClicked.current = true;
+    setCount(prev => {
+      const next = prev + 1;
+      onCartChange?.(next);
+      return next;
+    });
+  };
+
+  const decrement = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    e.preventDefault();
+    actionClicked.current = true;
+    setCount(prev => {
+      const next = prev - 1;
+      onCartChange?.(next > 0 ? next : null);
+      return next;
+    });
+  };
+
+  const removeFromCart = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    e.preventDefault();
+    actionClicked.current = true;
+    setCount(0);
+    onCartChange?.(null);
+  };
+
+  const toggleBookmark = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    e.preventDefault();
+    actionClicked.current = true;
+    setBookmarked(prev => {
+      onBookmark?.(!prev);
+      return !prev;
+    });
+  };
+
+  const hasItems = count > 0;
 
   return (
-    <motion.div
-      whileHover={{ y: -4, scale: 1.01 }}
-      whileTap={{ scale: 0.98 }}
-      transition={{ duration: 0.2, ease: 'easeOut' }}
-      className="relative flex flex-col w-full max-w-[280px] rounded-[32px] overflow-hidden bg-[#f2fcf6] shadow-sm hover:shadow-md transition-all duration-300 cursor-pointer group border border-white/20"
-      onClick={onClick}
+    <div
+      className="relative flex flex-col w-full rounded-[22px] overflow-hidden bg-gradient-to-b from-[#f4fdf7] to-white shadow-[0_2px_20px_rgba(0,0,0,0.06)] hover:shadow-[0_12px_40px_rgba(0,0,0,0.12)] hover:-translate-y-1.5 transition-all duration-300 cursor-pointer group border border-gray-100/80"
+      onClick={handleCardClick}
     >
-      {/* Top Section */}
-      <div className="relative w-full h-[180px] flex items-center justify-center p-4 pt-10">
-        {/* Top Left Discount Tag - Pill shape attached to top-left */}
+      {/* Image Section */}
+      <div className="relative w-full h-[180px] flex items-center justify-center p-4 pt-10 bg-gradient-to-b from-[#eef9f2]/60 to-transparent">
+        
+        {/* Discount Tag */}
         {discountTag && (
-          <div className="absolute top-0 left-0 bg-white px-3 py-1.5 text-[10px] font-black text-gray-800 rounded-br-2xl border-b border-r border-gray-100 z-10 shadow-sm">
+          <div className="absolute top-0 left-0 bg-gradient-to-r from-emerald-500 to-teal-500 px-2.5 py-1 text-[9px] font-black text-white rounded-br-xl z-10 shadow-md tracking-wide truncate max-w-[80%]">
             {discountTag}
           </div>
         )}
         
         {/* Share Icon */}
         <button 
-          className="absolute top-10 left-3 p-1.5 text-gray-800 hover:scale-110 transition-transform z-10"
-          onClick={(e) => { e.stopPropagation(); }}
+          className="absolute top-11 left-3 p-1.5 text-gray-400 hover:text-gray-700 hover:scale-110 active:scale-95 transition-all z-10 rounded-full hover:bg-white/60"
+          onClick={(e) => { e.stopPropagation(); e.preventDefault(); actionClicked.current = true; }}
         >
-          <Share2 className="w-[18px] h-[18px]" strokeWidth={2.5} />
+          <Share2 className="w-4 h-4" strokeWidth={2} />
+        </button>
+
+        {/* Bookmark Heart */}
+        <button
+          type="button"
+          onPointerDown={(e) => e.stopPropagation()}
+          onClick={toggleBookmark}
+          className={`absolute top-[72px] left-3 p-1.5 z-10 rounded-full transition-all duration-300 active:scale-90 ${
+            bookmarked 
+              ? 'text-red-500 bg-red-50 shadow-sm' 
+              : 'text-gray-400 hover:text-red-400 hover:bg-white/60'
+          }`}
+        >
+          <Heart 
+            className={`w-4 h-4 transition-all duration-300 ${bookmarked ? 'fill-red-500 text-red-500' : ''}`} 
+            strokeWidth={2} 
+          />
         </button>
         
-        {/* Top Right Actions */}
-        <div className="absolute top-4 right-4 z-20">
-          <AnimatePresence mode="wait">
-            {count !== null || isLoading ? (
-              <motion.div 
-                key="pill"
-                initial={{ opacity: 0, scale: 0.8 }}
-                animate={{ opacity: 1, scale: 1 }}
-                className="flex items-center gap-2"
+        {/* Top Right - Cart Actions */}
+        <div
+          className="absolute top-3 right-3 z-20"
+          onPointerDown={(e) => e.stopPropagation()}
+          onClick={(e) => e.stopPropagation()}
+        >
+          {hasItems ? (
+            <div className="flex items-center gap-0.5 bg-black/90 backdrop-blur-sm rounded-full pl-1 pr-1 py-1 shadow-lg animate-in fade-in zoom-in-90 duration-200">
+              {/* When count is 1: show delete icon. Otherwise: show minus */}
+              <button
+                type="button"
+                onPointerDown={(e) => e.stopPropagation()}
+                onClick={count === 1 ? removeFromCart : decrement}
+                className="w-7 h-7 rounded-full flex items-center justify-center text-white hover:bg-white/20 active:scale-90 transition-all"
               >
-                <div className={`${isLoading ? 'animate-spin' : ''}`}>
-                  <RotateCcw className="w-5 h-5 text-gray-800" strokeWidth={2.5} />
-                </div>
-                <div className="bg-black text-white text-[11px] font-black px-3 py-1 rounded-lg min-w-[36px] text-center shadow-lg">
-                  {count || 100}
-                </div>
-              </motion.div>
-            ) : (
-              <motion.button 
-                key="plus"
-                initial={{ opacity: 0, scale: 0.8 }}
-                animate={{ opacity: 1, scale: 1 }}
-                whileHover={{ scale: 1.1 }}
-                onClick={handlePlusClick}
-                className="text-gray-900"
+                {count === 1 ? (
+                  <Trash2 className="w-3.5 h-3.5 text-red-400" strokeWidth={2.5} />
+                ) : (
+                  <Minus className="w-3.5 h-3.5" strokeWidth={3} />
+                )}
+              </button>
+
+              <span className="text-white text-[13px] font-black min-w-[28px] text-center tabular-nums select-none">
+                {count}
+              </span>
+
+              <button
+                type="button"
+                onPointerDown={(e) => e.stopPropagation()}
+                onClick={increment}
+                className="w-7 h-7 rounded-full flex items-center justify-center text-white hover:bg-white/20 active:scale-90 transition-all"
               >
-                <Plus className="w-8 h-8" strokeWidth={3} />
-              </motion.button>
-            )}
-          </AnimatePresence>
+                <Plus className="w-3.5 h-3.5" strokeWidth={3} />
+              </button>
+            </div>
+          ) : (
+            <button
+              type="button"
+              onPointerDown={(e) => e.stopPropagation()}
+              onClick={addToCart}
+              className="w-9 h-9 rounded-full flex items-center justify-center shadow-md bg-white text-gray-800 hover:bg-gray-50 border border-gray-200 hover:scale-110 active:scale-95 transition-all duration-150"
+            >
+              <Plus className="w-5 h-5" strokeWidth={2.5} />
+            </button>
+          )}
         </div>
 
         {/* Product Image */}
-        <div className="relative w-[85%] h-[85%] mt-2">
+        <div className="relative w-[80%] h-[80%] mt-1">
           <Image
-            src={image === '/product_placeholder.png' ? '/product_placeholder.png' : image}
+            src={image}
             alt={name}
             fill
-            className="object-contain group-hover:scale-105 transition-transform duration-500 mix-blend-multiply"
+            sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw"
+            className="object-contain group-hover:scale-110 transition-transform duration-500 ease-out mix-blend-multiply drop-shadow-sm"
           />
         </div>
-
-        {/* Right Bookmark Ribbon - Clickable */}
-        <motion.button
-          whileHover={{ x: -2 }}
-          whileTap={{ scale: 0.9 }}
-          onClick={handleBookmarkClick}
-          className={`absolute right-0 top-1/2 -translate-y-1/2 w-7 h-9 flex items-center justify-center z-10 transition-colors duration-300 ${localBookmarked ? 'bg-[#00818a]' : 'bg-[#33d4e0]'}`}
-          style={{ 
-            clipPath: 'polygon(0 0, 100% 0, 100% 100%, 0 100%, 40% 50%)', 
-            transform: 'scaleX(-1) translateY(-50%)' 
-          }}
-        >
-          <div style={{ transform: 'scaleX(-1)' }}>
-            <Bookmark className={`w-3 h-3 ${localBookmarked ? 'fill-white text-white' : 'text-white/80'}`} strokeWidth={3} />
-          </div>
-        </motion.button>
       </div>
 
-      {/* Bottom Section */}
-      <div className="p-4 px-5 bg-white/40 flex flex-col flex-grow">
-        <div className="flex items-center justify-between mb-2">
-          <h3 className="font-black text-gray-900 text-[18px] leading-tight line-clamp-1 w-full truncate tracking-tight">
+      {/* Info Section */}
+      <div className="p-3 px-3.5 bg-white flex flex-col flex-grow rounded-t-3xl -mt-3 relative z-10 overflow-hidden">
+        {/* Name + Arrow */}
+        <div className="flex items-center justify-between gap-1.5 mb-2">
+          <h3 className="font-extrabold text-gray-900 text-[13px] leading-snug line-clamp-1 min-w-0 truncate tracking-tight">
             {name}
           </h3>
-          <div className="w-6 h-6 bg-black rounded-full flex items-center justify-center flex-shrink-0 ml-2 shadow-sm">
-            <ArrowUpRight className="w-4 h-4 text-white" strokeWidth={3} />
+          <div className="w-5 h-5 bg-gray-900 rounded-full flex items-center justify-center flex-shrink-0 shadow-sm">
+            {infoIcon ? (
+              <span className="text-white font-bold text-[9px] font-serif italic">i</span>
+            ) : (
+              <ArrowUpRight className="w-3 h-3 text-white" strokeWidth={2.5} />
+            )}
           </div>
         </div>
 
         {/* Divider */}
-        <div className="w-full h-px bg-gray-200/60 mb-4"></div>
+        <div className="w-full h-px bg-gradient-to-r from-transparent via-gray-200 to-transparent mb-2"></div>
 
-        {/* Pricing Grid */}
-        <div className="grid grid-cols-3 gap-2 items-start w-full">
-          {/* MRP */}
-          <div className="flex flex-col">
-            <span className="text-[10px] font-black text-gray-900 uppercase mb-1">MRP</span>
-            <span className="text-[16px] font-black text-gray-900 truncate">₹{mrp || price}</span>
+        {/* Pricing Row */}
+        <div className="grid grid-cols-3 gap-0.5 items-start w-full min-w-0">
+          <div className="flex flex-col min-w-0 overflow-hidden">
+            <span className="text-[8px] font-bold text-gray-400 uppercase tracking-wider mb-0.5">MRP</span>
+            <span className="text-[12px] font-extrabold text-gray-900 truncate">₹{mrp || price}</span>
           </div>
           
-          {/* MOQ */}
-          <div className="flex flex-col items-center">
-            <span className="text-[10px] font-black text-gray-900 uppercase mb-1 whitespace-nowrap">MOQ {moq}</span>
-            {/* Value is inline for MOQ */}
+          <div className="flex flex-col items-center min-w-0">
+            <span className="text-[8px] font-bold text-gray-400 uppercase tracking-wider mb-0.5">MOQ</span>
+            <span className="text-[12px] font-extrabold text-gray-900">{moq}</span>
           </div>
 
-          {/* N. RATE */}
-          <div className="flex flex-col items-end">
-            <span className="text-[10px] font-black text-gray-900 uppercase mb-1 whitespace-nowrap">N. RATE</span>
-            <span className="text-[16px] font-black text-gray-900 truncate">₹{ptr || price}</span>
+          <div className="flex flex-col items-end min-w-0 overflow-hidden">
+            <span className="text-[8px] font-bold text-gray-400 uppercase tracking-wider mb-0.5 whitespace-nowrap">{rateLabel}</span>
+            <span className="text-[12px] font-extrabold text-gray-900 truncate max-w-full">₹{ptr || price}</span>
           </div>
         </div>
+
+        {/* Cart indicator bar */}
+        <AnimatePresence>
+          {hasItems && (
+            <motion.div 
+              initial={{ opacity: 0, height: 0, marginTop: 0 }}
+              animate={{ opacity: 1, height: 'auto', marginTop: 8 }}
+              exit={{ opacity: 0, height: 0, marginTop: 0 }}
+              transition={{ duration: 0.2 }}
+              className="overflow-hidden"
+            >
+              <div className="pt-2 border-t border-dashed border-gray-200">
+                <div className="flex items-center justify-between">
+                  <span className="text-[9px] font-bold text-emerald-600 uppercase tracking-wider">In Cart</span>
+                  <span className="text-[11px] font-black text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full">
+                    {count} {count === 1 ? 'unit' : 'units'}
+                  </span>
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
-    </motion.div>
+    </div>
   );
 }
