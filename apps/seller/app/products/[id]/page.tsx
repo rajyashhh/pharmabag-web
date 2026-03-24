@@ -1,7 +1,6 @@
 "use client";
 import React from "react";
 import { useParams, useRouter } from "next/navigation";
-import { SellerSidebar } from "@/components/layout/sidebar";
 import { useSellerProduct, useDeleteSellerProduct } from "@/hooks/useSeller";
 import { ArrowLeft, Loader2, Edit, Trash2 } from "lucide-react";
 import { Button, Badge, ApprovalBadge } from "@/components/ui";
@@ -27,9 +26,6 @@ export default function ProductDetailPage() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      <SellerSidebar />
-      <main className="lg:pl-64 p-6">
         <div className="max-w-5xl mx-auto space-y-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
@@ -121,7 +117,5 @@ export default function ProductDetailPage() {
             </div>
           )}
         </div>
-      </main>
-    </div>
   );
 }

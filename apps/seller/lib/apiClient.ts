@@ -25,9 +25,13 @@ apiClient.interceptors.response.use(
   (error: any) => {
     if (error?.response?.status === 401) {
       if (typeof window !== "undefined") {
-        localStorage.removeItem("pb_token");
-        useSellerAuth.getState().logout();
-        window.location.href = "/auth";
+        // Don't logout dev bypass users on 401 — backend isn't aware of dev tokens
+        const token = localStorage.getItem("pb_token");
+        if (token !== "dev_bypass_token") {
+          localStorage.removeItem("pb_token");
+          useSellerAuth.getState().logout();
+          window.location.href = "/auth";
+        }
       }
     }
     return Promise.reject(error);

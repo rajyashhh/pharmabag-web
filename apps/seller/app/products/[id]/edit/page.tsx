@@ -1,7 +1,6 @@
 "use client";
 import React from "react";
 import { useParams, useRouter } from "next/navigation";
-import { SellerSidebar } from "@/components/layout/sidebar";
 import { ProductForm } from "@/components/products/ProductForm";
 import { useSellerProduct } from "@/hooks/useSeller";
 import { ArrowLeft, Loader2 } from "lucide-react";
@@ -14,9 +13,6 @@ export default function EditProductPage() {
   const { data: product, isLoading, error } = useSellerProduct(productId);
 
   return (
-    <div className="min-h-screen bg-background">
-      <SellerSidebar />
-      <main className="lg:pl-64 p-6">
         <div className="max-w-7xl mx-auto space-y-6">
           {isLoading ? (
             <div className="flex flex-col items-center justify-center min-h-[50vh] text-muted-foreground gap-3">
@@ -51,7 +47,5 @@ export default function EditProductPage() {
             />
           )}
         </div>
-      </main>
-    </div>
   );
 }

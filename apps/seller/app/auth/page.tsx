@@ -51,7 +51,23 @@ export default function SellerAuthPage() {
     } catch (error: any) {
       // Dev bypass: Allow login with 9831864222 / 123456 even if backend is not deployed
       if (phone === "9831864222" && otp === "123456") {
-        setUser({ id: "dev-seller", name: "Seller Dev", email: "seller@pharmabag.in", role: "seller" } as any);
+        localStorage.setItem("pb_token", "dev_bypass_token");
+        setUser({
+          id: "dev-seller",
+          name: "Seller Dev",
+          email: "seller@pharmabag.in",
+          role: "seller",
+          phone: "9831864222",
+          storeName: "Dev Seller Store",
+          isOnVacation: false,
+          sellerProfile: {
+            verificationStatus: "APPROVED",
+            businessName: "Dev Pharma Business",
+            businessType: "pharmacy",
+            city: "Mumbai",
+            state: "Maharashtra"
+          }
+        } as any);
         toast.success("Dev bypass login success.");
         router.push("/dashboard");
         return;

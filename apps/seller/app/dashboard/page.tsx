@@ -12,10 +12,11 @@ import toast from "react-hot-toast";
 export default function SellerDashboard() {
   const { data: dashboardData, isLoading } = useSellerDashboard();
   const { user } = useSellerAuth();
-  const { data: profile } = useSellerProfile();
+  const isDevUser = user?.id === "dev-seller";
+  const { data: profile } = useSellerProfile(!isDevUser);
   const toggleVacation = useToggleVacationMode();
   const isOnVacation = user?.isOnVacation || (profile as any)?.isOnVacation || false;
-  const sellerOrders = dashboardData?.overview?.orders || [];
+  const sellerOrders: any[] = dashboardData?.overview?.orders || [];
   const stats = dashboardData?.stats || {
     totalProducts: 0,
     activeListings: 0,

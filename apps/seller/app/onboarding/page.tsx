@@ -51,7 +51,7 @@ export default function SellerOnboardingPage() {
       if (user) {
         setUser({
           ...user,
-          sellerProfile: { ...user.sellerProfile, verificationStatus: "PENDING" }
+          sellerProfile: { ...(user as any).sellerProfile, verificationStatus: "PENDING" }
         } as any);
       }
       

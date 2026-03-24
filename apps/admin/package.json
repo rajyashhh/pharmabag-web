@@ -7,10 +7,10 @@
   "dev:buyer": "npm --prefix apps/buyer run dev",
   "dev:seller": "npm --prefix apps/seller run dev",
   "dev:admin": "npm --prefix apps/admin run dev",
-  "build": "turbo run build",
-  "lint": "turbo run lint",
-  "type-check": "turbo run type-check",
-  "clean": "turbo run clean"
+  "build": "next build",
+  "lint": "next lint",
+  "type-check": "tsc --noEmit",
+  "clean": "rm -rf .next .turbo node_modules/.cache"
 },
   "dependencies": {
     "next": "14.2.5", "react": "^18.3.1", "react-dom": "^18.3.1",

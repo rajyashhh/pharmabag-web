@@ -3,7 +3,6 @@
 import { useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
 import { Send, ArrowLeft, Loader2, User, Shield, Clock, LifeBuoy } from "lucide-react";
-import { SellerSidebar } from "@/components/layout/sidebar";
 import { useParams, useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 import { cn } from "@/lib/utils";
@@ -76,28 +75,18 @@ export default function SellerTicketDetailPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-background">
-        <SellerSidebar />
-        <main className="lg:pl-64 p-6">
-          <div className="min-h-[60vh] flex items-center justify-center">
-            <Loader2 className="h-8 w-8 text-primary animate-spin" />
-          </div>
-        </main>
+      <div className="min-h-[60vh] flex items-center justify-center">
+        <Loader2 className="h-8 w-8 text-primary animate-spin" />
       </div>
     );
   }
 
   if (!ticket) {
     return (
-      <div className="min-h-screen bg-background">
-        <SellerSidebar />
-        <main className="lg:pl-64 p-6">
-          <div className="text-center py-20">
-            <LifeBuoy className="w-10 h-10 text-muted-foreground mx-auto mb-3 opacity-50" />
-            <p className="text-muted-foreground mb-4">Ticket not found</p>
-            <button onClick={() => router.push("/support")} className="text-sm text-primary underline">Back to Support</button>
-          </div>
-        </main>
+      <div className="text-center py-20">
+        <LifeBuoy className="w-10 h-10 text-muted-foreground mx-auto mb-3 opacity-50" />
+        <p className="text-muted-foreground mb-4">Ticket not found</p>
+        <button onClick={() => router.push("/support")} className="text-sm text-primary underline">Back to Support</button>
       </div>
     );
   }
@@ -110,9 +99,6 @@ export default function SellerTicketDetailPage() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      <SellerSidebar />
-      <main className="lg:pl-64 p-6">
         <div className="max-w-4xl mx-auto space-y-6">
           <button onClick={() => router.push("/support")} className="flex items-center text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
             <ArrowLeft className="h-4 w-4 mr-2" /> Back to Support
@@ -199,7 +185,5 @@ export default function SellerTicketDetailPage() {
             </div>
           </div>
         </div>
-      </main>
-    </div>
   );
 }

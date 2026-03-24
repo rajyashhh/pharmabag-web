@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { LifeBuoy, Send, Clock, CheckCircle2, AlertCircle, ChevronDown, MessageSquare } from "lucide-react";
-import { SellerSidebar } from "@/components/layout/sidebar";
 import { useSellerTickets, useCreateSellerTicket } from "@/hooks/useSeller";
 import toast from "react-hot-toast";
 import { cn } from "@/lib/utils";
@@ -64,9 +63,6 @@ export default function SupportPage() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      <SellerSidebar />
-      <main className="lg:pl-64 p-6">
         <div className="max-w-5xl mx-auto space-y-8">
           {/* Header */}
           <div className="flex flex-col gap-1">
@@ -248,7 +244,5 @@ export default function SupportPage() {
             )}
           </motion.div>
         </div>
-      </main>
-    </div>
   );
 }

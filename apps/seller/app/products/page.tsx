@@ -4,7 +4,6 @@ import { motion } from "framer-motion";
 import { Plus, Search, Edit, Trash2, Eye } from "lucide-react";
 import { Button, Input, Badge, ApprovalBadge } from "@/components/ui";
 import { PRODUCTS, formatCurrency } from "@pharmabag/utils";
-import { SellerSidebar } from "@/components/layout/sidebar";
 import { cn } from "@/lib/utils";
 import { useSellerProducts, useDeleteSellerProduct } from "@/hooks/useSeller";
 import Link from "next/link";
@@ -22,9 +21,6 @@ export default function ProductsPage() {
   }, [productsData, filter, search]);
 
   return (
-    <div className="min-h-screen bg-background">
-      <SellerSidebar/>
-      <main className="lg:pl-64 p-6">
         <div className="max-w-7xl mx-auto space-y-6">
           <div className="flex items-center justify-between">
             <div><h1 className="font-semibold text-2xl text-foreground">Products</h1><p className="text-sm text-muted-foreground mt-0.5">Manage your product listings</p></div>
@@ -91,7 +87,5 @@ export default function ProductsPage() {
             </div>
           </div>
         </div>
-      </main>
-    </div>
   );
 }

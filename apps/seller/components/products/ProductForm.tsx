@@ -56,7 +56,7 @@ export function ProductForm({ defaultValues, productId }: { defaultValues?: Part
   const isEditing = !!productId;
 
   const { register, control, handleSubmit, formState: { errors, isSubmitting, isDirty }, watch } = useForm<FormValues>({
-    resolver: zodResolver(formSchema),
+    resolver: zodResolver(formSchema) as any,
     defaultValues: defaultValues || {
       product_name: "",
       product_price: 0,

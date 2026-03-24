@@ -2,37 +2,24 @@
 import { useEffect, useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { useSellerAuth } from "@/store";
-import { useSellerProfile } from "@/hooks/useSeller";
 import { Loader2, ShieldAlert, Store } from "lucide-react";
 import { SellerSidebar } from "./sidebar";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
+import { SidebarProvider, useSidebar } from "@/context/sidebar-context";
+
+function getVerificationStatus(user: any): string {
+  if (!user) return "UNVERIFIED";
+  if (user.id === "dev-seller") return "APPROVED";
+  return user.sellerProfile?.verificationStatus || "UNVERIFIED";
+}
 
 export function SellerGuard({ children }: { children: React.ReactNode }) {
-  const { user, isAuth, setUser } = useSellerAuth();
+  const { user, isAuth } = useSellerAuth();
   const router = useRouter();
   const pathname = usePathname();
   const [mounted, setMounted] = useState(false);
 
-  const { data: currentProfile, isSuccess, isError, error } = useSellerProfile(isAuth && mounted);
-
-  useEffect(() => {
-    if (isSuccess && currentProfile) {
-      const state = useSellerAuth.getState();
-      const profileChanged = state.user && (state.user as any).sellerProfile?.verificationStatus !== currentProfile.verificationStatus;
-      const vacationChanged = state.user && state.user.isOnVacation !== currentProfile.isOnVacation;
-      if (profileChanged || vacationChanged) {
-        state.setUser({
-          ...state.user,
-          isOnVacation: currentProfile.isOnVacation ?? false,
-          sellerProfile: currentProfile
-        } as any);
-      }
-    }
-  }, [isSuccess, currentProfile]);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
+  useEffect(() => { setMounted(true); }, []);
 
   useEffect(() => {
     if (!mounted) return;
@@ -41,12 +28,15 @@ export function SellerGuard({ children }: { children: React.ReactNode }) {
     }
   }, [isAuth, pathname, mounted, router]);
 
-  if (!mounted) return null; // Avoid hydration mismatch
+  // SSR / hydration guard
+  if (!mounted) return null;
 
-  if (!isAuth && pathname === "/auth") {
+  // Auth page — render directly without layout
+  if (pathname === "/auth") {
     return <>{children}</>;
   }
 
+  // Not authenticated — show loading while redirect effect fires
   if (!user || !isAuth) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background">
@@ -55,19 +45,21 @@ export function SellerGuard({ children }: { children: React.ReactNode }) {
     );
   }
 
-  // Check verification status
-  const verificationStatus = (user as any).sellerProfile?.verificationStatus || "UNVERIFIED";
+  const verificationStatus = getVerificationStatus(user);
 
-  if (verificationStatus === "UNVERIFIED" && pathname !== "/dashboard" && pathname !== "/auth") {
-    router.replace("/dashboard");
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-background">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-      </div>
-    );
+  // Onboarding page — render directly without dashboard layout
+  if (pathname === "/onboarding") {
+    if (verificationStatus !== "UNVERIFIED") {
+      router.replace("/dashboard");
+      return null;
+    }
+    return <>{children}</>;
   }
 
-  if (verificationStatus === "PENDING" && pathname !== "/onboarding") {
+  // UNVERIFIED sellers can view other pages now. (Removed restrictive redirect to /dashboard)
+
+  // PENDING — show review message
+  if (verificationStatus === "PENDING") {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background p-6">
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="max-w-md w-full glass-card rounded-2xl p-8 text-center space-y-4">
@@ -76,8 +68,7 @@ export function SellerGuard({ children }: { children: React.ReactNode }) {
           </div>
           <h1 className="text-2xl font-bold text-foreground">Application Under Review</h1>
           <p className="text-muted-foreground text-sm leading-relaxed">
-            Thank you for registering with PharmaBag. Your seller profile is currently being reviewed by our administration team.
-            We will notify you once your account is verified and ready to sell.
+            Your seller profile is currently being reviewed. We will notify you once your account is verified.
           </p>
           <div className="pt-4">
             <button onClick={() => useSellerAuth.getState().logout()} className="text-sm font-medium text-primary hover:underline">
@@ -89,7 +80,8 @@ export function SellerGuard({ children }: { children: React.ReactNode }) {
     );
   }
 
-  if (verificationStatus === "REJECTED" && pathname !== "/onboarding") {
+  // REJECTED — show rejected message
+  if (verificationStatus === "REJECTED") {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background p-6">
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="max-w-md w-full glass-card rounded-2xl p-8 text-center space-y-4 border-red-200 dark:border-red-900/30">
@@ -98,7 +90,7 @@ export function SellerGuard({ children }: { children: React.ReactNode }) {
           </div>
           <h1 className="text-2xl font-bold text-foreground">Application Rejected</h1>
           <p className="text-muted-foreground text-sm leading-relaxed">
-            Unfortunately, we could not verify your business details. Please contact our support team to resolve this issue and reactivate your account.
+            We could not verify your business details. Please contact support to resolve this.
           </p>
           <div className="pt-4">
             <button onClick={() => useSellerAuth.getState().logout()} className="text-sm font-medium text-red-600 hover:underline">
@@ -110,43 +102,34 @@ export function SellerGuard({ children }: { children: React.ReactNode }) {
     );
   }
 
-  // Redirect away from onboarding if already submitted/verified
-  if (pathname === "/onboarding" && verificationStatus !== "UNVERIFIED") {
-    router.replace("/dashboard");
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-background">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-      </div>
-    );
-  }
+  // APPROVED — full dashboard layout with sidebar
+  return (
+    <SidebarProvider>
+      <DashboardLayout pathname={pathname}>{children}</DashboardLayout>
+    </SidebarProvider>
+  );
+}
 
-  // Allow through to auth and onboarding layouts as is
-  if (pathname === "/auth" || pathname === "/onboarding") {
-    return (
-      <>
-        {pathname === "/onboarding" && (
-          <div className="fixed top-0 left-0 w-full bg-red-600 text-white p-4 z-[9999] text-xs font-mono break-all whitespace-pre-wrap">
-            <p>DEBUG: verificationStatus = {String(verificationStatus)}</p>
-            <p>DEBUG: isSuccess = {String(isSuccess)}</p>
-            <p>DEBUG: currentProfile = {JSON.stringify(currentProfile)}</p>
-            <p>DEBUG: isError = {String(isError)} (Error: {error?.message || "none"})</p>
-            <p>DEBUG: latest user.sellerProfile = {JSON.stringify((user as any)?.sellerProfile)}</p>
-          </div>
-        )}
-        {children}
-      </>
-    );
-  }
+function DashboardLayout({ children, pathname }: { children: React.ReactNode; pathname: string }) {
+  const { open } = useSidebar();
 
-  // Fully verified users get the main dashboard layout
   return (
     <div className="flex h-screen overflow-hidden bg-background">
       <SellerSidebar />
-      <main className="flex-1 overflow-y-auto no-sb relative">
+      <main className={`flex-1 overflow-y-auto no-sb relative transition-all duration-300 ${open ? 'ml-64' : 'ml-20'}`}>
         <div className="p-4 sm:p-6 lg:p-8">
-          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }} className="w-full">
-            {children}
-          </motion.div>
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={pathname}
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
+              transition={{ duration: 0.2 }}
+              className="w-full"
+            >
+              {children}
+            </motion.div>
+          </AnimatePresence>
         </div>
       </main>
     </div>

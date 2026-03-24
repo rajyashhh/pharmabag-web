@@ -152,7 +152,7 @@ export function PayoutsContent() {
   const { data: payouts, isLoading: loadingPayouts } = useSellerSettlements();
   const { data: summary, isLoading: loadingSummary } = useSellerSettlementSummary();
   
-  const payoutHistory = payouts || [];
+  const payoutHistory: any[] = payouts || [];
   const stats = summary || { balance: 0, paid: 0, pending: 0 };
 
   if (loadingPayouts || loadingSummary) return <div className="p-6 text-center text-muted-foreground">Loading payouts...</div>;

@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { LayoutDashboard, Package, ClipboardList, BarChart3, Warehouse, CreditCard, LogOut, ChevronLeft, Store, Palmtree, LifeBuoy } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useSellerAuth } from "@/store";
-import { useState } from "react";
+import { useSidebar } from "@/context/sidebar-context";
 
 const NAV = [
   { icon: LayoutDashboard, label: "Dashboard", href: "/dashboard" },
@@ -21,7 +21,7 @@ export function SellerSidebar() {
   const pathname = usePathname();
   const { user, logout } = useSellerAuth();
   const router = useRouter();
-  const [open, setOpen] = useState(true);
+  const { open, setOpen } = useSidebar();
 
   return (
     <aside className={cn("fixed top-0 left-0 h-full z-40 flex flex-col glass border-r border-white/30 dark:border-white/10 transition-all duration-300", open ? "w-64" : "w-20")} aria-label="Seller navigation">

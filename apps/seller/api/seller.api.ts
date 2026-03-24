@@ -2,7 +2,7 @@ import { apiClient } from "@/lib/apiClient";
 import type { Product, Order, Payout } from "@pharmabag/utils";
 
 export async function getSellerDashboard() {
-  const { data } = await apiClient.get<{ data: { stats: any; overview: any } }>("/sellers/dashboard");
+  const { data } = await apiClient.get<{ data: { stats: any; overview: any; chartData?: any[] } }>("/sellers/dashboard");
   return data.data;
 }
 
