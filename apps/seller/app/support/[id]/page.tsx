@@ -6,33 +6,7 @@ import { Send, ArrowLeft, Loader2, User, Shield, Clock, LifeBuoy } from "lucide-
 import { useParams, useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 import { cn } from "@/lib/utils";
-import { apiClient } from "@/lib/apiClient";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-
-async function getTicketDetail(ticketId: string) {
-  // Sellers use the general /tickets endpoint (TicketsController)
-  // There's no GET /tickets/:id, but we can get all tickets and find ours,
-  // or we fetch via messages endpoint. Let's add a direct fetch:
-  const { data } = await apiClient.get<any>(`/tickets`);
-  const tickets = data.data ?? data;
-  const allTickets = Array.isArray(tickets) ? tickets : [];
-  return allTickets.find((t: any) => t.id === ticketId) ?? null;
-}
-
-async function getTicketMessages(ticketId: string) {
-  // We can use POST /tickets/:id/messages to add, but we need GET. 
-  // The getTickets endpoint returns messages count, not the messages themselves.
-  // Let's fetch the general tickets list which should have messages included
-  const { data } = await apiClient.get<any>(`/tickets`);
-  const tickets = data.data ?? data;
-  const ticket = (Array.isArray(tickets) ? tickets : []).find((t: any) => t.id === ticketId);
-  return ticket;
-}
-
-async function addMessage(ticketId: string, message: string) {
-  const { data } = await apiClient.post<any>(`/tickets/${ticketId}/messages`, { message });
-  return data.data ?? data;
-}
+import { useSellerTicketById, useAddTicketMessage } from "@/hooks/useSeller";
 
 export default function SellerTicketDetailPage() {
   const params = useParams();
@@ -40,22 +14,9 @@ export default function SellerTicketDetailPage() {
   const ticketId = params.id as string;
   const [replyMessage, setReplyMessage] = useState("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const qc = useQueryClient();
 
-  const { data: ticket, isLoading } = useQuery({
-    queryKey: ["seller", "ticket", ticketId],
-    queryFn: () => getTicketMessages(ticketId),
-    enabled: !!ticketId,
-    refetchInterval: 10_000, // poll every 10s for new replies
-  });
-
-  const reply = useMutation({
-    mutationFn: (msg: string) => addMessage(ticketId, msg),
-    onSuccess: () => {
-      void qc.invalidateQueries({ queryKey: ["seller", "ticket", ticketId] });
-      void qc.invalidateQueries({ queryKey: ["seller", "tickets"] });
-    },
-  });
+  const { data: ticket, isLoading } = useSellerTicketById(ticketId);
+  const reply = useAddTicketMessage();
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -65,7 +26,7 @@ export default function SellerTicketDetailPage() {
     e.preventDefault();
     if (!replyMessage.trim()) return;
     try {
-      await reply.mutateAsync(replyMessage);
+      await reply.mutateAsync({ ticketId, message: replyMessage });
       setReplyMessage("");
       toast.success("Message sent");
     } catch {

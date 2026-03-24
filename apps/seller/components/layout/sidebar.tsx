@@ -2,7 +2,7 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { LayoutDashboard, Package, ClipboardList, BarChart3, Warehouse, CreditCard, LogOut, ChevronLeft, Store, Palmtree, LifeBuoy } from "lucide-react";
+import { LayoutDashboard, Package, ClipboardList, BarChart3, Warehouse, CreditCard, LogOut, ChevronLeft, Store, Palmtree, LifeBuoy, Bell, User, FileText } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useSellerAuth } from "@/store";
 import { useSidebar } from "@/context/sidebar-context";
@@ -14,7 +14,9 @@ const NAV = [
   { icon: Warehouse, label: "Inventory", href: "/inventory" },
   { icon: BarChart3, label: "Analytics", href: "/analytics" },
   { icon: CreditCard, label: "Payouts", href: "/payouts" },
+  { icon: Bell, label: "Notifications", href: "/notifications" },
   { icon: LifeBuoy, label: "Support", href: "/support" },
+  { icon: User, label: "Profile", href: "/profile" },
 ];
 
 export function SellerSidebar() {

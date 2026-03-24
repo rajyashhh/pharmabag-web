@@ -3,16 +3,14 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-  "dev": "next dev -p 3002",
-  "dev:buyer": "npm --prefix apps/buyer run dev",
-  "dev:seller": "npm --prefix apps/seller run dev",
-  "dev:admin": "npm --prefix apps/admin run dev",
-  "build": "next build",
-  "lint": "next lint",
-  "type-check": "tsc --noEmit",
-  "clean": "rm -rf .next .turbo node_modules/.cache"
-},
+    "dev": "next dev -p 3002",
+    "build": "next build",
+    "lint": "next lint",
+    "type-check": "tsc --noEmit",
+    "clean": "rm -rf .next .turbo node_modules/.cache"
+  },
   "dependencies": {
+    "axios": "^1.6.0",
     "next": "14.2.5", "react": "^18.3.1", "react-dom": "^18.3.1",
     "framer-motion": "^11.3.8", "@tanstack/react-query": "^5.51.1",
     "zustand": "^4.5.4", "lucide-react": "^0.414.0",

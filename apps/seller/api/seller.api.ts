@@ -76,9 +76,86 @@ export async function toggleVacationMode(isOnVacation: boolean) {
   return data.data ?? data.profile ?? data;
 }
 
+// ─── Orders (extended) ────────────────────────────────
+export async function getSellerOrderById(orderId: string) {
+  const { data } = await apiClient.get<any>(`/orders/${orderId}`);
+  return data.data ?? data.order ?? data;
+}
+
+export async function acceptSellerOrder(orderId: string) {
+  const { data } = await apiClient.patch<any>(`/orders/${orderId}/status`, { status: "ACCEPTED" });
+  return data.data ?? data.order ?? data;
+}
+
+export async function rejectSellerOrder(orderId: string, reason: string) {
+  const { data } = await apiClient.patch<any>(`/orders/${orderId}/status`, { status: "CANCELLED", reason });
+  return data.data ?? data.order ?? data;
+}
+
+export async function uploadOrderInvoice(orderId: string, formData: FormData) {
+  const { data } = await apiClient.post<any>(`/orders/${orderId}/invoice`, formData, {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
+  return data.data ?? data;
+}
+
+export async function getSellerCustomOrders() {
+  const { data } = await apiClient.get<any>("/orders/seller?type=custom");
+  return data.data ?? data;
+}
+
+export async function getSellerCancelledOrders() {
+  const { data } = await apiClient.get<any>("/orders/seller?status=CANCELLED");
+  return data.data ?? data;
+}
+
+// ─── Notifications ────────────────────────────────────
+export async function getSellerNotifications() {
+  const { data } = await apiClient.get<any>("/notifications");
+  return data.data ?? data;
+}
+
+export async function markNotificationRead(notificationId: string) {
+  const { data } = await apiClient.patch<any>(`/notifications/${notificationId}/read`);
+  return data.data ?? data;
+}
+
+export async function markAllNotificationsRead() {
+  const { data } = await apiClient.patch<any>("/notifications/read-all");
+  return data.data ?? data;
+}
+
+// ─── Profile (extended) ───────────────────────────────
+export async function getSellerFullProfile() {
+  const { data } = await apiClient.get<any>("/sellers/profile");
+  return data.data ?? data.profile ?? data;
+}
+
+// ─── Product Requests ─────────────────────────────────
+export async function getProductRequests() {
+  const { data } = await apiClient.get<any>("/products/requests");
+  return data.data ?? data;
+}
+
+export async function createProductRequest(payload: { productName: string; manufacturer?: string; description?: string }) {
+  const { data } = await apiClient.post<any>("/products/requests", payload);
+  return data.data ?? data;
+}
+
+// ─── Analytics ────────────────────────────────────────
+export async function getSellerAnalytics() {
+  const { data } = await apiClient.get<any>("/sellers/analytics");
+  return data.data ?? data;
+}
+
 // ─── Support Tickets ─────────────────────────────────
 export async function getSellerTickets() {
   const { data } = await apiClient.get<any>("/tickets");
+  return data.data ?? data;
+}
+
+export async function getSellerTicketById(ticketId: string) {
+  const { data } = await apiClient.get<any>(`/tickets/${ticketId}`);
   return data.data ?? data;
 }
 

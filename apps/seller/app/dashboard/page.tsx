@@ -64,10 +64,10 @@ export default function SellerDashboard() {
               Vacation Mode
             </Button>
           )}
-          <button aria-label="Notifications" className="relative h-9 w-9 rounded-xl border border-border flex items-center justify-center text-muted-foreground hover:bg-accent/60 transition-colors">
+          <Link href="/notifications" aria-label="Notifications" className="relative h-9 w-9 rounded-xl border border-border flex items-center justify-center text-muted-foreground hover:bg-accent/60 transition-colors">
             <Bell className="h-4 w-4"/>
             <span className="absolute -top-1 -right-1 h-3.5 w-3.5 rounded-full bg-red-500 text-[9px] font-bold text-white flex items-center justify-center" aria-hidden>2</span>
-          </button>
+          </Link>
           <Link href="/products"><Button size="sm" leftIcon={<Package className="h-3.5 w-3.5"/>}>Add Product</Button></Link>
         </div>
       </div>
@@ -134,7 +134,7 @@ export default function SellerDashboard() {
                       <td className="px-5 py-4"><div className="text-sm font-medium text-foreground">{o.buyerName}</div><div className="text-xs text-muted-foreground">{o.buyerBusiness}</div></td>
                       <td className="px-5 py-4 text-sm font-semibold text-foreground">{formatCurrency(o.finalAmount ?? o.total ?? 0)}</td>
                       <td className="px-5 py-4"><OrderStatusBadge status={o.status}/></td>
-                      <td className="px-5 py-4"><Button variant="ghost" size="sm" className="text-xs h-7">Manage</Button></td>
+                      <td className="px-5 py-4"><Link href={`/orders/${o.id}`}><Button variant="ghost" size="sm" className="text-xs h-7">Manage</Button></Link></td>
                     </tr>
                   ))}
                 </tbody>
@@ -148,7 +148,7 @@ export default function SellerDashboard() {
           <motion.div initial={{opacity:0,y:16}} animate={{opacity:1,y:0}} transition={{delay:0.25}} className="glass-card rounded-2xl p-5">
             <h3 className="font-semibold text-sm text-foreground mb-4">Quick Actions</h3>
             <div className="space-y-2">
-              {[{icon:Package,label:"Add New Product",href:"/products",c:"text-primary bg-primary/10"},{icon:ShoppingBag,label:"Manage Orders",href:"/orders",c:"text-blue-600 bg-blue-50 dark:bg-blue-900/20"},{icon:CreditCard,label:"Request Payout",href:"/payouts",c:"text-green-600 bg-green-50 dark:bg-green-900/20"}].map(({icon:Icon,label,href,c})=>(
+              {[{icon:Package,label:"Add New Product",href:"/products/new",c:"text-primary bg-primary/10"},{icon:ShoppingBag,label:"Manage Orders",href:"/orders",c:"text-blue-600 bg-blue-50 dark:bg-blue-900/20"},{icon:CreditCard,label:"Request Payout",href:"/payouts",c:"text-green-600 bg-green-50 dark:bg-green-900/20"},{icon:Bell,label:"Notifications",href:"/notifications",c:"text-orange-600 bg-orange-50 dark:bg-orange-900/20"}].map(({icon:Icon,label,href,c})=>(
                 <Link key={label} href={href} className="flex items-center gap-3 p-3 rounded-xl hover:bg-accent/60 transition-colors fr">
                   <div className={`h-8 w-8 rounded-xl flex items-center justify-center ${c}`}><Icon className="h-4 w-4" aria-hidden/></div>
                   <span className="text-sm font-medium text-foreground">{label}</span>

@@ -2,11 +2,12 @@
 import { useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import { Plus, Search, Edit, Trash2, Eye } from "lucide-react";
-import { Button, Input, Badge, ApprovalBadge } from "@/components/ui";
-import { PRODUCTS, formatCurrency } from "@pharmabag/utils";
+import { Button, Input, Badge, ApprovalBadge, Skeleton } from "@/components/ui";
+import { formatCurrency } from "@pharmabag/utils";
 import { cn } from "@/lib/utils";
 import { useSellerProducts, useDeleteSellerProduct } from "@/hooks/useSeller";
 import Link from "next/link";
+import { FileText } from "lucide-react";
 
 const EMOJI: Record<string,string> = {"eye-drops":"👁️",capsules:"🔴",tablets:"💊",syrups:"🧪",vitamins:"🌟",default:"💊"};
 
@@ -16,17 +17,22 @@ export default function ProductsPage() {
   const { data: productsData, isLoading } = useSellerProducts();
   const deleteProduct = useDeleteSellerProduct();
   const products = useMemo(() => {
-    const all = productsData ?? PRODUCTS;
-    return all.filter((p) => p.sellerId === "s1" && (filter === "all" || p.approvalStatus === filter) && (!search || p.name.toLowerCase().includes(search.toLowerCase())));
+    const all: any[] = productsData ?? [];
+    return all.filter((p: any) => (filter === "all" || p.approvalStatus?.toLowerCase() === filter) && (!search || p.name?.toLowerCase().includes(search.toLowerCase())));
   }, [productsData, filter, search]);
 
   return (
         <div className="max-w-7xl mx-auto space-y-6">
           <div className="flex items-center justify-between">
             <div><h1 className="font-semibold text-2xl text-foreground">Products</h1><p className="text-sm text-muted-foreground mt-0.5">Manage your product listings</p></div>
-            <Link href="/products/new">
-              <Button leftIcon={<Plus className="h-4 w-4"/>}>Add Product</Button>
-            </Link>
+            <div className="flex items-center gap-3">
+              <Link href="/products/requests">
+                <Button variant="secondary" leftIcon={<FileText className="h-4 w-4"/>}>Request Product</Button>
+              </Link>
+              <Link href="/products/new">
+                <Button leftIcon={<Plus className="h-4 w-4"/>}>Add Product</Button>
+              </Link>
+            </div>
           </div>
 
           <div className="flex flex-col sm:flex-row gap-3">
@@ -41,6 +47,13 @@ export default function ProductsPage() {
             </div>
           </div>
 
+          {isLoading ? (
+            <div className="glass-card rounded-2xl p-6 space-y-4">
+              {Array.from({ length: 5 }).map((_, i) => (
+                <Skeleton key={i} className="h-14 w-full rounded-xl" />
+              ))}
+            </div>
+          ) : (
           <div className="glass-card rounded-2xl overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full" aria-label="Products">
@@ -86,6 +99,7 @@ export default function ProductsPage() {
               </table>
             </div>
           </div>
+          )}
         </div>
   );
 }

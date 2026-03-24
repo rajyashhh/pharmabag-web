@@ -1,7 +1,16 @@
 "use client";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { sendOtp, verifyOtp, getCurrentUser } from "@/api/auth.api";
-import { getSellerDashboard, getSellerProducts, getSellerOrders, getSellerSettlements, getSellerSettlementSummary, createSellerProduct, updateSellerProduct, deleteSellerProduct, updateSellerOrderStatus, getSellerProfile, updateSellerProfile, getSellerProductById, getCategories, toggleVacationMode, getSellerTickets, createSellerTicket, addTicketMessage } from "@/api/seller.api";
+import {
+  getSellerDashboard, getSellerProducts, getSellerOrders, getSellerSettlements,
+  getSellerSettlementSummary, createSellerProduct, updateSellerProduct, deleteSellerProduct,
+  updateSellerOrderStatus, getSellerProfile, updateSellerProfile, getSellerProductById,
+  getCategories, toggleVacationMode, getSellerTickets, getSellerTicketById, createSellerTicket, addTicketMessage,
+  getSellerOrderById, acceptSellerOrder, rejectSellerOrder, uploadOrderInvoice,
+  getSellerCustomOrders, getSellerCancelledOrders,
+  getSellerNotifications, markNotificationRead, markAllNotificationsRead,
+  getSellerFullProfile, getProductRequests, createProductRequest, getSellerAnalytics,
+} from "@/api/seller.api";
 import type { ProductPayload } from "@pharmabag/utils";
 import { useSellerAuth } from "@/store";
 
@@ -85,4 +94,90 @@ export function useAddTicketMessage() {
     mutationFn: ({ ticketId, message }: { ticketId: string; message: string }) => addTicketMessage(ticketId, message),
     onSuccess: () => void qc.invalidateQueries({ queryKey: ["seller", "tickets"] }),
   });
+}
+
+// ─── Order Detail ─────────────────────────────────────
+export function useSellerOrder(orderId: string) {
+  return useQuery({ queryKey: ["seller", "order", orderId], queryFn: () => getSellerOrderById(orderId), enabled: !!orderId, retry: 1 });
+}
+
+export function useAcceptSellerOrder() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (orderId: string) => acceptSellerOrder(orderId),
+    onSuccess: () => { void qc.invalidateQueries({ queryKey: ["seller", "orders"] }); void qc.invalidateQueries({ queryKey: ["seller", "order"] }); },
+  });
+}
+
+export function useRejectSellerOrder() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ orderId, reason }: { orderId: string; reason: string }) => rejectSellerOrder(orderId, reason),
+    onSuccess: () => { void qc.invalidateQueries({ queryKey: ["seller", "orders"] }); void qc.invalidateQueries({ queryKey: ["seller", "order"] }); },
+  });
+}
+
+export function useUploadOrderInvoice() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ orderId, formData }: { orderId: string; formData: FormData }) => uploadOrderInvoice(orderId, formData),
+    onSuccess: () => { void qc.invalidateQueries({ queryKey: ["seller", "orders"] }); void qc.invalidateQueries({ queryKey: ["seller", "order"] }); },
+  });
+}
+
+export function useSellerCustomOrders() {
+  return useQuery({ queryKey: ["seller", "orders", "custom"], queryFn: getSellerCustomOrders, staleTime: 60_000, retry: 1 });
+}
+
+export function useSellerCancelledOrders() {
+  return useQuery({ queryKey: ["seller", "orders", "cancelled"], queryFn: getSellerCancelledOrders, staleTime: 60_000, retry: 1 });
+}
+
+// ─── Notifications ────────────────────────────────────
+export function useSellerNotifications() {
+  return useQuery({ queryKey: ["seller", "notifications"], queryFn: getSellerNotifications, staleTime: 30_000, refetchInterval: 60_000, retry: 1 });
+}
+
+export function useMarkNotificationRead() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (notificationId: string) => markNotificationRead(notificationId),
+    onSuccess: () => void qc.invalidateQueries({ queryKey: ["seller", "notifications"] }),
+  });
+}
+
+export function useMarkAllNotificationsRead() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: markAllNotificationsRead,
+    onSuccess: () => void qc.invalidateQueries({ queryKey: ["seller", "notifications"] }),
+  });
+}
+
+// ─── Profile (full) ───────────────────────────────────
+export function useSellerFullProfile() {
+  return useQuery({ queryKey: ["seller", "full-profile"], queryFn: getSellerFullProfile, staleTime: 60_000, retry: 1 });
+}
+
+// ─── Product Requests ─────────────────────────────────
+export function useProductRequests() {
+  return useQuery({ queryKey: ["seller", "product-requests"], queryFn: getProductRequests, staleTime: 60_000, retry: 1 });
+}
+
+export function useCreateProductRequest() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: createProductRequest,
+    onSuccess: () => void qc.invalidateQueries({ queryKey: ["seller", "product-requests"] }),
+  });
+}
+
+// ─── Analytics ────────────────────────────────────────
+export function useSellerAnalytics() {
+  return useQuery({ queryKey: ["seller", "analytics"], queryFn: getSellerAnalytics, staleTime: 120_000, retry: 1 });
+}
+
+// ─── Ticket by ID ─────────────────────────────────────
+export function useSellerTicketById(ticketId: string) {
+  return useQuery({ queryKey: ["seller", "ticket", ticketId], queryFn: () => getSellerTicketById(ticketId), enabled: !!ticketId, staleTime: 10_000, refetchInterval: 10_000, retry: 1 });
 }
