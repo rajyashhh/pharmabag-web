@@ -28,19 +28,38 @@ export function useVerifyOtp() {
         localStorage.setItem("pb_access_token", inner.accessToken);
       }
       if (inner.user) setUser(inner.user);
-      void queryClient.invalidateQueries({ queryKey: ["seller", "dashboard"] });
+      // Invalidate ALL seller queries so guard fetches fresh status
+      void queryClient.invalidateQueries({ queryKey: ["seller"] });
     },
   });
 }
 
 export function useSellerMe(enabled: boolean = false) {
-  return useQuery({ queryKey: ["seller", "me"], queryFn: getCurrentUser, enabled, staleTime: 60_000, retry: 1 });
+  return useQuery({
+    queryKey: ["seller", "me"],
+    queryFn: getCurrentUser,
+    enabled,
+    staleTime: 0,
+    refetchOnMount: "always",
+    refetchOnWindowFocus: true,
+    retry: 1,
+  });
 }
 
 export function useSellerDashboard() { return useQuery({ queryKey: ["seller", "dashboard"], queryFn: getSellerDashboard, staleTime: 60_000, retry: 1 }); }
 
 export function useSellerProfile(enabled: boolean = true) { return useQuery({ queryKey: ["seller", "profile"], queryFn: getSellerProfile, enabled, staleTime: 60_000, retry: 1 }); }
-export function useUpdateSellerProfile() { const qc = useQueryClient(); return useMutation({ mutationFn: updateSellerProfile, onSuccess: () => void qc.invalidateQueries({ queryKey: ["seller", "profile"] }) }); }
+export function useUpdateSellerProfile() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: updateSellerProfile,
+    onSuccess: () => {
+      // Invalidate both profile AND me queries so guard picks up new status
+      void qc.invalidateQueries({ queryKey: ["seller", "profile"] });
+      void qc.invalidateQueries({ queryKey: ["seller", "me"] });
+    },
+  });
+}
 
 export function useSellerProducts() { return useQuery({ queryKey: ["seller", "products"], queryFn: getSellerProducts, staleTime: 60_000, retry: 1 }); }
 

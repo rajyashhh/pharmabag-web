@@ -8,9 +8,30 @@ import { SellerSidebar } from "./sidebar";
 import { motion, AnimatePresence } from "framer-motion";
 import { SidebarProvider, useSidebar } from "@/context/sidebar-context";
 
+/**
+ * Extracts the seller verification status from the user object.
+ * Handles ALL possible backend response shapes:
+ *   1. user.sellerProfile.verificationStatus  (nested — Prisma include)
+ *   2. user.verificationStatus                (flat — when backend flattens)
+ *   3. user.status                            (top-level status field)
+ * Normalises to UPPERCASE for consistent comparison.
+ */
 function getVerificationStatus(user: any): string {
   if (!user) return "UNVERIFIED";
-  return user.sellerProfile?.verificationStatus || "UNVERIFIED";
+
+  // Priority 1: nested sellerProfile (most specific)
+  const nested = user.sellerProfile?.verificationStatus;
+  if (nested) return String(nested).toUpperCase();
+
+  // Priority 2: flat verificationStatus on user object
+  const flat = user.verificationStatus;
+  if (flat) return String(flat).toUpperCase();
+
+  // Priority 3: top-level status (admin approval sets this)
+  const topLevel = user.status;
+  if (topLevel) return String(topLevel).toUpperCase();
+
+  return "UNVERIFIED";
 }
 
 export function SellerGuard({ children }: { children: React.ReactNode }) {
@@ -21,15 +42,18 @@ export function SellerGuard({ children }: { children: React.ReactNode }) {
 
   useEffect(() => { setMounted(true); }, []);
 
-  // Fetch the LATEST profile from the server whenever the user is authenticated.
-  // This is essential because the cached Zustand user in localStorage may have a
-  // stale verificationStatus (e.g. still "UNVERIFIED" after admin approved).
-  const { data: serverUser, isLoading: isLoadingProfile } = useSellerMe(mounted && isAuth);
+  // Fetch the LATEST profile from the server on every mount / window focus.
+  // staleTime: 0 + refetchOnMount: "always" ensures we NEVER use cached stale status.
+  const {
+    data: serverUser,
+    isLoading: isLoadingProfile,
+    isFetching,
+  } = useSellerMe(mounted && isAuth);
 
-  // Sync server data into local store when it arrives and differs
+  // Sync server data into local store when it arrives
   useEffect(() => {
     if (serverUser) {
-      setUser(serverUser || null);
+      setUser(serverUser);
     }
   }, [serverUser, setUser]);
 
@@ -60,6 +84,7 @@ export function SellerGuard({ children }: { children: React.ReactNode }) {
   // CRITICAL: Wait for the server profile to load before making any
   // verification-based routing decisions. Without this, the component
   // uses the stale cached status and redirects prematurely.
+  // We check both isLoading (first fetch) AND isFetching (refetch).
   if (isLoadingProfile) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background">
@@ -68,25 +93,34 @@ export function SellerGuard({ children }: { children: React.ReactNode }) {
     );
   }
 
-  const verificationStatus = getVerificationStatus(user);
+  // Use server data if available, fall back to cached Zustand user
+  const effectiveUser = serverUser ?? user;
+  const verificationStatus = getVerificationStatus(effectiveUser);
+
+  // Normalised status groups for clear routing decisions
+  const isApproved = ["APPROVED", "ACTIVE", "VERIFIED"].includes(verificationStatus);
+  const isPending  = verificationStatus === "PENDING";
+  const isRejected = verificationStatus === "REJECTED";
+  // Everything else (UNVERIFIED, empty, unknown) → needs onboarding
 
   // Onboarding page — render directly without dashboard layout
   if (pathname === "/onboarding") {
-    if (verificationStatus !== "UNVERIFIED") {
+    // Already approved/pending/rejected — no need to be on onboarding
+    if (isApproved || isPending || isRejected) {
       router.replace("/dashboard");
       return null;
     }
     return <>{children}</>;
   }
 
-  // UNVERIFIED sellers must complete onboarding first — redirect to /onboarding
-  if (verificationStatus === "UNVERIFIED") {
+  // UNVERIFIED sellers must complete onboarding first
+  if (!isApproved && !isPending && !isRejected) {
     router.replace("/onboarding");
     return null;
   }
 
   // PENDING — show review message
-  if (verificationStatus === "PENDING") {
+  if (isPending) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background p-6">
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="max-w-md w-full glass-card rounded-2xl p-8 text-center space-y-4">
@@ -108,7 +142,7 @@ export function SellerGuard({ children }: { children: React.ReactNode }) {
   }
 
   // REJECTED — show rejected message
-  if (verificationStatus === "REJECTED") {
+  if (isRejected) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background p-6">
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="max-w-md w-full glass-card rounded-2xl p-8 text-center space-y-4 border-red-200 dark:border-red-900/30">

@@ -30,14 +30,27 @@ export type ApprovalStatus =
   | 'rejected'
   | 'blocked';
 
+export interface SellerProfile {
+  verificationStatus?: string;
+  businessName?: string;
+  gstNumber?: string;
+  panNumber?: string;
+  drugLicenseNumber?: string;
+  address?: string;
+  city?: string;
+  state?: string;
+  pincode?: string;
+}
+
 export interface User {
   id: string;
   name: string;
   phone: string;
   email?: string;
   role: 'BUYER' | 'SELLER' | 'ADMIN' | 'buyer' | 'seller' | 'admin';
-  permissions?: string; // Admin-specific permissions (e.g., "b" for View Tickets, "bc" for View & Manage Tickets)
+  permissions?: string;
   status: ApprovalStatus;
+  sellerProfile?: SellerProfile;
   avatar?: string;
   businessName?: string;
   storeName?: string;
