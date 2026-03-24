@@ -36,6 +36,7 @@ export interface User {
   phone: string;
   email?: string;
   role: 'BUYER' | 'SELLER' | 'ADMIN' | 'buyer' | 'seller' | 'admin';
+  permissions?: string; // Admin-specific permissions (e.g., "b" for View Tickets, "bc" for View & Manage Tickets)
   status: ApprovalStatus;
   avatar?: string;
   businessName?: string;
