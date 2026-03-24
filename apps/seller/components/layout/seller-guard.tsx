@@ -21,15 +21,17 @@ export function SellerGuard({ children }: { children: React.ReactNode }) {
 
   useEffect(() => { setMounted(true); }, []);
 
-  const { data: serverUser } = useSellerMe(mounted && isAuth);
+  // Fetch the LATEST profile from the server whenever the user is authenticated.
+  // This is essential because the cached Zustand user in localStorage may have a
+  // stale verificationStatus (e.g. still "UNVERIFIED" after admin approved).
+  const { data: serverUser, isLoading: isLoadingProfile } = useSellerMe(mounted && isAuth);
 
+  // Sync server data into local store when it arrives and differs
   useEffect(() => {
-    const sUser = serverUser as any;
-    const lUser = user as any;
-    if (sUser && sUser.sellerProfile?.verificationStatus !== lUser?.sellerProfile?.verificationStatus) {
+    if (serverUser) {
       setUser(serverUser || null);
     }
-  }, [serverUser, user, setUser]);
+  }, [serverUser, setUser]);
 
   useEffect(() => {
     if (!mounted) return;
@@ -48,6 +50,17 @@ export function SellerGuard({ children }: { children: React.ReactNode }) {
 
   // Not authenticated — show loading while redirect effect fires
   if (!user || !isAuth) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-background">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  // CRITICAL: Wait for the server profile to load before making any
+  // verification-based routing decisions. Without this, the component
+  // uses the stale cached status and redirects prematurely.
+  if (isLoadingProfile) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
