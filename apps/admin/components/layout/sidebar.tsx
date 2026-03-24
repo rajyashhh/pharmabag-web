@@ -2,7 +2,7 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { LayoutDashboard, Users, Package, ClipboardList, BarChart3, Settings, LogOut, Shield, ChevronLeft, FolderTree, CreditCard, Banknote, Ticket, Bell } from "lucide-react";
+import { LayoutDashboard, Users, Package, ClipboardList, BarChart3, Settings, LogOut, Shield, ChevronLeft, FolderTree, CreditCard, Banknote, Ticket, Bell, UserCog, FileSpreadsheet, Image, Gift } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAdminAuth } from "@/store";
 import { useState } from "react";
@@ -16,6 +16,10 @@ const NAV = [
   { icon: CreditCard, label: "Payments", href: "/payments" },
   { icon: Banknote, label: "Settlements", href: "/settlements" },
   { icon: Ticket, label: "Tickets", href: "/tickets" },
+  { icon: UserCog, label: "Admins", href: "/admins" },
+  { icon: FileSpreadsheet, label: "Suggestions", href: "/suggestions" },
+  { icon: Image, label: "Banners", href: "/banners" },
+  { icon: Gift, label: "Referrals", href: "/referrals" },
   { icon: Bell, label: "Notifications", href: "/notifications" },
   { icon: BarChart3, label: "Analytics", href: "/analytics" },
   { icon: Settings, label: "Settings", href: "/settings" },

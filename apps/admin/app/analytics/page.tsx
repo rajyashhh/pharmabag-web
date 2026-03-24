@@ -1,13 +1,22 @@
 "use client";
+import { useState } from "react";
 import { motion } from "framer-motion";
 import { AdminLayout } from "@/components/layout/admin-layout";
-import { StatCard } from "@/components/ui";
+import { StatCard, Badge, Tabs } from "@/components/ui";
 import { formatCurrency, formatCompact } from "@pharmabag/utils";
-import { TrendingUp, Users, ShoppingBag, Package, CreditCard, AlertTriangle, Flag, CheckCircle } from "lucide-react";
-import { useAdminDashboard } from "@/hooks/useAdmin";
+import { TrendingUp, Users, ShoppingBag, Package, CreditCard, AlertTriangle, Flag, CheckCircle, BarChart3, Trophy } from "lucide-react";
+import { useAdminDashboard, useRevenueChart, useOrdersChart, useTopProducts, useTopSellers } from "@/hooks/useAdmin";
 
 export default function AdminAnalyticsPage() {
   const { data: d, isLoading } = useAdminDashboard();
+  const [period, setPeriod] = useState("30d");
+  const { data: revenueData } = useRevenueChart(period);
+  const { data: ordersData } = useOrdersChart(period);
+  const { data: topProductsData } = useTopProducts(10);
+  const { data: topSellersData } = useTopSellers(10);
+
+  const topProducts: any[] = Array.isArray(topProductsData) ? topProductsData : (topProductsData?.data ?? []);
+  const topSellers: any[] = Array.isArray(topSellersData) ? topSellersData : (topSellersData?.data ?? []);
 
   if (isLoading) {
     return (
@@ -115,6 +124,115 @@ export default function AdminAnalyticsPage() {
                     <span className="text-sm text-muted-foreground">{label}</span>
                   </div>
                   <span className="font-semibold text-foreground">{value}</span>
+                </div>
+              ))}
+            </div>
+          </motion.div>
+        </div>
+
+        {/* Period Filter */}
+        <div className="flex items-center gap-2">
+          <span className="text-sm text-muted-foreground">Period:</span>
+          {[{ k: "7d", l: "7 Days" }, { k: "30d", l: "30 Days" }, { k: "90d", l: "90 Days" }, { k: "1y", l: "1 Year" }].map(({ k, l }) => (
+            <button key={k} onClick={() => setPeriod(k)}
+              className={`px-3 py-1.5 rounded-xl text-xs font-medium border transition-all ${period === k ? "bg-primary text-white border-primary" : "border-border text-muted-foreground hover:bg-accent/60"}`}>{l}</button>
+          ))}
+        </div>
+
+        {/* Chart Placeholders */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.45 }} className="glass-card rounded-2xl p-6">
+            <h2 className="font-semibold text-foreground mb-4">Revenue Trend</h2>
+            <div className="h-48 flex items-center justify-center border border-dashed border-border rounded-xl bg-muted/10">
+              {revenueData ? (
+                <div className="w-full px-4">
+                  {(Array.isArray(revenueData) ? revenueData : (revenueData as any)?.data ?? []).slice(0, 7).map((point: any, i: number) => (
+                    <div key={i} className="flex items-center gap-2 mb-1">
+                      <span className="text-xs text-muted-foreground w-16">{point.date ?? point.label ?? `Day ${i + 1}`}</span>
+                      <div className="flex-1 h-4 bg-muted/20 rounded-full overflow-hidden">
+                        <div className="h-full bg-primary/60 rounded-full" style={{ width: `${Math.min(100, ((point.value ?? point.amount ?? 0) / Math.max(1, ...((Array.isArray(revenueData) ? revenueData : []).map((p: any) => p.value ?? p.amount ?? 1)))) * 100)}%` }} />
+                      </div>
+                      <span className="text-xs font-mono text-foreground w-20 text-right">{formatCurrency(point.value ?? point.amount ?? 0)}</span>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center">
+                  <BarChart3 className="h-8 w-8 mx-auto text-muted-foreground/30 mb-2" />
+                  <p className="text-xs text-muted-foreground">Revenue chart data will appear here</p>
+                </div>
+              )}
+            </div>
+          </motion.div>
+
+          <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }} className="glass-card rounded-2xl p-6">
+            <h2 className="font-semibold text-foreground mb-4">Orders Trend</h2>
+            <div className="h-48 flex items-center justify-center border border-dashed border-border rounded-xl bg-muted/10">
+              {ordersData ? (
+                <div className="w-full px-4">
+                  {(Array.isArray(ordersData) ? ordersData : (ordersData as any)?.data ?? []).slice(0, 7).map((point: any, i: number) => (
+                    <div key={i} className="flex items-center gap-2 mb-1">
+                      <span className="text-xs text-muted-foreground w-16">{point.date ?? point.label ?? `Day ${i + 1}`}</span>
+                      <div className="flex-1 h-4 bg-muted/20 rounded-full overflow-hidden">
+                        <div className="h-full bg-purple-500/60 rounded-full" style={{ width: `${Math.min(100, ((point.value ?? point.count ?? 0) / Math.max(1, ...((Array.isArray(ordersData) ? ordersData : []).map((p: any) => p.value ?? p.count ?? 1)))) * 100)}%` }} />
+                      </div>
+                      <span className="text-xs font-mono text-foreground w-12 text-right">{point.value ?? point.count ?? 0}</span>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center">
+                  <BarChart3 className="h-8 w-8 mx-auto text-muted-foreground/30 mb-2" />
+                  <p className="text-xs text-muted-foreground">Orders chart data will appear here</p>
+                </div>
+              )}
+            </div>
+          </motion.div>
+        </div>
+
+        {/* Top Products & Sellers */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.55 }} className="glass-card rounded-2xl overflow-hidden">
+            <div className="p-6 border-b border-border/50">
+              <h2 className="font-semibold text-foreground flex items-center gap-2"><Trophy className="h-4 w-4 text-yellow-500" /> Top Products</h2>
+            </div>
+            <div className="divide-y divide-border/30">
+              {topProducts.length === 0 ? (
+                <div className="py-8 text-center text-sm text-muted-foreground">No data yet</div>
+              ) : topProducts.map((p: any, i: number) => (
+                <div key={p.id || i} className="px-6 py-3 flex items-center gap-3">
+                  <span className="text-xs font-bold text-muted-foreground w-5">#{i + 1}</span>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-foreground truncate">{p.name ?? "Product"}</p>
+                    <p className="text-xs text-muted-foreground">{p.manufacturer ?? "—"}</p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-sm font-semibold text-foreground">{p.totalSold ?? p.orderCount ?? 0} sold</p>
+                    {p.revenue != null && <p className="text-xs text-muted-foreground">{formatCurrency(p.revenue)}</p>}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </motion.div>
+
+          <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.6 }} className="glass-card rounded-2xl overflow-hidden">
+            <div className="p-6 border-b border-border/50">
+              <h2 className="font-semibold text-foreground flex items-center gap-2"><Trophy className="h-4 w-4 text-yellow-500" /> Top Sellers</h2>
+            </div>
+            <div className="divide-y divide-border/30">
+              {topSellers.length === 0 ? (
+                <div className="py-8 text-center text-sm text-muted-foreground">No data yet</div>
+              ) : topSellers.map((s: any, i: number) => (
+                <div key={s.id || i} className="px-6 py-3 flex items-center gap-3">
+                  <span className="text-xs font-bold text-muted-foreground w-5">#{i + 1}</span>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-foreground truncate">{s.sellerProfile?.companyName ?? s.name ?? "Seller"}</p>
+                    <p className="text-xs text-muted-foreground">{s.phone ?? "—"}</p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-sm font-semibold text-foreground">{formatCurrency(s.revenue ?? s.totalSales ?? 0)}</p>
+                    <p className="text-xs text-muted-foreground">{s.orderCount ?? 0} orders</p>
+                  </div>
                 </div>
               ))}
             </div>

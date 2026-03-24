@@ -3,7 +3,7 @@ import React, { useState } from "react";
 import { motion } from "framer-motion";
 import { Search, UserCheck, UserX, Eye, Ban, Unlock, ChevronDown, ChevronUp, Building2, FileText, MapPin, Palmtree } from "lucide-react";
 import { AdminLayout } from "@/components/layout/admin-layout";
-import { Button, Input, Badge } from "@/components/ui";
+import { Button, Input, Badge, Pagination } from "@/components/ui";
 import { cn } from "@/lib/utils";
 import toast from "react-hot-toast";
 import { useAdminUsers, useAffirmUserStatus, useUserById } from "@/hooks/useAdmin";
@@ -53,11 +53,15 @@ export default function UsersPage() {
   const [role, setRole] = useState<RoleFilter>("all");
   const [status, setStatus] = useState<StatusFilter>("all");
   const [expandedUser, setExpandedUser] = useState<string | null>(null);
-  const { data: usersData, isLoading } = useAdminUsers();
+  const [page, setPage] = useState(1);
+  const limit = 20;
+  const { data: usersData, isLoading } = useAdminUsers(page, limit);
   const updateStatus = useAffirmUserStatus();
 
   // Backend returns { data: [...], total: ... } inside data field
   const users: any[] = Array.isArray(usersData) ? usersData : (usersData?.data ?? []);
+  const totalUsers = usersData?.total ?? users.length;
+  const totalPages = Math.max(1, Math.ceil(totalUsers / limit));
 
   const vacationCount = users.filter((u: any) => u.role === "SELLER" && u.isOnVacation).length;
 
@@ -219,6 +223,8 @@ export default function UsersPage() {
             </table>
           </div>
         </div>
+
+        {totalPages > 1 && <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />}
       </div>
     </AdminLayout>
   );

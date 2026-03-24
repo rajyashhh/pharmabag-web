@@ -3,7 +3,7 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import { Search, CheckCircle, XCircle, Trash2, Eye } from "lucide-react";
 import { AdminLayout } from "@/components/layout/admin-layout";
-import { Button, Input, Badge } from "@/components/ui";
+import { Button, Input, Badge, Pagination } from "@/components/ui";
 import { formatCurrency } from "@pharmabag/utils";
 import { cn } from "@/lib/utils";
 import toast from "react-hot-toast";
@@ -12,12 +12,16 @@ import { useAdminProducts, useUpdateProductStatus, useDeleteProduct } from "@/ho
 export default function AdminProductsPage() {
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState<"all" | "active" | "inactive">("all");
-  const { data: productsData, isLoading } = useAdminProducts();
+  const [page, setPage] = useState(1);
+  const limit = 20;
+  const { data: productsData, isLoading } = useAdminProducts(page, limit);
   const productToggle = useUpdateProductStatus();
   const productDelete = useDeleteProduct();
 
   // Backend returns { data: [...], total: ... }
   const products: any[] = Array.isArray(productsData) ? productsData : (productsData?.data ?? []);
+  const totalProducts = productsData?.total ?? products.length;
+  const totalPages = Math.max(1, Math.ceil(totalProducts / limit));
 
   const filtered = products.filter((p: any) =>
     (filter === "all" || (filter === "active" ? p.isActive : !p.isActive)) &&
@@ -136,6 +140,8 @@ export default function AdminProductsPage() {
             </table>
           </div>
         </div>
+
+        {totalPages > 1 && <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />}
       </div>
     </AdminLayout>
   );

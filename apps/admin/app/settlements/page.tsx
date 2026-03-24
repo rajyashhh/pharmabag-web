@@ -3,7 +3,7 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Search, Banknote, Loader2, CheckCircle2 } from "lucide-react";
 import { AdminLayout } from "@/components/layout/admin-layout";
-import { Button, Input, Badge } from "@/components/ui";
+import { Button, Input, Badge, Pagination } from "@/components/ui";
 import { formatCurrency, formatDate } from "@pharmabag/utils";
 import { cn } from "@/lib/utils";
 import toast from "react-hot-toast";
@@ -12,8 +12,9 @@ import { useSettlements, useMarkSettlementPaid } from "@/hooks/useAdmin";
 export default function AdminSettlementsPage() {
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState<"ALL" | "PENDING" | "PROCESSED" | "PAID">("ALL");
-  
-  const { data: settlementsData, isLoading } = useSettlements();
+  const [page, setPage] = useState(1);
+  const limit = 20;
+  const { data: settlementsData, isLoading } = useSettlements(page, limit);
   const markPaid = useMarkSettlementPaid();
 
   // Modal State
@@ -22,6 +23,8 @@ export default function AdminSettlementsPage() {
   const [reference, setReference] = useState("");
 
   const settlements = Array.isArray(settlementsData) ? settlementsData : (settlementsData?.data ?? []);
+  const totalSettlements = settlementsData?.total ?? settlements.length;
+  const totalPages = Math.max(1, Math.ceil(totalSettlements / limit));
 
   const filtered = settlements.filter((s: any) =>
     (filter === "ALL" || s.payoutStatus === filter) &&
@@ -157,6 +160,8 @@ export default function AdminSettlementsPage() {
             </table>
           </div>
         </div>
+
+        {totalPages > 1 && <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />}
       </div>
 
       <AnimatePresence>

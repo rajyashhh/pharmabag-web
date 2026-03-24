@@ -3,7 +3,7 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import { Search, CheckCircle, XCircle, CreditCard, ExternalLink, Loader2 } from "lucide-react";
 import { AdminLayout } from "@/components/layout/admin-layout";
-import { Button, Input, Badge } from "@/components/ui";
+import { Button, Input, Badge, Pagination } from "@/components/ui";
 import { formatCurrency, formatDate } from "@pharmabag/utils";
 import { cn } from "@/lib/utils";
 import toast from "react-hot-toast";
@@ -12,12 +12,15 @@ import { usePayments, useConfirmPayment, useRejectPayment } from "@/hooks/useAdm
 export default function AdminPaymentsPage() {
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState<"ALL" | "PENDING" | "CONFIRMED" | "REJECTED">("ALL");
-  
-  const { data: paymentsData, isLoading } = usePayments();
+  const [page, setPage] = useState(1);
+  const limit = 20;
+  const { data: paymentsData, isLoading } = usePayments(page, limit);
   const confirmPayment = useConfirmPayment();
   const rejectPayment = useRejectPayment();
 
   const payments = Array.isArray(paymentsData) ? paymentsData : (paymentsData?.data ?? []);
+  const totalPayments = paymentsData?.total ?? payments.length;
+  const totalPages = Math.max(1, Math.ceil(totalPayments / limit));
 
   const filtered = payments.filter((p: any) =>
     (filter === "ALL" || p.verificationStatus === filter) &&
@@ -159,6 +162,8 @@ export default function AdminPaymentsPage() {
             </table>
           </div>
         </div>
+
+        {totalPages > 1 && <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />}
       </div>
     </AdminLayout>
   );

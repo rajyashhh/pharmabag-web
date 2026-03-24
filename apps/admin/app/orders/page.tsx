@@ -3,7 +3,7 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import { Search } from "lucide-react";
 import { AdminLayout } from "@/components/layout/admin-layout";
-import { Button, Input, Badge } from "@/components/ui";
+import { Button, Input, Badge, Pagination } from "@/components/ui";
 import { formatCurrency } from "@pharmabag/utils";
 import { cn } from "@/lib/utils";
 import { useAdminOrders, useUpdateAdminOrderStatus } from "@/hooks/useAdmin";
@@ -21,11 +21,15 @@ const STATUS_FILTERS = [
 export default function AdminOrdersPage() {
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState<string>("all");
-  const { data: ordersData, isLoading } = useAdminOrders();
+  const [page, setPage] = useState(1);
+  const limit = 20;
+  const { data: ordersData, isLoading } = useAdminOrders(page, limit);
   const updateStatus = useUpdateAdminOrderStatus();
 
   // Backend returns { data: [...], total: ... }
   const allOrders: any[] = Array.isArray(ordersData) ? ordersData : (ordersData?.data ?? []);
+  const totalOrders = ordersData?.total ?? allOrders.length;
+  const totalPages = Math.max(1, Math.ceil(totalOrders / limit));
 
   const filtered = allOrders.filter((o: any) =>
     (filter === "all" || o.orderStatus === filter) &&
@@ -116,6 +120,8 @@ export default function AdminOrdersPage() {
             </table>
           </div>
         </div>
+
+        {totalPages > 1 && <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />}
       </div>
     </AdminLayout>
   );

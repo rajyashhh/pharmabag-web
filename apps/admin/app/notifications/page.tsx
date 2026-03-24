@@ -2,10 +2,11 @@
 
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Bell, Send, AlertCircle } from "lucide-react";
-import { useBroadcastNotification } from "@/hooks/useAdmin";
+import { Bell, Send, AlertCircle, Clock, Users } from "lucide-react";
+import { useBroadcastNotification, useNotificationHistory } from "@/hooks/useAdmin";
 import { toast } from "react-hot-toast";
 import { AdminLayout } from "@/components/layout/admin-layout";
+import { Tabs, Badge, Pagination } from "@/components/ui";
 
 export default function NotificationsPage() {
   const [target, setTarget] = useState<"ALL" | "BUYER" | "SELLER">("ALL");
@@ -33,6 +34,12 @@ export default function NotificationsPage() {
     );
   };
 
+  const [tab, setTab] = useState("broadcast");
+  const [historyPage, setHistoryPage] = useState(1);
+  const { data: historyData } = useNotificationHistory({ page: historyPage, limit: 20 });
+  const notifications: any[] = Array.isArray(historyData) ? historyData : (historyData?.data ?? []);
+  const historyTotal = historyData?.total ?? notifications.length;
+
   return (
     <AdminLayout>
       <div className="p-6 md:p-8 max-w-4xl mx-auto space-y-8">
@@ -44,7 +51,7 @@ export default function NotificationsPage() {
             className="text-3xl font-bold tracking-tight text-foreground flex items-center gap-3"
           >
             <Bell className="w-8 h-8 text-primary" />
-            Broadcast Notifications
+            Notifications
           </motion.h1>
           <motion.p 
             initial={{ opacity: 0, y: -10 }} 
@@ -52,11 +59,52 @@ export default function NotificationsPage() {
             transition={{ delay: 0.1 }}
             className="text-muted-foreground"
           >
-            Send app notifications and emails directly to buyers, sellers, or all registered users.
+            Send and manage notifications for your platform users.
           </motion.p>
         </div>
 
-        <motion.div 
+        <Tabs tabs={[
+          { value: "broadcast", label: "Broadcast" },
+          { value: "history", label: "History", count: historyTotal || undefined },
+        ]} active={tab} onChange={setTab} />
+
+        {tab === "history" && (
+          <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="glass-card rounded-2xl overflow-hidden">
+            <div className="divide-y divide-border/30">
+              {notifications.length === 0 ? (
+                <div className="py-12 text-center text-sm text-muted-foreground">No notification history</div>
+              ) : notifications.map((n: any, i: number) => (
+                <div key={n.id || i} className="p-5 hover:bg-accent/30 transition-colors">
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="flex-1">
+                      <p className="text-sm text-foreground">{n.message}</p>
+                      <div className="flex items-center gap-3 mt-2">
+                        <Badge variant={n.target === "ALL" ? "info" : n.target === "BUYER" ? "success" : "purple"}>
+                          <Users className="h-3 w-3 mr-1" />
+                          {n.target ?? "All"}
+                        </Badge>
+                        {n.deliveredCount != null && (
+                          <span className="text-xs text-muted-foreground">{n.deliveredCount} delivered</span>
+                        )}
+                      </div>
+                    </div>
+                    <span className="text-xs text-muted-foreground whitespace-nowrap flex items-center gap-1">
+                      <Clock className="h-3 w-3" />
+                      {n.createdAt ? new Date(n.createdAt).toLocaleDateString("en-IN", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }) : "—"}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+            {historyTotal > 20 && (
+              <div className="p-4 border-t border-border/50">
+                <Pagination page={historyPage} totalPages={Math.ceil(historyTotal / 20)} onPageChange={setHistoryPage} />
+              </div>
+            )}
+          </motion.div>
+        )}
+
+        {tab === "broadcast" && <motion.div 
           initial={{ opacity: 0, y: 20 }} 
           animate={{ opacity: 1, y: 0 }} 
           transition={{ delay: 0.2 }}
@@ -151,7 +199,7 @@ export default function NotificationsPage() {
               {isPending ? "Broadcasting..." : "Broadcast Message"}
             </button>
           </div>
-        </motion.div>
+        </motion.div>}
       </div>
     </AdminLayout>
   );
