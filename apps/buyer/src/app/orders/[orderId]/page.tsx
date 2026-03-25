@@ -12,9 +12,9 @@ import AuthGuard from '@/components/shared/AuthGuard';
 
 const STATUS_ORDER = ['PLACED', 'ACCEPTED', 'SHIPPED', 'OUT_FOR_DELIVERY', 'DELIVERED'];
 
-function buildTimelineSteps(status: string) {
+function buildTimelineSteps(status: string | undefined) {
   const labels = ['Order Placed', 'Confirmed', 'Shipped', 'Out for Delivery', 'Delivered'];
-  const currentIdx = STATUS_ORDER.indexOf(status.toUpperCase());
+  const currentIdx = status ? STATUS_ORDER.indexOf(status.toUpperCase()) : 0;
   return labels.map((label, idx) => ({
     label,
     description: idx <= currentIdx ? '' : 'Pending',
@@ -23,13 +23,14 @@ function buildTimelineSteps(status: string) {
   }));
 }
 
-function getStatusBadge(status: string) {
-  const s = status.toUpperCase();
+function getStatusBadge(status: string | undefined) {
+  const s = (status || '').toUpperCase();
   if (s === 'DELIVERED') return { label: 'Delivered', cls: 'bg-green-100 text-green-700' };
   if (s === 'SHIPPED') return { label: 'In Transit', cls: 'bg-blue-100 text-blue-700' };
   if (s === 'CANCELLED') return { label: 'Cancelled', cls: 'bg-red-100 text-red-700' };
   if (s === 'ACCEPTED') return { label: 'Confirmed', cls: 'bg-lime-100 text-lime-700' };
-  return { label: s, cls: 'bg-yellow-100 text-yellow-700' };
+  if (s === 'PLACED') return { label: 'Order Placed', cls: 'bg-yellow-100 text-yellow-700' };
+  return { label: s || 'Unknown', cls: 'bg-gray-100 text-gray-700' };
 }
 
 export default function OrderIdPage({ params }: { params: { orderId: string } }) {
@@ -66,12 +67,12 @@ export default function OrderIdPage({ params }: { params: { orderId: string } })
   }
 
   const badge = getStatusBadge(order.status);
-  const steps = order.status.toUpperCase() !== 'CANCELLED' ? buildTimelineSteps(order.status) : [];
+  const steps = (order.status || '').toUpperCase() !== 'CANCELLED' ? buildTimelineSteps(order.status) : [];
   const orderItems = order.items ?? [];
-  const totalAmount = order.total ?? order.amount ?? 0;
+  const totalAmount = order.totalAmount ?? order.total ?? order.amount ?? 0;
   const orderDate = order.createdAt ? new Date(order.createdAt).toLocaleDateString('en-IN', { year: 'numeric', month: 'short', day: 'numeric' }) : '';
   const shippingAddress = [order.address, order.city, order.state, order.pincode].filter(Boolean).join(', ');
-  const isCancellable = !['DELIVERED', 'CANCELLED', 'SHIPPED'].includes(order.status.toUpperCase());
+  const isCancellable = !['DELIVERED', 'CANCELLED', 'SHIPPED'].includes((order.status || '').toUpperCase());
 
   return (
     <AuthGuard>

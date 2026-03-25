@@ -1,12 +1,13 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { motion } from 'framer-motion';
 import { Loader2 } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 import Navbar from '@/components/landing/Navbar';
 import Footer from '@/components/landing/Footer';
-import { sendOtp, verifyOtp } from '@pharmabag/api-client';
+import { useAuth } from '@pharmabag/api-client';
 import { useToast } from '@/components/shared/Toast';
 
 const TRUST_HIGHLIGHTS = [
@@ -21,7 +22,29 @@ export default function LoginPage() {
   const [otp, setOtp] = useState('');
   const [step, setStep] = useState<'phone' | 'otp'>('phone');
   const [isLoading, setIsLoading] = useState(false);
+  const router = useRouter();
   const { toast } = useToast();
+  const { sendOtp, verifyOtp, isAuthenticated, isLoading: authLoading } = useAuth();
+
+  // Redirect to /products if already authenticated
+  useEffect(() => {
+    if (!authLoading && isAuthenticated) {
+      router.push('/products');
+    }
+  }, [isAuthenticated, authLoading, router]);
+
+  // Show loading state while checking auth
+  if (authLoading) {
+    return (
+      <main className="min-h-screen flex items-center justify-center bg-[#f8fbfa]">
+        <motion.div
+          animate={{ rotate: 360 }}
+          transition={{ repeat: Infinity, duration: 1, ease: 'linear' }}
+          className="w-8 h-8 border-2 border-emerald-500 border-t-transparent rounded-full"
+        />
+      </main>
+    );
+  }
 
   const sanitizePhone = (input: string) => {
     let cleaned = input.replace(/\D/g, '');
@@ -61,7 +84,8 @@ export default function LoginPage() {
     try {
       await verifyOtp(cleanPhone, otp);
       toast('Login successful!', 'success');
-      window.location.href = '/products';
+      // Use router.push for client-side navigation that preserves auth state
+      router.push('/products');
     } catch (error: any) {
       toast(error?.response?.data?.message || 'Invalid OTP', 'error');
     } finally {

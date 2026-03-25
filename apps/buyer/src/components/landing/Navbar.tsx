@@ -4,7 +4,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useState, useRef, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Bell, User, ShoppingCart, LogOut, ClipboardList, CreditCard, HelpCircle, ArrowRight, Heart } from 'lucide-react';
+import { Bell, User, ShoppingCart, LogOut, ClipboardList, CreditCard, HelpCircle, ArrowRight, Heart, Bookmark } from 'lucide-react';
 import BrandsMegaMenu from '@/components/landing/BrandsMegaMenu';
 import CartDrawer from '@/components/cart/CartDrawer';
 import SearchBar from '@/components/shared/SearchBar';
@@ -90,6 +90,12 @@ export default function Navbar({ onLoginClick, showUserActions = false }: Navbar
               {/* User Action Icons - Only show when logged in and showUserActions is true */}
               {isMounted && isAuthenticated && showUserActions && (
               <div className="hidden md:flex items-center gap-3">
+                {/* Wishlist / Bookmarks */}
+                <Link href="/wishlist" className="p-2 text-gray-700 hover:text-sky-600 transition-colors relative group">
+                  <Bookmark className="w-5 h-5" />
+                  <span className="absolute -bottom-8 left-1/2 -translate-x-1/2 px-2 py-1 bg-gray-900 text-white text-[10px] font-bold rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">Bookmarks</span>
+                </Link>
+
                 {/* Notifications */}
                 <Link href="/notifications" className="p-2 text-gray-700 hover:text-sky-600 transition-colors relative group">
                   <Bell className="w-5 h-5" />

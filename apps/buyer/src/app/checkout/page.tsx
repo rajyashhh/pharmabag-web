@@ -25,7 +25,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import AuthGuard from '@/components/shared/AuthGuard';
 
-type PaymentMethod = 'cod' | 'online' | 'credit';
+type PaymentMethod = 'COD' | 'UPI' | 'BANK_TRANSFER' | 'CREDIT';
 
 export default function CheckoutPage() {
   const { data: cartData, isLoading: isCartLoading } = useCart();
@@ -35,7 +35,7 @@ export default function CheckoutPage() {
   const createOrder = useCreateOrder();
   const createPaymentMut = useCreatePayment();
   const { data: platformConfig } = usePlatformConfig();
-  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('cod');
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('COD');
 
   const credit = (creditData as any)?.data || creditData;
   const isCreditEligible = credit?.status === 'active' && (credit?.availableCredit ?? 0) > 0;
@@ -79,7 +79,7 @@ export default function CheckoutPage() {
       return;
     }
 
-    if (paymentMethod === 'credit') {
+    if (paymentMethod === 'CREDIT') {
       const availableCredit = credit?.availableCredit ?? 0;
       if (total > availableCredit) {
         toast(`Insufficient credit. Available: ₹${availableCredit.toLocaleString()}, Required: ₹${total.toLocaleString()}`, 'error');
@@ -87,7 +87,7 @@ export default function CheckoutPage() {
       }
     }
 
-    createOrder.mutate({ ...address, paymentMethod }, {
+    createOrder.mutate(address, {
       onSuccess: (data: any) => {
         const orderId = data?.data?.id || data?.id;
         // Create payment record for the order
@@ -232,23 +232,23 @@ export default function CheckoutPage() {
               <div className="grid grid-cols-1 gap-4">
                 {/* Cash on Delivery */}
                 <button
-                  onClick={() => setPaymentMethod('cod')}
+                  onClick={() => setPaymentMethod('COD')}
                   className={`flex items-center justify-between p-6 rounded-3xl border-2 text-left transition-all ${
-                    paymentMethod === 'cod'
+                    paymentMethod === 'COD'
                       ? 'bg-white border-lime-300 shadow-xl shadow-lime-900/5'
                       : 'bg-white/50 border-gray-100 hover:border-gray-200'
                   }`}
                 >
                   <div className="flex items-center gap-4">
-                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${paymentMethod === 'cod' ? 'bg-lime-50' : 'bg-gray-50'}`}>
-                      <ShieldCheck className={`w-5 h-5 ${paymentMethod === 'cod' ? 'text-lime-600' : 'text-gray-400'}`} />
+                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${paymentMethod === 'COD' ? 'bg-lime-50' : 'bg-gray-50'}`}>
+                      <ShieldCheck className={`w-5 h-5 ${paymentMethod === 'COD' ? 'text-lime-600' : 'text-gray-400'}`} />
                     </div>
                     <div>
-                      <p className={`font-bold leading-tight ${paymentMethod === 'cod' ? 'text-gray-900' : 'text-gray-600'}`}>Cash on Delivery</p>
+                      <p className={`font-bold leading-tight ${paymentMethod === 'COD' ? 'text-gray-900' : 'text-gray-600'}`}>Cash on Delivery</p>
                       <p className="text-xs font-medium text-gray-400 mt-0.5">Pay when you receive</p>
                     </div>
                   </div>
-                  {paymentMethod === 'cod' && <CheckCircle2 className="w-6 h-6 text-lime-500" />}
+                  {paymentMethod === 'COD' && <CheckCircle2 className="w-6 h-6 text-lime-500" />}
                 </button>
 
                 {/* Online Payment — disabled until payment gateway integration */}
@@ -269,10 +269,10 @@ export default function CheckoutPage() {
 
                 {/* Credit / EMI */}
                 <button
-                  onClick={() => isCreditEligible && setPaymentMethod('credit')}
+                  onClick={() => isCreditEligible && setPaymentMethod('CREDIT')}
                   disabled={!isCreditEligible}
                   className={`flex items-center justify-between p-6 rounded-3xl border-2 text-left transition-all ${
-                    paymentMethod === 'credit'
+                    paymentMethod === 'CREDIT'
                       ? 'bg-white border-lime-300 shadow-xl shadow-lime-900/5'
                       : isCreditEligible
                       ? 'bg-white/50 border-gray-100 hover:border-gray-200'
@@ -280,11 +280,11 @@ export default function CheckoutPage() {
                   }`}
                 >
                   <div className="flex items-center gap-4">
-                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${paymentMethod === 'credit' ? 'bg-emerald-50' : 'bg-gray-50'}`}>
-                      <CreditCard className={`w-5 h-5 ${paymentMethod === 'credit' ? 'text-emerald-600' : 'text-gray-400'}`} />
+                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${paymentMethod === 'CREDIT' ? 'bg-emerald-50' : 'bg-gray-50'}`}>
+                      <CreditCard className={`w-5 h-5 ${paymentMethod === 'CREDIT' ? 'text-emerald-600' : 'text-gray-400'}`} />
                     </div>
                     <div>
-                      <p className={`font-bold leading-tight ${paymentMethod === 'credit' ? 'text-gray-900' : isCreditEligible ? 'text-gray-600' : 'text-gray-400'}`}>
+                      <p className={`font-bold leading-tight ${paymentMethod === 'CREDIT' ? 'text-gray-900' : isCreditEligible ? 'text-gray-600' : 'text-gray-400'}`}>
                         Credit / EMI
                       </p>
                       <p className="text-xs font-medium text-gray-400 mt-0.5">
@@ -294,7 +294,7 @@ export default function CheckoutPage() {
                       </p>
                     </div>
                   </div>
-                  {paymentMethod === 'credit' && <CheckCircle2 className="w-6 h-6 text-lime-500" />}
+                  {paymentMethod === 'CREDIT' && <CheckCircle2 className="w-6 h-6 text-lime-500" />}
                 </button>
               </div>
             </motion.div>

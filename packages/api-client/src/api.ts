@@ -99,6 +99,13 @@ api.interceptors.request.use(
     const token = getAccessToken();
     if (token && config.headers) {
       config.headers.Authorization = `Bearer ${token}`;
+      // Debug logging
+      console.log(`[API] Token attached to ${config.url}`);
+    } else {
+      const url = config.url || 'unknown';
+      if (!token) {
+        console.warn(`[API] No token available for ${url}`);
+      }
     }
     return config;
   },
@@ -165,11 +172,24 @@ api.interceptors.response.use(
     if (error.response) {
       const { status, data } = error.response as { status: number; data?: any };
       const serverMsg = data?.message || data?.error;
+      const url = (originalRequest?.url || '') as string;
+
+      // List of read-only endpoints that handle errors gracefully (don't show toast)
+      // These endpoints have fallback logic (mock data, empty arrays, etc)
+      const readOnlyEndpoints = ['/products', '/categories', '/manufacturers', '/locations', '/cities', '/discount', '/auth/me', '/cart', '/config'];
+      const isReadOnlyEndpoint = readOnlyEndpoints.some(endpoint => url.includes(endpoint));
 
       if (status === 403) {
-        emitApiEvent('error:forbidden', { message: serverMsg || 'You do not have permission to perform this action.', status });
+        console.warn(`[API] 403 Forbidden on ${url} | ReadOnly: ${isReadOnlyEndpoint} | Token: ${getAccessToken() ? 'present' : 'missing'}`);
+        // Only emit forbidden error for non-read-only endpoints (write operations, sensitive reads)
+        if (!isReadOnlyEndpoint) {
+          emitApiEvent('error:forbidden', { message: serverMsg || 'You do not have permission to perform this action.', status });
+        }
       } else if (status >= 500) {
+        console.error(`[API] Server error ${status} on ${url}`);
         emitApiEvent('error:server', { message: serverMsg || 'Something went wrong. Please try again later.', status });
+      } else if (status === 401) {
+        console.warn(`[API] 401 Unauthorized on ${url}`);
       }
     } else if (error.request) {
       emitApiEvent('error:network', { message: 'Network error. Please check your connection.' });

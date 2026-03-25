@@ -1,12 +1,12 @@
 import { z } from 'zod';
 import { api } from '../api';
-import { PRODUCTS as MOCK_PRODUCTS } from '@pharmabag/utils/mockData';
 
 // ─── Schemas ────────────────────────────────────────
+// Matches the actual NestJS backend response structure
 
 export const CartItemSchema = z.object({
   id: z.string(),
-  productId: z.string(),
+  productId: z.string().optional(),
   productName: z.string().optional(),
   name: z.string().optional(),
   price: z.number(),
@@ -20,6 +20,15 @@ export const CartItemSchema = z.object({
     mrp: z.number().optional(),
     images: z.array(z.string()).optional(),
     manufacturer: z.string().optional(),
+    minimumOrderQuantity: z.number().optional(),
+    maximumOrderQuantity: z.number().optional(),
+    seller: z.object({
+      id: z.string().optional(),
+      companyName: z.string().optional(),
+      city: z.string().optional(),
+      state: z.string().optional(),
+      rating: z.number().optional(),
+    }).optional(),
   }).optional(),
 });
 
@@ -36,99 +45,103 @@ export const CartSchema = z.object({
 export type CartItem = z.infer<typeof CartItemSchema>;
 export type Cart = z.infer<typeof CartSchema>;
 
-// ─── Mock Cart Store ────────────────────────────────
+// ─── Response Mapping ───────────────────────────────
+// Backend wraps responses in { message, data } and uses different field names.
+// This normalizes backend cart data into our frontend Cart type.
 
-let mockCart: Cart = {
-  id: 'mock-cart-1',
-  items: [],
-  subtotal: 0,
-  total: 0,
-  itemCount: 0,
-};
-
-function recalculateCart(): void {
-  const subtotal = mockCart.items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-  mockCart.subtotal = subtotal;
-  mockCart.total = subtotal;
-  mockCart.itemCount = mockCart.items.length;
+function mapBackendCartItem(raw: any): CartItem {
+  const product = raw.product || {};
+  return {
+    id: raw.id,
+    productId: raw.productId || product.id,
+    productName: product.name,
+    name: product.name,
+    price: raw.unitPrice ?? product.price ?? product.mrp ?? 0,
+    quantity: raw.quantity,
+    total: raw.totalPrice ?? (raw.unitPrice ?? 0) * (raw.quantity ?? 0),
+    image: Array.isArray(product.images) && product.images.length > 0 ? product.images[0] : undefined,
+    product: product.id ? {
+      id: product.id,
+      name: product.name,
+      price: raw.unitPrice ?? product.price ?? product.mrp ?? 0,
+      mrp: product.mrp,
+      images: Array.isArray(product.images) ? product.images : [],
+      manufacturer: product.manufacturer,
+      minimumOrderQuantity: product.minimumOrderQuantity,
+      maximumOrderQuantity: product.maximumOrderQuantity,
+      seller: product.seller,
+    } : undefined,
+  };
 }
+
+function mapBackendCart(responseData: any): Cart {
+  // Backend returns: { message, data: { cartId, items, totalAmount } }
+  const payload = responseData?.data ?? responseData;
+  const rawItems = Array.isArray(payload?.items) ? payload.items : [];
+  const items = rawItems.map(mapBackendCartItem);
+  const subtotal = payload?.totalAmount ?? items.reduce((sum: number, i: CartItem) => sum + (i.price * i.quantity), 0);
+
+  return {
+    id: payload?.cartId || payload?.id,
+    items,
+    subtotal,
+    total: subtotal,
+    itemCount: items.length,
+  };
+}
+
+const emptyCart: Cart = { items: [], subtotal: 0, total: 0, itemCount: 0 };
 
 // ─── API Functions ──────────────────────────────────
 
 export async function getCart(): Promise<Cart> {
   try {
-    const { data } = await api.get('/cart');
-    return data;
+    const response = await api.get('/cart');
+    const cart = mapBackendCart(response.data);
+    console.log('[Cart] Fetched cart with', cart.items.length, 'items');
+    return cart;
   } catch (err) {
-    console.log('[Cart] Falling back to mock data for getCart');
-    return structuredClone(mockCart);
+    console.error('[Cart] Error fetching cart:', err);
+    return { ...emptyCart };
   }
 }
 
 export async function addToCart(productId: string, quantity: number = 1): Promise<Cart> {
   try {
-    const { data } = await api.post('/cart/add', { productId, quantity });
-    return data;
-  } catch (err) {
-    console.log('[Cart] Falling back to mock data for addToCart');
-    const product = MOCK_PRODUCTS.find((p: any) => p.id === productId);
-    if (!product) throw new Error('Product not found');
-    
-    const existingItem = mockCart.items.find(item => item.productId === productId);
-    if (existingItem) {
-      existingItem.quantity += quantity;
-      existingItem.total = existingItem.price * existingItem.quantity;
-    } else {
-      const images = Array.isArray(product.images) ? product.images : (product.images ? [product.images] : []);
-      mockCart.items.push({
-        id: `cart-item-${Date.now()}`,
-        productId,
-        productName: product.name,
-        name: product.name,
-        price: product.price,
-        quantity,
-        total: product.price * quantity,
-        image: images[0],
-        product: {
-          id: product.id,
-          name: product.name,
-          price: product.price,
-          mrp: product.mrp,
-          images: images.length > 0 ? images : undefined,
-          manufacturer: product.manufacturer,
-        },
-      });
+    const response = await api.post('/cart/add', { productId, quantity });
+    // On success, backend may return the new cart or just the item — refetch to be sure
+    return mapBackendCart(response.data);
+  } catch (err: any) {
+    // Re-throw API errors (like "already in cart") so hooks can handle them
+    if (err?.response) {
+      console.log('[Cart] API error:', err.response.status, err.response.data?.message);
+      throw err;
     }
-    recalculateCart();
-    return structuredClone(mockCart);
+    // Network errors
+    throw err;
   }
 }
 
 export async function updateCartItem(itemId: string, quantity: number): Promise<Cart> {
   try {
-    const { data } = await api.patch(`/cart/item/${itemId}`, { quantity });
-    return data;
+    await api.patch(`/cart/item/${itemId}`, { quantity });
+    // PATCH returns the single updated item, not the full cart.
+    // Fetch fresh cart to get the complete state.
+    return await getCart();
   } catch (err) {
-    console.log('[Cart] Falling back to mock data for updateCartItem');
-    const item = mockCart.items.find(i => i.id === itemId);
-    if (!item) throw new Error('Cart item not found');
-    
-    item.quantity = quantity;
-    item.total = item.price * quantity;
-    recalculateCart();
-    return structuredClone(mockCart);
+    console.error('[Cart] Error updating cart item:', err);
+    throw err;
   }
 }
 
 export async function removeCartItem(itemId: string): Promise<Cart> {
   try {
-    const { data } = await api.delete(`/cart/item/${itemId}`);
-    return data;
+    await api.delete(`/cart/item/${itemId}`);
+    // DELETE returns { message } only — fetch fresh cart.
+    return await getCart();
   } catch (err) {
-    console.log('[Cart] Falling back to mock data for removeCartItem');
-    mockCart.items = mockCart.items.filter(item => item.id !== itemId);
-    recalculateCart();
-    return structuredClone(mockCart);
+    console.error('[Cart] Error removing cart item:', err);
+    throw err;
   }
 }
 
@@ -136,8 +149,7 @@ export async function clearCart(): Promise<void> {
   try {
     await api.delete('/cart');
   } catch (err) {
-    console.log('[Cart] Falling back to mock data for clearCart');
-    mockCart.items = [];
-    recalculateCart();
+    console.error('[Cart] Error clearing cart:', err);
+    throw err;
   }
 }

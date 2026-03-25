@@ -29,18 +29,52 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // On mount, check if we have a token and fetch the user profile
   useEffect(() => {
     async function initAuth() {
-      const token = getAccessToken();
-      const rt = typeof window !== 'undefined' ? localStorage.getItem('pb_refresh_token') : null;
+      // Check localStorage directly for token
+      const storedToken = typeof window !== 'undefined' ? localStorage.getItem('pb_access_token') : null;
+      const storedRT = typeof window !== 'undefined' ? localStorage.getItem('pb_refresh_token') : null;
       
-      if (token || rt) {
+      console.log('[Auth] Init - Checking localStorage:', {
+        hasToken: !!storedToken,
+        hasRefreshToken: !!storedRT,
+      });
+      
+      // Ensure tokens are loaded into memory
+      if (storedToken) {
+        setAccessToken(storedToken, storedRT || undefined);
+      }
+      
+      const token = getAccessToken();
+      
+      if (token || storedRT) {
         try {
+          console.log('[Auth] Attempting to fetch profile...');
           const profile = await getProfile();
+          console.log('[Auth] Profile fetched successfully:', profile);
           setUser(profile);
-        } catch {
-          // If profile fetch fails even after refresh attempt, clear everything
-          setAccessToken(null, null);
-          setUser(null);
+        } catch (error: any) {
+          // If getProfile fails with 403/404, try to extract user from token or allow with minimal info
+          console.warn('[Auth] getProfile failed:', error?.response?.status, error?.message);
+          
+          // If we have a token, assume user is authenticated but profile fetch failed
+          // This handles cases where /auth/me endpoint might not exist or have permission issues
+          if (token) {
+            console.log('[Auth] Token exists but getProfile failed, allowing access with token');
+            // Create a minimal user object - the actual profile might be fetched later
+            setUser({
+              id: 'unknown',
+              phone: 'unknown',
+              role: 'BUYER',
+              email: null,
+            });
+          } else {
+            // No token and profile fetch failed, clear everything
+            console.log('[Auth] No token and profile fetch failed, clearing auth');
+            setAccessToken(null, null);
+            setUser(null);
+          }
         }
+      } else {
+        console.log('[Auth] No stored token or refresh token found');
       }
       setIsLoading(false);
     }

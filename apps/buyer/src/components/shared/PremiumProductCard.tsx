@@ -2,8 +2,10 @@
 
 import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Share2, Plus, Minus, ArrowUpRight, Trash2, Heart } from 'lucide-react';
+import { Plus, Minus, ArrowUpRight, Trash2, Bookmark } from 'lucide-react';
 import { useState, useRef } from 'react';
+import { ShareButton } from './ShareButton';
+import { StockBasedButton } from './StockBasedButton';
 
 interface PremiumProductCardProps {
   name: string;
@@ -13,11 +15,14 @@ interface PremiumProductCardProps {
   moq?: number;
   ptr?: number | string;
   discountTag?: string;
+  stock?: number;
   isBookmarked?: boolean;
   cartQuantity?: number | null;
   plusColor?: string;
   rateLabel?: string;
-  infoIcon?: boolean; 
+  infoIcon?: boolean;
+  productId?: string;
+  isLoadingCart?: boolean;
   onBookmark?: (bookmarked: boolean) => void;
   onCartChange?: (quantity: number | null) => void;
   onQuickView?: () => void;
@@ -32,10 +37,13 @@ export default function PremiumProductCard({
   moq = 1,
   ptr,
   discountTag,
+  stock = 999,
   isBookmarked = false,
   cartQuantity = null,
   rateLabel = 'N. RATE',
   infoIcon = false,
+  productId,
+  isLoadingCart = false,
   onBookmark,
   onCartChange,
   onQuickView,
@@ -43,8 +51,11 @@ export default function PremiumProductCard({
 }: PremiumProductCardProps) {
   const [count, setCount] = useState<number>(cartQuantity ?? 0);
   const [bookmarked, setBookmarked] = useState(isBookmarked);
+  const [isEditingQty, setIsEditingQty] = useState(false);
+  const [editValue, setEditValue] = useState('');
   // Track whether an action button was clicked so we can suppress card navigation
   const actionClicked = useRef(false);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   const handleCardClick = () => {
     // Only navigate if no action button was clicked
@@ -59,12 +70,10 @@ export default function PremiumProductCard({
     }
   };
 
-  const addToCart = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    e.preventDefault();
+  const handleAddToCart = () => {
     actionClicked.current = true;
-    setCount(1);
-    onCartChange?.(1);
+    setCount(moq);
+    onCartChange?.(moq);
   };
 
   const increment = (e: React.MouseEvent) => {
@@ -84,8 +93,9 @@ export default function PremiumProductCard({
     actionClicked.current = true;
     setCount(prev => {
       const next = prev - 1;
-      onCartChange?.(next > 0 ? next : null);
-      return next;
+      // If quantity goes below MOQ, remove from cart entirely
+      onCartChange?.(next >= moq ? next : null);
+      return next >= moq ? next : 0;
     });
   };
 
@@ -124,32 +134,35 @@ export default function PremiumProductCard({
           </div>
         )}
         
-        {/* Share Icon */}
-        <button 
-          className="absolute top-11 left-3 p-1.5 text-gray-400 hover:text-gray-700 hover:scale-110 active:scale-95 transition-all z-10 rounded-full hover:bg-white/60"
-          onClick={(e) => { e.stopPropagation(); e.preventDefault(); actionClicked.current = true; }}
-        >
-          <Share2 className="w-4 h-4" strokeWidth={2} />
-        </button>
+        {/* Top Left: Share Icon */}
+        <div className="absolute top-3 left-2 z-10">
+          <ShareButton
+            productName={name}
+            productPrice={Number(price)}
+            productImage={image}
+            productId={productId || ''}
+            className="p-2.5"
+          />
+        </div>
 
-        {/* Bookmark Heart */}
+        {/* Middle Right: Bookmark Icon */}
         <button
           type="button"
           onPointerDown={(e) => e.stopPropagation()}
           onClick={toggleBookmark}
-          className={`absolute top-[72px] left-3 p-1.5 z-10 rounded-full transition-all duration-300 active:scale-90 ${
+          className={`absolute top-1/2 -right-1 -translate-y-1/2 p-2.5 z-10 rounded-full transition-all duration-300 active:scale-90 ${
             bookmarked 
-              ? 'text-red-500 bg-red-50 shadow-sm' 
-              : 'text-gray-400 hover:text-red-400 hover:bg-white/60'
+              ? 'text-blue-500 bg-blue-50 shadow-sm' 
+              : 'text-gray-400 hover:text-blue-400 hover:bg-white/60'
           }`}
         >
-          <Heart 
-            className={`w-4 h-4 transition-all duration-300 ${bookmarked ? 'fill-red-500 text-red-500' : ''}`} 
+          <Bookmark 
+            className={`w-8 h-8 rotate-90 transition-all duration-300 ${bookmarked ? 'fill-blue-500 text-blue-500' : ''}`} 
             strokeWidth={2} 
           />
         </button>
         
-        {/* Top Right - Cart Actions */}
+        {/* Top Right - Stock-Based Button or Cart Controls */}
         <div
           className="absolute top-3 right-3 z-20"
           onPointerDown={(e) => e.stopPropagation()}
@@ -157,7 +170,6 @@ export default function PremiumProductCard({
         >
           {hasItems ? (
             <div className="flex items-center gap-0.5 bg-black/90 backdrop-blur-sm rounded-full pl-1 pr-1 py-1 shadow-lg animate-in fade-in zoom-in-90 duration-200">
-              {/* When count is 1: show delete icon. Otherwise: show minus */}
               <button
                 type="button"
                 onPointerDown={(e) => e.stopPropagation()}
@@ -171,9 +183,50 @@ export default function PremiumProductCard({
                 )}
               </button>
 
-              <span className="text-white text-[13px] font-black min-w-[28px] text-center tabular-nums select-none">
-                {count}
-              </span>
+              {isEditingQty ? (
+                <input
+                  ref={inputRef}
+                  type="number"
+                  value={editValue}
+                  onChange={(e) => setEditValue(e.target.value)}
+                  onBlur={() => {
+                    const parsed = parseInt(editValue, 10);
+                    if (!isNaN(parsed) && parsed >= moq) {
+                      setCount(parsed);
+                      onCartChange?.(parsed);
+                    } else if (!isNaN(parsed) && parsed > 0 && parsed < moq) {
+                      setCount(moq);
+                      onCartChange?.(moq);
+                    } else if (parsed === 0 || editValue === '') {
+                      setCount(0);
+                      onCartChange?.(null);
+                    }
+                    setIsEditingQty(false);
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      (e.target as HTMLInputElement).blur();
+                    }
+                  }}
+                  className="w-[36px] bg-transparent text-white text-[13px] font-black text-center tabular-nums outline-none border-b border-white/40 appearance-none [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+                  autoFocus
+                />
+              ) : (
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    e.preventDefault();
+                    actionClicked.current = true;
+                    setEditValue(String(count));
+                    setIsEditingQty(true);
+                    setTimeout(() => inputRef.current?.select(), 0);
+                  }}
+                  className="text-white text-[13px] font-black min-w-[28px] text-center tabular-nums select-none cursor-text hover:opacity-80 transition-opacity"
+                >
+                  {count}
+                </button>
+              )}
 
               <button
                 type="button"
@@ -185,14 +238,17 @@ export default function PremiumProductCard({
               </button>
             </div>
           ) : (
-            <button
-              type="button"
-              onPointerDown={(e) => e.stopPropagation()}
-              onClick={addToCart}
-              className="w-9 h-9 rounded-full flex items-center justify-center shadow-md bg-white text-gray-800 hover:bg-gray-50 border border-gray-200 hover:scale-110 active:scale-95 transition-all duration-150"
-            >
-              <Plus className="w-5 h-5" strokeWidth={2.5} />
-            </button>
+            <StockBasedButton
+              stock={stock}
+              moq={moq}
+              onAddToCart={handleAddToCart}
+              onNotifyStockAlert={() => {
+                actionClicked.current = true;
+                // This would open a modal - for now just show a message
+              }}
+              disabled={isLoadingCart}
+              isLoading={isLoadingCart}
+            />
           )}
         </div>
 

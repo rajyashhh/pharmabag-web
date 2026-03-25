@@ -102,7 +102,7 @@ export default function OrdersPage() {
                       <OrderCard
                         orderId={orderNumber}
                         date={orderDate}
-                        status={order.status}
+                        status={order.status || 'PLACED'}
                         total={`₹${totalAmount.toLocaleString('en-IN')}`}
                         itemCount={itemCount}
                       />

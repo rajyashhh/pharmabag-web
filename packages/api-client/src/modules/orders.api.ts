@@ -23,12 +23,15 @@ export const OrderItemSchema = z.object({
 export const OrderSchema = z.object({
   id: z.string(),
   orderNumber: z.string().optional(),
-  status: z.string(),
+  status: z.string().optional(),
+  orderStatus: z.string().optional(),
+  paymentStatus: z.string().optional(),
   items: z.array(OrderItemSchema).optional(),
   subtotal: z.number().optional(),
   tax: z.number().optional(),
   deliveryCharge: z.number().optional(),
   total: z.number().optional(),
+  totalAmount: z.number().optional(),
   amount: z.number().optional(),
   name: z.string().optional(),
   phone: z.string().optional(),
@@ -38,7 +41,11 @@ export const OrderSchema = z.object({
   pincode: z.string().optional(),
   createdAt: z.string(),
   updatedAt: z.string().optional(),
-});
+}).transform((data) => ({
+  ...data,
+  status: data.status || data.orderStatus, // Map orderStatus to status
+  totalAmount: data.totalAmount ?? data.total ?? data.amount,
+}));
 
 export const OrderListResponseSchema = z.object({
   data: z.array(OrderSchema),
@@ -54,7 +61,6 @@ export const CreateOrderSchema = z.object({
   city: z.string().min(1),
   state: z.string().min(1),
   pincode: z.string().min(1),
-  paymentMethod: z.enum(['cod', 'online', 'credit']).optional(),
 });
 
 // ─── Types ──────────────────────────────────────────
@@ -71,28 +77,28 @@ export async function getOrders(params?: {
   limit?: number;
   status?: string;
 }): Promise<OrderListResponse> {
-  const { data } = await api.get('/orders', { params });
-  return data;
+  const response = await api.get('/orders', { params });
+  return response.data.data; // Unwrap { message, data: {...} }
 }
 
 export async function getOrderById(id: string): Promise<Order> {
-  const { data } = await api.get(`/orders/${id}`);
-  return data;
+  const response = await api.get(`/orders/${id}`);
+  return response.data.data; // Unwrap { message, data: {...} }
 }
 
 export async function createOrder(input: CreateOrderInput): Promise<Order> {
-  const { data } = await api.post('/orders', input);
-  return data;
+  const response = await api.post('/orders', input);
+  return response.data.data; // Unwrap { message, data: {...} }
 }
 
 export async function cancelOrder(id: string): Promise<Order> {
-  const { data } = await api.patch(`/orders/${id}/cancel`);
-  return data;
+  const response = await api.patch(`/orders/${id}/cancel`);
+  return response.data.data; // Unwrap { message, data: {...} }
 }
 
 export async function updateOrderStatus(id: string, status: string): Promise<Order> {
-  const { data } = await api.patch(`/orders/${id}/status`, { status });
-  return data;
+  const response = await api.patch(`/orders/${id}/status`, { status });
+  return response.data.data; // Unwrap { message, data: {...} }
 }
 
 // ─── Milestone / EMI APIs ───────────────────────────

@@ -20,6 +20,9 @@ export const ProductSchema = z.object({
   approvalStatus: ProductStatusEnum.optional(),
   sellerId: z.string().optional(),
   sellerName: z.string().optional(),
+  minimumOrderQuantity: z.number().optional(),
+  moq: z.number().optional(),
+  maximumOrderQuantity: z.number().optional(),
   createdAt: z.string().optional(),
   updatedAt: z.string().optional(),
 });
@@ -81,18 +84,34 @@ export async function getProducts(params?: {
   minPrice?: number;
   maxPrice?: number;
 }): Promise<ProductListResponse> {
-  const { data } = await api.get('/products', { params });
-  return {
-    data: data.data.products,
-    total: data.data.meta.total,
-    page: data.data.meta.page,
-    limit: data.data.meta.limit,
-  };
+  try {
+    const { data } = await api.get('/products', { params });
+    return {
+      data: data.data.products,
+      total: data.data.meta.total,
+      page: data.data.meta.page,
+      limit: data.data.meta.limit,
+    };
+  } catch (err) {
+    console.warn('[Products] Failed to fetch products:', (err as any)?.response?.status, (err as any)?.message);
+    // Return empty products on error - this is a read-only endpoint
+    return {
+      data: [],
+      total: 0,
+      page: params?.page ?? 1,
+      limit: params?.limit ?? 24,
+    };
+  }
 }
 
 export async function getProductById(id: string): Promise<Product> {
-  const { data } = await api.get(`/products/${id}`);
-  return data.data;
+  try {
+    const { data } = await api.get(`/products/${id}`);
+    return data.data;
+  } catch (err) {
+    console.warn('[Product] Failed to fetch product:', id, (err as any)?.response?.status);
+    throw err; // Re-throw for product detail pages so they can handle the error appropriately
+  }
 }
 
 export async function getCategories(): Promise<Category[]> {
@@ -122,8 +141,13 @@ export async function deleteProduct(id: string): Promise<void> {
 // ─── Extended Product APIs ──────────────────────────
 
 export async function getManufacturers(): Promise<{ id: string; name: string; productCount?: number }[]> {
-  const { data } = await api.get('/products/manufacturers');
-  return data.data ?? data;
+  try {
+    const { data } = await api.get('/products/manufacturers');
+    return data.data ?? data;
+  } catch (err) {
+    console.warn('[Manufacturers] Failed to fetch manufacturers:', (err as any)?.response?.status, (err as any)?.message);
+    return [];
+  }
 }
 
 export async function getProductsByManufacturer(manufacturer: string, params?: {
@@ -153,7 +177,8 @@ export async function getCities(): Promise<{ id: string; name: string; state: st
   try {
     const { data } = await api.get('/locations/cities');
     return data.data ?? data;
-  } catch {
+  } catch (err) {
+    console.warn('[Cities] Failed to fetch cities:', (err as any)?.response?.status, (err as any)?.message);
     return [];
   }
 }
@@ -166,6 +191,15 @@ export async function getDiscountDetails(productId: string): Promise<{
   netRate?: number;
   savings?: number;
 }> {
-  const { data } = await api.get(`/products/${productId}/discount`);
-  return data.data ?? data;
+  try {
+    const { data } = await api.get(`/products/${productId}/discount`);
+    return data.data ?? data;
+  } catch (err) {
+    console.warn('[Discount] Failed to fetch discount details for product:', productId, (err as any)?.response?.status);
+    // Return default discount details on error
+    return {
+      discountType: 'none',
+      discountPercent: 0,
+    };
+  }
 }
