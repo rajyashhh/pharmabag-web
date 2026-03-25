@@ -127,6 +127,41 @@ export function ProductForm({ defaultValues, productId }: { defaultValues?: Part
       // Filter out data URLs (base64) — only send real URLs
       const realImages = (data.image_list || []).filter((url) => url.startsWith("http"));
 
+      // Map discount form details to backend DTO format
+      // Map form discount types to backend enum values
+      const discountTypeMap: Record<string, string> = {
+        ptr_discount: "PTR_DISCOUNT",
+        same_product_bonus: "SAME_PRODUCT_BONUS",
+        ptr_discount_and_same_product_bonus: "PTR_PLUS_SAME_PRODUCT_BONUS",
+        different_product_bonus: "DIFFERENT_PRODUCT_BONUS",
+        ptr_discount_and_different_product_bonus: "PTR_PLUS_DIFFERENT_PRODUCT_BONUS",
+      };
+
+      const discountMeta: Record<string, any> = {};
+      const formDiscountType = data.discount_form_details?.type;
+
+      // Extract discount metadata based on type
+      if (formDiscountType === "ptr_discount" && data.discount_form_details?.discountPercent) {
+        discountMeta.discountPercent = data.discount_form_details.discountPercent;
+      } else if (formDiscountType === "same_product_bonus" && data.discount_form_details?.bonusProductName) {
+        discountMeta.bonusProductName = data.discount_form_details.bonusProductName;
+      } else if (formDiscountType === "different_product_bonus" && data.discount_form_details?.bonusProductName) {
+        discountMeta.bonusProductName = data.discount_form_details.bonusProductName;
+      } else if (formDiscountType === "ptr_discount_and_same_product_bonus" && data.discount_form_details?.discountPercent) {
+        discountMeta.discountPercent = data.discount_form_details.discountPercent;
+        if (data.discount_form_details?.bonusProductName) {
+          discountMeta.bonusProductName = data.discount_form_details.bonusProductName;
+        }
+      } else if (formDiscountType === "ptr_discount_and_different_product_bonus" && data.discount_form_details?.discountPercent) {
+        discountMeta.discountPercent = data.discount_form_details.discountPercent;
+        if (data.discount_form_details?.bonusProductName) {
+          discountMeta.bonusProductName = data.discount_form_details.bonusProductName;
+        }
+      }
+
+      // Map discount type if present
+      const mappedDiscountType = formDiscountType ? discountTypeMap[formDiscountType as keyof typeof discountTypeMap] : undefined;
+
       const backendPayload: Record<string, any> = {
         name: data.product_name,
         mrp: data.product_price,
@@ -141,12 +176,8 @@ export function ProductForm({ defaultValues, productId }: { defaultValues?: Part
         gstPercent: data.gst_percent,
         ...(realImages.length > 0 && { images: realImages }),
         ...(Object.keys(extra_fields).length > 0 && { extraFields: extra_fields }),
-        // Store both form input and computed output
-        discountFormDetails: data.discount_form_details,
-        discountDetails: {
-          ...data.discount_form_details,
-          ...computedPricing,
-        },
+        ...(mappedDiscountType && { discountType: mappedDiscountType }),
+        ...(Object.keys(discountMeta).length > 0 && { discountMeta }),
       };
 
       if (isEditing) {
