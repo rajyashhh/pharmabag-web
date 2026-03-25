@@ -1,11 +1,10 @@
 /**
  * Shared local product store for dev mode (no backend).
- * Persists seller-created products to localStorage so they survive
- * page refreshes and appear across all tabs of the same app.
+ * Uses in-memory store backed by localStorage for persistence across
+ * page refreshes within the same app/port.
  *
- * Each app (seller/admin/buyer) runs on its own port so they have
- * separate localStorage. To sync, all apps use the SAME key and each
- * app writes to its own localStorage whenever it creates/updates products.
+ * IMPORTANT: Every public function that returns products creates a NEW array
+ * so React Query structural sharing can detect changes properly.
  */
 
 import type { Product } from './types';
@@ -25,7 +24,7 @@ function getStorage(): any {
 
 // ─── Read / Write helpers ──────────────────────────
 
-function readLocalProducts(): Product[] {
+function readFromStorage(): Product[] {
   const storage = getStorage();
   if (!storage) return [];
   try {
@@ -37,7 +36,7 @@ function readLocalProducts(): Product[] {
   }
 }
 
-function writeLocalProducts(products: Product[]): void {
+function writeToStorage(products: Product[]): void {
   const storage = getStorage();
   if (!storage) return;
   try {
@@ -47,75 +46,77 @@ function writeLocalProducts(products: Product[]): void {
   }
 }
 
-// ─── In-memory cache (merged: base mock + localStorage products) ─
+// ─── Internal mutable store ────────────────────────
 
-let _cache: Product[] | null = null;
+let _store: Product[] | null = null;
 
-/** Get all products (base mock + locally created). Initializes from localStorage on first call. */
-export function getLocalProducts(): Product[] {
-  if (!_cache) {
+/** Initialize store from base mock data + localStorage overrides. */
+function ensureStore(): Product[] {
+  if (!_store) {
     const base = structuredClone(BASE_MOCK_PRODUCTS);
-    const local = readLocalProducts();
-    // Merge: base products + any locally-created products not already in base
+    const local = readFromStorage();
     const baseIds = new Set(base.map((p) => p.id));
-    const extras = local.filter((p) => !baseIds.has(p.id));
-    // Also apply any local updates to base products (e.g., admin approve/reject)
+    // Apply localStorage overrides to base products (e.g., admin approve/reject)
     for (const lp of local) {
       const idx = base.findIndex((bp) => bp.id === lp.id);
       if (idx !== -1) {
         base[idx] = lp;
       }
     }
-    _cache = [...base, ...extras];
+    // Add locally-created products that aren't in base
+    const extras = local.filter((p) => !baseIds.has(p.id));
+    _store = [...base, ...extras];
   }
-  return _cache;
+  return _store;
+}
+
+function persist(): void {
+  if (!_store) return;
+  writeToStorage(_store);
+}
+
+// ─── Public API ────────────────────────────────────
+// Every function that returns products returns a NEW array/object
+// so React Query can detect changes via structural sharing.
+
+/** Get all products (base mock + locally created). Always returns a fresh array copy. */
+export function getLocalProducts(): Product[] {
+  return [...ensureStore()];
 }
 
 /** Add a product to the local store and persist. */
 export function addLocalProduct(product: Product): void {
-  const products = getLocalProducts();
-  products.push(product);
-  _cache = products;
-  persistToStorage();
+  ensureStore().push(product);
+  persist();
 }
 
-/** Update a product in the local store by ID. Returns the updated product or null. */
+/** Update a product in the local store by ID. Returns a fresh copy of the updated product or null. */
 export function updateLocalProduct(productId: string, updates: Partial<Product>): Product | null {
-  const products = getLocalProducts();
-  const idx = products.findIndex((p) => p.id === productId);
+  const store = ensureStore();
+  const idx = store.findIndex((p) => p.id === productId);
   if (idx === -1) return null;
-  products[idx] = { ...products[idx], ...updates, updatedAt: new Date().toISOString() };
-  _cache = products;
-  persistToStorage();
-  return products[idx];
+  store[idx] = { ...store[idx], ...updates, updatedAt: new Date().toISOString() };
+  persist();
+  return { ...store[idx] };
 }
 
 /** Delete a product from the local store by ID. Returns true if found and deleted. */
 export function deleteLocalProduct(productId: string): boolean {
-  const products = getLocalProducts();
-  const idx = products.findIndex((p) => p.id === productId);
+  const store = ensureStore();
+  const idx = store.findIndex((p) => p.id === productId);
   if (idx === -1) return false;
-  products.splice(idx, 1);
-  _cache = products;
-  persistToStorage();
+  store.splice(idx, 1);
+  persist();
   return true;
 }
 
-/** Find a single product by ID. */
+/** Find a single product by ID. Returns a fresh copy. */
 export function findLocalProduct(productId: string): Product | undefined {
-  return getLocalProducts().find((p) => p.id === productId);
+  const found = ensureStore().find((p) => p.id === productId);
+  return found ? { ...found } : undefined;
 }
 
-/** Force re-read from localStorage (e.g., if another tab wrote data). */
+/** Force re-read from localStorage (e.g., after external changes). */
 export function refreshLocalProducts(): void {
-  _cache = null;
-}
-
-// ─── Internal ──────────────────────────────────────
-
-function persistToStorage(): void {
-  if (!_cache) return;
-  // Only persist locally-created or modified products (not the original base data)
-  // Actually, persist ALL so that admin approve/reject changes are preserved
-  writeLocalProducts(_cache);
+  _store = null;
 }
