@@ -57,8 +57,15 @@ export async function getSellerProductById(productId: string) {
 export async function getCategories() {
   try {
     const { data } = await apiClient.get<{ data: any[] }>("/products/categories");
-    return data.data || [];
-  } catch {
+    const categories = data.data || [];
+    // Normalize and filter to ensure { id, name } structure
+    return Array.isArray(categories) 
+      ? categories
+          .filter(c => c && typeof c === 'object' && c.id && c.name)
+          .map(c => ({ id: c.id, name: c.name }))
+      : [];
+  } catch (error) {
+    console.warn("Failed to fetch categories, using fallback", error);
     return [
       { id: "cat-1", name: "Tablets" },
       { id: "cat-2", name: "Syrups" },
@@ -180,8 +187,21 @@ export async function searchSuggestions(query: string): Promise<Suggestion[]> {
 export async function getCategoriesWithSubs(): Promise<CategoryItem[]> {
   try {
     const { data } = await apiClient.get<{ data: CategoryItem[] }>("/products/categories?includeSubs=true");
-    return data.data ?? [];
-  } catch {
+    const categories = data.data ?? [];
+    // Normalize and filter to ensure correct structure, removing unexpected fields
+    return Array.isArray(categories)
+      ? categories
+          .filter(c => c && typeof c === 'object' && c.id && c.name)
+          .map(c => ({
+            id: c.id,
+            name: c.name,
+            subcategories: Array.isArray(c.subcategories)
+              ? c.subcategories.filter((sc: any) => sc && sc.id && sc.name)
+              : [],
+          }))
+      : [];
+  } catch (error) {
+    console.warn("Failed to fetch categories with subs, using fallback", error);
     return [
       { id: "cat-1", name: "Tablets", subcategories: [{ id: "sub-1", name: "Pain Relief", categoryId: "cat-1" }, { id: "sub-2", name: "Antibiotics", categoryId: "cat-1" }] },
       { id: "cat-2", name: "Syrups", subcategories: [{ id: "sub-3", name: "Cough", categoryId: "cat-2" }, { id: "sub-4", name: "Digestive", categoryId: "cat-2" }] },

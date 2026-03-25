@@ -5,6 +5,7 @@ import { ProductForm } from "@/components/products/ProductForm";
 import { useSellerProduct } from "@/hooks/useSeller";
 import { ArrowLeft, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui";
+import { ErrorBoundary } from "@/components/error-boundary";
 
 export default function EditProductPage() {
   const params = useParams();
@@ -13,7 +14,8 @@ export default function EditProductPage() {
   const { data: product, isLoading, error } = useSellerProduct(productId);
 
   return (
-        <div className="max-w-7xl mx-auto space-y-6">
+        <ErrorBoundary>
+          <div className="max-w-7xl mx-auto space-y-6">
           {isLoading ? (
             <div className="flex flex-col items-center justify-center min-h-[50vh] text-muted-foreground gap-3">
               <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -47,5 +49,6 @@ export default function EditProductPage() {
             />
           )}
         </div>
+        </ErrorBoundary>
   );
 }

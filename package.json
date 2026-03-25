@@ -10,7 +10,10 @@
     "lint": "pnpm -r lint",
     "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,css,md}\"",
     "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,json,css,md}\"",
-    "clean": "pnpm -r exec rm -rf .next node_modules .turbo"
+    "clean": "pnpm -r exec rm -rf .next node_modules .turbo",
+    "test:journey": "node test-product-journey.js",
+    "test:journey:local": "BACKEND_URL=http://localhost:3000 node test-product-journey.js",
+    "test:journey:production": "BACKEND_URL=https://pharmabag-api.onrender.com node test-product-journey.js"
   },
   "devDependencies": {
     "typescript": "^5.4.0",
