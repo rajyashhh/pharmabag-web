@@ -10,8 +10,30 @@ export type {
   ProductStatus,
   DiscountType,
   DiscountDetails,
+  DiscountFormDetails,
   ProductPayload,
+  Suggestion,
+  CategoryItem,
+  SubCategoryItem,
+  ExtraField,
 } from './types';
+
+// Pricing Engine
+export {
+  calculatePricing,
+  calculatePTR,
+  getRetailMarginPercent,
+  formatPricingSummary,
+  requiresDiscountPercent,
+  requiresBuyGet,
+  requiresBonusProductName,
+  isSpecialPriceType,
+  getSellingPrice,
+  getEffectiveDiscountPercent,
+  VALID_GST_PERCENTAGES,
+} from './pricing';
+
+export type { PricingDiscountType, DiscountFormInput, PricingOutput } from './pricing';
 
 // Currency formatting
 export { formatCurrency, parseCurrency, formatNumber, formatCompact } from './formatCurrency';
@@ -43,4 +65,8 @@ export {
   pincodeSchema,
   gstSchema,
   panSchema,
+  discountFormDetailsSchema,
+  productFormSchema,
 } from './validators';
+
+export type { ProductFormValues } from './validators';

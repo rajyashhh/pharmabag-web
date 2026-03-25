@@ -12,6 +12,7 @@ import { useToast } from '@/components/shared/Toast';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useState } from 'react';
+import { calculatePricing, getSellingPrice, getEffectiveDiscountPercent } from '@pharmabag/utils';
 
 export default function ProductDetailPage({ params }: { params: { productId: string } }) {
   const { data: product, isLoading, isError } = useProductById(params.productId);
@@ -82,7 +83,26 @@ export default function ProductDetailPage({ params }: { params: { productId: str
     );
   }
 
-  const discount = product.mrp ? Math.round(((product.mrp - (product.price ?? 0)) / product.mrp) * 100) : 0;
+  // Compute pricing from discount details if available
+  const dd = (product as any).discountDetails || (product as any).discountFormDetails;
+  let sellingPrice = product.price ?? 0;
+  let computedPtr: number | undefined;
+  let buyGetTag = '';
+
+  if (dd?.type && product.mrp && (product as any).gstPercent != null) {
+    try {
+      const pricing = calculatePricing(product.mrp, (product as any).gstPercent, dd);
+      sellingPrice = getSellingPrice(pricing);
+      computedPtr = pricing.ptr;
+      if (pricing.get > 0) {
+        buyGetTag = `Buy ${pricing.buy} Get ${pricing.get}`;
+      }
+    } catch {
+      // Fallback to raw product values
+    }
+  }
+
+  const discount = product.mrp ? Math.round(getEffectiveDiscountPercent(product.mrp, sellingPrice)) : 0;
   const inStock = (product.stock ?? 0) > 0;
 
   return (
@@ -140,8 +160,8 @@ export default function ProductDetailPage({ params }: { params: { productId: str
               {/* Price */}
               <div className="bg-white/40 backdrop-blur-xl p-6 rounded-3xl border border-white/40 shadow-lg">
                 <div className="flex items-baseline gap-4">
-                  <span className="text-4xl font-bold text-gray-900">₹{(product.price ?? 0).toLocaleString('en-IN')}</span>
-                  {product.mrp && product.mrp > (product.price ?? 0) && (
+                  <span className="text-4xl font-bold text-gray-900">₹{sellingPrice.toLocaleString('en-IN')}</span>
+                  {product.mrp && product.mrp > sellingPrice && (
                     <>
                       <span className="text-xl text-gray-400 line-through">₹{product.mrp.toLocaleString('en-IN')}</span>
                       <span className="text-sm font-bold text-green-600 bg-green-50 px-3 py-1 rounded-2xl">
@@ -150,6 +170,14 @@ export default function ProductDetailPage({ params }: { params: { productId: str
                     </>
                   )}
                 </div>
+                {computedPtr && (
+                  <p className="text-sm text-gray-500 mt-1 font-medium">PTR: ₹{computedPtr.toLocaleString('en-IN')}</p>
+                )}
+                {buyGetTag && (
+                  <span className="inline-block text-xs font-bold text-blue-700 bg-blue-50 px-3 py-1 rounded-2xl mt-2">
+                    {buyGetTag}
+                  </span>
+                )}
                 <p className="text-xs text-gray-400 mt-2 font-medium">Inclusive of all taxes</p>
               </div>
 

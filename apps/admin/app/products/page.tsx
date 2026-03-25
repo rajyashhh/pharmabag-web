@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 import { Search, CheckCircle, XCircle, Trash2, Eye, ShieldCheck, ShieldX } from "lucide-react";
 import { AdminLayout } from "@/components/layout/admin-layout";
 import { Button, Input, Badge, Pagination } from "@/components/ui";
-import { formatCurrency } from "@pharmabag/utils";
+import { formatCurrency, calculatePricing } from "@pharmabag/utils";
 import { cn } from "@/lib/utils";
 import toast from "react-hot-toast";
 import { useAdminProducts, useUpdateProductStatus, useDeleteProduct, useApproveProduct, useRejectProduct } from "@/hooks/useAdmin";
@@ -111,14 +111,14 @@ export default function AdminProductsPage() {
             <table className="w-full" aria-label="Products">
               <thead>
                 <tr className="border-b border-border/50 bg-muted/20">
-                  {["Product", "Manufacturer", "Category", "MRP", "Stock", "Expiry", "Min Qty", "Max Qty", "Approval", "Status", "Actions"].map(h => (
+                  {["Product", "Manufacturer", "Category", "MRP", "Pricing", "Stock", "Expiry", "Min Qty", "Max Qty", "Approval", "Status", "Actions"].map(h => (
                     <th key={h} scope="col" className="px-5 py-3.5 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider whitespace-nowrap">{h}</th>
                   ))}
                 </tr>
               </thead>
               <tbody className="divide-y divide-border/30">
                 {filtered.length === 0 ? (
-                  <tr><td colSpan={11} className="py-12 text-center text-sm text-muted-foreground">No products found</td></tr>
+                  <tr><td colSpan={12} className="py-12 text-center text-sm text-muted-foreground">No products found</td></tr>
                 ) : filtered.map((p: any, i: number) => (
                   <motion.tr key={p.id} initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.03 }} className="hover:bg-accent/30 transition-colors">
                     <td className="px-5 py-4">
@@ -133,6 +133,23 @@ export default function AdminProductsPage() {
                     <td className="px-5 py-4 text-sm text-muted-foreground">{p.manufacturer ?? "—"}</td>
                     <td className="px-5 py-4"><Badge className="capitalize">{p.category?.name ?? "—"}</Badge></td>
                     <td className="px-5 py-4 text-sm font-semibold text-foreground">{formatCurrency(p.mrp ?? 0)}</td>
+                    <td className="px-5 py-4 text-xs text-muted-foreground">
+                      {(() => {
+                        const dd = p.discountDetails || p.discountFormDetails;
+                        if (!dd || !p.gstPercent) return <span className="text-muted-foreground/50">—</span>;
+                        try {
+                          const pr = calculatePricing(p.mrp ?? 0, p.gstPercent, dd);
+                          return (
+                            <div className="space-y-0.5">
+                              <div>PTR: <span className="font-medium">{formatCurrency(pr.ptr)}</span></div>
+                              {pr.discountPercent > 0 && <div className="text-green-600">-{pr.discountPercent}%</div>}
+                              <div>Sell: <span className="font-semibold text-foreground">{formatCurrency(pr.perPtrWithGst)}</span></div>
+                              {pr.get > 0 && <div><Badge variant="info">B{pr.buy}G{pr.get}</Badge></div>}
+                            </div>
+                          );
+                        } catch { return <span className="text-muted-foreground/50">—</span>; }
+                      })()}
+                    </td>
                     <td className="px-5 py-4 text-sm text-muted-foreground">{p.batches?.reduce((s: number, b: any) => s + (b.stock ?? 0), 0) ?? p.stock ?? 0}</td>
                     <td className="px-5 py-4 text-sm text-muted-foreground whitespace-nowrap">
                       {(() => {

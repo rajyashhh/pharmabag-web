@@ -74,6 +74,7 @@ export const PRODUCTS: Product[] = [
     description: 'Fever and pain relief tablets',
     price: 35,
     mrp: 45,
+    gstPercent: 12,
     manufacturer: 'Cipla',
     stock: 500,
     rating: 4.5,
@@ -84,6 +85,7 @@ export const PRODUCTS: Product[] = [
     sellerId: 's1',
     sellerName: 'SunPharma Direct',
     createdAt: '2024-01-20T09:00:00Z',
+    discountFormDetails: { type: 'ptr_discount', discountPercent: 10 },
   },
   {
     id: 'p2',
@@ -91,6 +93,7 @@ export const PRODUCTS: Product[] = [
     description: 'Antibiotic capsules',
     price: 120,
     mrp: 150,
+    gstPercent: 5,
     manufacturer: 'Sun Pharma',
     stock: 200,
     rating: 4.3,
@@ -101,6 +104,7 @@ export const PRODUCTS: Product[] = [
     sellerId: 's1',
     sellerName: 'SunPharma Direct',
     createdAt: '2024-02-05T11:00:00Z',
+    discountFormDetails: { type: 'same_product_bonus', buy: 10, get: 2 },
   },
   {
     id: 'p3',
@@ -108,6 +112,7 @@ export const PRODUCTS: Product[] = [
     description: 'Acid reflux capsules',
     price: 80,
     mrp: 95,
+    gstPercent: 12,
     manufacturer: 'Dr. Reddy\'s',
     stock: 8,
     rating: 4.7,
@@ -118,6 +123,7 @@ export const PRODUCTS: Product[] = [
     sellerId: 's2',
     sellerName: 'MedSupply Wholesale',
     createdAt: '2024-02-10T13:00:00Z',
+    discountFormDetails: { type: 'ptr_discount_and_same_product_bonus', discountPercent: 5, buy: 6, get: 1 },
   },
   {
     id: 'p4',
@@ -125,6 +131,7 @@ export const PRODUCTS: Product[] = [
     description: 'Fast-acting pain reliever and fever reducer',
     price: 45,
     mrp: 65,
+    gstPercent: 18,
     manufacturer: 'Bayer',
     stock: 350,
     rating: 4.6,
@@ -136,6 +143,7 @@ export const PRODUCTS: Product[] = [
     sellerName: 'SunPharma Direct',
     images: ['/products/pharma_bottle.png'],
     createdAt: '2024-02-15T10:00:00Z',
+    discountFormDetails: { type: 'different_product_bonus', buy: 5, get: 1, bonusProductName: 'Aspirin 100mg' },
   },
   {
     id: 'p5',
@@ -143,6 +151,7 @@ export const PRODUCTS: Product[] = [
     description: 'Immune support and antioxidant supplement',
     price: 150,
     mrp: 199,
+    gstPercent: 5,
     manufacturer: 'Himalaya',
     stock: 400,
     rating: 4.4,
@@ -154,6 +163,7 @@ export const PRODUCTS: Product[] = [
     sellerName: 'MedSupply Wholesale',
     images: ['/products/pharma_bottle.png'],
     createdAt: '2024-02-20T09:30:00Z',
+    discountFormDetails: { type: 'ptr_discount_and_different_product_bonus', discountPercent: 8, buy: 10, get: 2, bonusProductName: 'Vitamin D3' },
   },
   {
     id: 'p6',
@@ -161,6 +171,7 @@ export const PRODUCTS: Product[] = [
     description: 'Effective anti-inflammatory and pain reliever',
     price: 55,
     mrp: 75,
+    gstPercent: 12,
     manufacturer: 'Cipla',
     stock: 600,
     rating: 4.8,
@@ -172,6 +183,7 @@ export const PRODUCTS: Product[] = [
     sellerName: 'SunPharma Direct',
     images: ['/products/pharma_bottle.png'],
     createdAt: '2024-02-22T11:15:00Z',
+    discountFormDetails: { type: 'special_price', specialPrice: 50 },
   },
   {
     id: 'p7',
@@ -179,6 +191,7 @@ export const PRODUCTS: Product[] = [
     description: 'Blood sugar control for diabetes management',
     price: 65,
     mrp: 85,
+    gstPercent: 5,
     manufacturer: 'Lupin',
     stock: 250,
     rating: 4.6,
@@ -191,6 +204,7 @@ export const PRODUCTS: Product[] = [
     rejectionReason: 'Missing drug license documentation',
     images: ['/products/pharma_bottle.png'],
     createdAt: '2024-02-25T14:00:00Z',
+    discountFormDetails: { type: 'ptr_discount', discountPercent: 15 },
   },
   {
     id: 'p8',
@@ -198,6 +212,7 @@ export const PRODUCTS: Product[] = [
     description: 'Allergy relief and antihistamine tablets',
     price: 40,
     mrp: 55,
+    gstPercent: 18,
     manufacturer: 'Torrent',
     stock: 500,
     rating: 4.5,
@@ -209,6 +224,7 @@ export const PRODUCTS: Product[] = [
     sellerName: 'SunPharma Direct',
     images: ['/products/pharma_bottle.png'],
     createdAt: '2024-02-28T10:45:00Z',
+    discountFormDetails: { type: 'same_product_bonus', buy: 8, get: 2 },
   },
   {
     id: 'p9',
@@ -216,6 +232,7 @@ export const PRODUCTS: Product[] = [
     description: 'Complete nutritional support with essential vitamins and minerals',
     price: 120,
     mrp: 160,
+    gstPercent: 0,
     manufacturer: 'Abbott',
     stock: 350,
     rating: 4.7,
@@ -227,6 +244,7 @@ export const PRODUCTS: Product[] = [
     sellerName: 'SunPharma Direct',
     images: ['/products/pharma_bottle.png'],
     createdAt: '2024-03-02T08:20:00Z',
+    discountFormDetails: { type: 'ptr_discount_and_same_product_bonus', discountPercent: 12, buy: 4, get: 1 },
   },
 ];
 

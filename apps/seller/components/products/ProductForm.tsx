@@ -1,9 +1,8 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback, useRef } from "react";
 import { useForm, Controller, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import * as z from "zod";
-import { Plus, Trash2, ArrowLeft } from "lucide-react";
+import { Plus, Trash2, ArrowLeft, Search } from "lucide-react";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 
@@ -11,43 +10,16 @@ import { Button, Input, Textarea, Select } from "@/components/ui";
 import { ImageUploader } from "./ImageUploader";
 import { DiscountSelector } from "./DiscountSelector";
 import { CategorySelector } from "./CategorySelector";
-import { ProductPayload, DiscountDetails } from "@pharmabag/utils";
-import { useCreateSellerProduct, useUpdateSellerProduct } from "@/hooks/useSeller";
+import type { DiscountFormDetails, Suggestion } from "@pharmabag/utils";
+import {
+  productFormSchema,
+  type ProductFormValues,
+  calculatePricing,
+  VALID_GST_PERCENTAGES,
+} from "@pharmabag/utils";
+import { useCreateSellerProduct, useUpdateSellerProduct, useSuggestionSearch } from "@/hooks/useSeller";
 
-const formSchema = z.object({
-  product_name: z.string().min(2, "Name must be at least 2 characters"),
-  product_price: z.number().min(0.01, "Price must be greater than 0"),
-  company_name: z.string().min(2, "Company name is required"),
-  chemical_combination: z.string().optional(),
-  categories: z.array(z.string()).min(1, "Select at least one category"),
-  sub_categories: z.array(z.string()).optional(),
-  stock: z.number().min(0, "Stock cannot be negative"),
-  min_order_qty: z.number().min(1, "Minimum 1 required"),
-  max_order_qty: z.number().min(1, "Minimum 1 required"),
-  expire_date: z.string().refine((val) => new Date(val) > new Date(), {
-    message: "Expiry date must be in the future",
-  }),
-  gst_percent: z.number().min(0, "GST must be >= 0"),
-  image_list: z.array(z.string()).optional().default([]),
-  custom_extra_fields: z.array(z.object({ key: z.string().min(1), value: z.string().min(1) })),
-  discount_details: z.object({
-    type: z.enum([
-      "ptr_discount",
-      "same_product_bonus",
-      "ptr_discount_and_same_product_bonus",
-      "different_product_bonus",
-      "different_ptr_discount_and_same_product_bonus",
-    ]),
-    discountPercent: z.number().optional(),
-    buy: z.number().optional(),
-    get: z.number().optional(),
-  }).optional(),
-}).refine((data) => data.min_order_qty <= data.max_order_qty, {
-  message: "Max order qty must be >= min order qty",
-  path: ["max_order_qty"],
-});
-
-type FormValues = z.infer<typeof formSchema>;
+type FormValues = ProductFormValues;
 
 export function ProductForm({ defaultValues, productId }: { defaultValues?: Partial<FormValues>; productId?: string }) {
   const router = useRouter();
@@ -55,8 +27,14 @@ export function ProductForm({ defaultValues, productId }: { defaultValues?: Part
   const updateProduct = useUpdateSellerProduct();
   const isEditing = !!productId;
 
-  const { register, control, handleSubmit, formState: { errors, isSubmitting, isDirty }, watch } = useForm<FormValues>({
-    resolver: zodResolver(formSchema) as any,
+  // Suggestion autocomplete state
+  const [searchQuery, setSearchQuery] = useState("");
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const suggestionRef = useRef<HTMLDivElement>(null);
+  const { data: suggestions = [] } = useSuggestionSearch(searchQuery);
+
+  const { register, control, handleSubmit, setValue, formState: { errors, isSubmitting, isDirty }, watch } = useForm<FormValues>({
+    resolver: zodResolver(productFormSchema) as any,
     defaultValues: defaultValues || {
       product_name: "",
       product_price: 0,
@@ -71,13 +49,27 @@ export function ProductForm({ defaultValues, productId }: { defaultValues?: Part
       gst_percent: 12,
       image_list: [],
       custom_extra_fields: [],
-      discount_details: { type: "ptr_discount" } as DiscountDetails,
+      discount_form_details: { type: "ptr_discount" } as DiscountFormDetails,
     },
   });
 
   const { fields: extraFields, append: appendExtra, remove: removeExtra } = useFieldArray({ control, name: "custom_extra_fields" });
 
-  // Confimation before leaving unsaved changes
+  const watchMrp = watch("product_price");
+  const watchGst = watch("gst_percent");
+
+  // Close suggestions on outside click
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (suggestionRef.current && !suggestionRef.current.contains(e.target as Node)) {
+        setShowSuggestions(false);
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
+
+  // Confirmation before leaving unsaved changes
   useEffect(() => {
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
       if (isDirty) {
@@ -89,21 +81,50 @@ export function ProductForm({ defaultValues, productId }: { defaultValues?: Part
     return () => window.removeEventListener("beforeunload", handleBeforeUnload);
   }, [isDirty]);
 
+  const handleSuggestionSelect = useCallback((suggestion: Suggestion) => {
+    setValue("product_name", suggestion.productName, { shouldDirty: true });
+    setValue("company_name", suggestion.companyName, { shouldDirty: true });
+    if (suggestion.chemicalCombination) {
+      setValue("chemical_combination", suggestion.chemicalCombination, { shouldDirty: true });
+    }
+    if (suggestion.gstPercent !== undefined) {
+      setValue("gst_percent", suggestion.gstPercent, { shouldDirty: true });
+    }
+    setShowSuggestions(false);
+    setSearchQuery("");
+  }, [setValue]);
+
   const onSubmit = async (data: FormValues) => {
     try {
-      const extra_fields = data.custom_extra_fields.reduce((acc, curr) => ({ ...acc, [curr.key]: curr.value }), {});
-      
-      // Map discount type from legacy naming to backend enum
-      const discountTypeMap: Record<string, string> = {
-        ptr_discount: "PTR_DISCOUNT",
-        same_product_bonus: "SAME_PRODUCT_BONUS",
-        ptr_discount_and_same_product_bonus: "PTR_PLUS_SAME_PRODUCT_BONUS",
-        different_product_bonus: "DIFFERENT_PRODUCT_BONUS",
-        different_ptr_discount_and_same_product_bonus: "PTR_PLUS_DIFFERENT_PRODUCT_BONUS",
-      };
+      const extra_fields = data.custom_extra_fields.reduce<Record<string, string>>((acc, curr) => ({ ...acc, [curr.key]: curr.value }), {});
 
-      // Build the backend-compatible payload
-      // Filter out data URLs (base64) — only send real URLs. If no real URLs, omit images.
+      // Compute pricing via centralized engine
+      let computedPricing: Record<string, any> = {};
+      try {
+        const p = calculatePricing(data.product_price, data.gst_percent, {
+          type: data.discount_form_details.type,
+          discountPercent: data.discount_form_details.discountPercent,
+          buy: data.discount_form_details.buy,
+          get: data.discount_form_details.get,
+          bonusProductName: data.discount_form_details.bonusProductName,
+          specialPrice: data.discount_form_details.specialPrice,
+        });
+        computedPricing = {
+          ptr: p.ptr,
+          finalPtr: p.finalPtr,
+          discountValue: p.discountValue,
+          gstValue: p.gstValue,
+          perPtrWithGst: p.perPtrWithGst,
+          itemsToPayFor: p.itemsToPayFor,
+          finalUserBuy: p.finalUserBuy,
+          finalOrderValue: p.finalOrderValue,
+          retailMarginPercent: p.retailMarginPercent,
+        };
+      } catch {
+        // Pricing calculation failed — continue with form details only
+      }
+
+      // Filter out data URLs (base64) — only send real URLs
       const realImages = (data.image_list || []).filter((url) => url.startsWith("http"));
 
       const backendPayload: Record<string, any> = {
@@ -111,8 +132,8 @@ export function ProductForm({ defaultValues, productId }: { defaultValues?: Part
         mrp: data.product_price,
         manufacturer: data.company_name,
         chemicalComposition: data.chemical_combination || "N/A",
-        categoryId: data.categories[0],         // Backend expects a single category ID
-        subCategoryId: data.sub_categories?.[0] || data.categories[0], // Fallback
+        categoryId: data.categories[0],
+        subCategoryId: data.sub_categories?.[0] || data.categories[0],
         stock: data.stock,
         expiryDate: new Date(data.expire_date).toISOString(),
         minimumOrderQuantity: data.min_order_qty,
@@ -120,16 +141,12 @@ export function ProductForm({ defaultValues, productId }: { defaultValues?: Part
         gstPercent: data.gst_percent,
         ...(realImages.length > 0 && { images: realImages }),
         ...(Object.keys(extra_fields).length > 0 && { extraFields: extra_fields }),
-        ...(data.discount_details?.type && {
-          discountType: discountTypeMap[data.discount_details.type] || undefined,
-        }),
-        ...(data.discount_details && (data.discount_details.discountPercent || data.discount_details.buy) && {
-          discountMeta: {
-            discountPercent: data.discount_details.discountPercent,
-            buy: data.discount_details.buy,
-            get: data.discount_details.get,
-          },
-        }),
+        // Store both form input and computed output
+        discountFormDetails: data.discount_form_details,
+        discountDetails: {
+          ...data.discount_form_details,
+          ...computedPricing,
+        },
       };
 
       if (isEditing) {
@@ -167,12 +184,45 @@ export function ProductForm({ defaultValues, productId }: { defaultValues?: Part
         const msg = (firstError as any)?.message || "Please fix the form errors";
         toast.error(String(msg));
       })} className="space-y-6">
+        {/* Suggestion Search */}
+        {!isEditing && (
+          <div className="glass-card rounded-2xl p-6 space-y-4" ref={suggestionRef}>
+            <h2 className="font-semibold text-lg text-foreground border-b border-border/50 pb-2">Quick Search (Autocomplete)</h2>
+            <div className="relative">
+              <Input
+                label="Search product catalog"
+                placeholder="Type product name, company, or chemical..."
+                value={searchQuery}
+                onChange={(e) => { setSearchQuery(e.target.value); setShowSuggestions(true); }}
+                onFocus={() => searchQuery.length >= 2 && setShowSuggestions(true)}
+                leftIcon={<Search className="h-4 w-4" />}
+              />
+              {showSuggestions && suggestions.length > 0 && (
+                <div className="absolute z-20 top-full left-0 right-0 mt-1 bg-background border border-border rounded-xl shadow-lg max-h-64 overflow-y-auto">
+                  {suggestions.map((s: Suggestion) => (
+                    <button
+                      key={s.id}
+                      type="button"
+                      className="w-full text-left px-4 py-2.5 hover:bg-accent transition-colors border-b border-border/30 last:border-0"
+                      onClick={() => handleSuggestionSelect(s)}
+                    >
+                      <p className="font-medium text-sm">{s.productName}</p>
+                      <p className="text-xs text-muted-foreground">{s.companyName} {s.chemicalCombination ? `| ${s.chemicalCombination}` : ""} {s.gstPercent !== undefined ? `| GST ${s.gstPercent}%` : ""}</p>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+            <p className="text-xs text-muted-foreground">Select from suggestions to auto-fill product details, or enter manually below.</p>
+          </div>
+        )}
+
         {/* Basic Info */}
         <div className="glass-card rounded-2xl p-6 space-y-4">
           <h2 className="font-semibold text-lg text-foreground border-b border-border/50 pb-2">Basic Information</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <Input label="Product Name *" error={errors.product_name?.message} {...register("product_name")} />
-            <Input label="Company Name *" error={errors.company_name?.message} {...register("company_name")} />
+            <Input label="Company / Manufacturer *" error={errors.company_name?.message} {...register("company_name")} />
             <div className="md:col-span-2">
               <Textarea label="Chemical Combination" error={errors.chemical_combination?.message} {...register("chemical_combination")} />
             </div>
@@ -207,25 +257,43 @@ export function ProductForm({ defaultValues, productId }: { defaultValues?: Part
         <div className="glass-card rounded-2xl p-6 space-y-4">
           <h2 className="font-semibold text-lg text-foreground border-b border-border/50 pb-2">Pricing & Stock</h2>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <Input label="Product Price (₹) *" type="number" step="0.01" error={errors.product_price?.message} {...register("product_price", { valueAsNumber: true })} />
+            <Input label="MRP (₹) *" type="number" step="0.01" error={errors.product_price?.message} {...register("product_price", { valueAsNumber: true })} />
             <Input label="Current Stock *" type="number" error={errors.stock?.message} {...register("stock", { valueAsNumber: true })} />
             <Input label="Expiry Date *" type="date" error={errors.expire_date?.message} {...register("expire_date")} />
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2">
             <Input label="Minimum Order Qty *" type="number" error={errors.min_order_qty?.message} {...register("min_order_qty", { valueAsNumber: true })} />
             <Input label="Maximum Order Qty *" type="number" error={errors.max_order_qty?.message} {...register("max_order_qty", { valueAsNumber: true })} />
-            <Input label="GST Percentage (%) *" type="number" error={errors.gst_percent?.message} {...register("gst_percent", { valueAsNumber: true })} />
+            <Controller
+              control={control}
+              name="gst_percent"
+              render={({ field }) => (
+                <Select
+                  label="GST Percentage *"
+                  options={VALID_GST_PERCENTAGES.map((g) => ({ label: `${g}%`, value: String(g) }))}
+                  value={String(field.value)}
+                  onChange={(e) => field.onChange(Number(e.target.value))}
+                  error={errors.gst_percent?.message}
+                />
+              )}
+            />
           </div>
         </div>
 
-        {/* Discounts */}
+        {/* Discounts & Pricing Engine */}
         <div className="glass-card rounded-2xl p-6 space-y-4">
           <h2 className="font-semibold text-lg text-foreground border-b border-border/50 pb-2">Discount & Bonuses</h2>
           <Controller
             control={control}
-            name="discount_details"
+            name="discount_form_details"
             render={({ field }: any) => (
-              <DiscountSelector value={field.value} onChange={field.onChange} error={errors.discount_details?.message} />
+              <DiscountSelector
+                value={field.value}
+                onChange={field.onChange}
+                mrp={watchMrp}
+                gstPercent={watchGst}
+                error={(errors.discount_form_details as any)?.message || (errors.discount_form_details as any)?.discountPercent?.message || (errors.discount_form_details as any)?.buy?.message || (errors.discount_form_details as any)?.bonusProductName?.message || (errors.discount_form_details as any)?.specialPrice?.message}
+              />
             )}
           />
         </div>

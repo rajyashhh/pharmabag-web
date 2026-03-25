@@ -1,5 +1,5 @@
 import { apiClient } from "@/lib/apiClient";
-import type { Product, Order, Payout } from "@pharmabag/utils";
+import type { Product, Order, Payout, Suggestion, CategoryItem } from "@pharmabag/utils";
 import { PRODUCTS as MOCK_PRODUCTS } from "@pharmabag/utils/mockData";
 import type { ProductPayload } from "@pharmabag/utils";
 
@@ -217,6 +217,57 @@ export async function getSellerCancelledOrders() {
 export async function getSellerNotifications() {
   const { data } = await apiClient.get<any>("/notifications");
   return data.data ?? data;
+}
+
+// ─── Suggestion / Autocomplete Search ─────────────────
+
+const MOCK_SUGGESTIONS: Suggestion[] = [
+  { id: "sug-1", productName: "Paracetamol 500mg", companyName: "Cipla", chemicalCombination: "Paracetamol", category: "Tablets", gstPercent: 12 },
+  { id: "sug-2", productName: "Amoxicillin 250mg", companyName: "Sun Pharma", chemicalCombination: "Amoxicillin", category: "Capsules", gstPercent: 12 },
+  { id: "sug-3", productName: "Cetirizine 10mg", companyName: "Dr. Reddy's", chemicalCombination: "Cetirizine Hydrochloride", category: "Tablets", gstPercent: 12 },
+  { id: "sug-4", productName: "Azithromycin 500mg", companyName: "Zydus", chemicalCombination: "Azithromycin", category: "Tablets", gstPercent: 12 },
+  { id: "sug-5", productName: "Dolo 650", companyName: "Micro Labs", chemicalCombination: "Paracetamol 650mg", category: "Tablets", gstPercent: 12 },
+  { id: "sug-6", productName: "Pantoprazole 40mg", companyName: "Alkem", chemicalCombination: "Pantoprazole", category: "Tablets", gstPercent: 5 },
+  { id: "sug-7", productName: "Metformin 500mg", companyName: "USV", chemicalCombination: "Metformin Hydrochloride", category: "Tablets", gstPercent: 5 },
+  { id: "sug-8", productName: "Cough Syrup", companyName: "Dabur", chemicalCombination: "Honey, Tulsi, Mulethi", category: "Syrups", gstPercent: 18 },
+  { id: "sug-9", productName: "ORS Powder", companyName: "Electral", chemicalCombination: "Sodium Chloride, Potassium Chloride", category: "Sachets", gstPercent: 0 },
+  { id: "sug-10", productName: "Vitamin D3 60K", companyName: "USV", chemicalCombination: "Cholecalciferol", category: "Capsules", gstPercent: 12 },
+];
+
+export async function searchSuggestions(query: string): Promise<Suggestion[]> {
+  try {
+    const { data } = await apiClient.get<{ data: Suggestion[] }>("/products/suggestions", {
+      params: { q: query },
+    });
+    return data.data ?? [];
+  } catch {
+    if (!query || query.length < 2) return [];
+    const q = query.toLowerCase();
+    return MOCK_SUGGESTIONS.filter(
+      (s) =>
+        s.productName.toLowerCase().includes(q) ||
+        s.companyName.toLowerCase().includes(q) ||
+        (s.chemicalCombination?.toLowerCase().includes(q) ?? false)
+    );
+  }
+}
+
+// ─── Categories with Subcategories ────────────────────
+
+export async function getCategoriesWithSubs(): Promise<CategoryItem[]> {
+  try {
+    const { data } = await apiClient.get<{ data: CategoryItem[] }>("/products/categories?includeSubs=true");
+    return data.data ?? [];
+  } catch {
+    return [
+      { id: "cat-1", name: "Tablets", subcategories: [{ id: "sub-1", name: "Pain Relief", categoryId: "cat-1" }, { id: "sub-2", name: "Antibiotics", categoryId: "cat-1" }] },
+      { id: "cat-2", name: "Syrups", subcategories: [{ id: "sub-3", name: "Cough", categoryId: "cat-2" }, { id: "sub-4", name: "Digestive", categoryId: "cat-2" }] },
+      { id: "cat-3", name: "Injections", subcategories: [] },
+      { id: "cat-4", name: "Drops", subcategories: [{ id: "sub-5", name: "Eye Drops", categoryId: "cat-4" }, { id: "sub-6", name: "Ear Drops", categoryId: "cat-4" }] },
+      { id: "cat-5", name: "Capsules", subcategories: [] },
+      { id: "cat-6", name: "Sachets", subcategories: [] },
+    ];
+  }
 }
 
 export async function markNotificationRead(notificationId: string) {

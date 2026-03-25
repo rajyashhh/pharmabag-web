@@ -11,6 +11,7 @@ import { SkeletonCard } from '@/components/shared/LoaderSkeleton';
 import EmptyState from '@/components/shared/EmptyState';
 import { useProducts, useCategories, useManufacturers, useCities } from '@/hooks/useProducts';
 import { useDebounce } from '@/hooks/useDebounce';
+import { calculatePricing, getSellingPrice, getEffectiveDiscountPercent } from '@pharmabag/utils';
 
 export default function ProductsPage() {
   const [searchTerm, setSearchTerm] = useState('');
@@ -268,19 +269,44 @@ export default function ProductsPage() {
                       || (product.images && product.images.length > 0
                         ? (typeof product.images[0] === 'string' ? product.images[0] : product.images[0]?.url)
                         : '/product_placeholder.png');
+
+                    // Compute pricing from discount details if available
+                    const dd = product.discountDetails || product.discountFormDetails;
+                    let computedPtr = product.ptr;
+                    let computedSellingPrice = product.sellingPrice || product.price || product.mrp || 0;
+                    let computedDiscountTag = product.discountTag || product.discountMeta?.tag;
+
+                    if (dd?.type && product.mrp && product.gstPercent != null) {
+                      try {
+                        const pricing = calculatePricing(product.mrp, product.gstPercent, dd);
+                        const sp = getSellingPrice(pricing);
+                        computedPtr = pricing.ptr;
+                        computedSellingPrice = sp;
+                        const effDiscount = getEffectiveDiscountPercent(product.mrp, sp);
+                        if (effDiscount > 0) {
+                          computedDiscountTag = computedDiscountTag || `${effDiscount}% OFF`;
+                        }
+                        if (pricing.get > 0) {
+                          computedDiscountTag = `Buy ${pricing.buy} Get ${pricing.get}` + (effDiscount > 0 ? ` + ${effDiscount}% OFF` : '');
+                        }
+                      } catch {
+                        // Fallback to raw product values if pricing computation fails
+                      }
+                    }
+
                     return (
                       <div key={product.id}>
                         <PremiumProductCard
                           name={product.name}
-                          price={product.sellingPrice || product.price || product.mrp || 0}
+                          price={computedSellingPrice}
                           mrp={product.mrp}
                           image={image}
                           moq={product.moq || product.minimumOrderQuantity || 1}
-                          ptr={product.ptr}
-                          discountTag={product.discountTag || product.discountMeta?.tag}
+                          ptr={computedPtr}
+                          discountTag={computedDiscountTag}
                           cartQuantity={product.cartQuantity}
                           plusColor={product.plusColor}
-                          rateLabel={product.rateLabel || (product.ptr ? 'PTR' : 'N. RATE')}
+                          rateLabel={computedPtr ? 'PTR' : (product.rateLabel || 'N. RATE')}
                           infoIcon={product.infoIcon}
                           onClick={() => window.location.href = `/products/${product.id}`}
                         />

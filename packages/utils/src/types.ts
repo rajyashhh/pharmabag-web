@@ -93,6 +93,16 @@ export interface Product {
   reviewCount?: number;
   createdAt: string;
   updatedAt?: string;
+  /** Seller form input for discount */
+  discountFormDetails?: DiscountFormDetails;
+  /** Computed pricing/discount output */
+  discountDetails?: DiscountDetails;
+  /** Structured extra fields */
+  extraFields?: ExtraField[];
+  /** PTR (computed from pricing engine) */
+  ptr?: number;
+  /** Final selling price per unit incl GST */
+  sellingPrice?: number;
 }
 
 export interface OrderItem {
@@ -145,14 +155,73 @@ export type DiscountType =
   | "same_product_bonus"
   | "ptr_discount_and_same_product_bonus"
   | "different_product_bonus"
-  | "different_ptr_discount_and_same_product_bonus";
+  | "ptr_discount_and_different_product_bonus"
+  | "special_price";
 
+/** What the seller fills in the form (input) */
+export type DiscountFormDetails = {
+  type: DiscountType;
+  discountPercent?: number;
+  buy?: number;
+  get?: number;
+  bonusProductName?: string;
+  specialPrice?: number;
+};
+
+/** Computed pricing output stored on the product (output) */
 export type DiscountDetails = {
   type: DiscountType;
   discountPercent?: number;
   buy?: number;
   get?: number;
+  bonusProductName?: string;
+  specialPrice?: number;
+  /** Computed fields from pricing engine */
+  ptr?: number;
+  finalPtr?: number;
+  discountValue?: number;
+  gstValue?: number;
+  perPtrWithGst?: number;
+  itemsToPayFor?: number;
+  finalUserBuy?: number;
+  finalOrderValue?: number;
+  retailMarginPercent?: number;
 };
+
+/** Suggestion / catalog item returned from search */
+export interface Suggestion {
+  id: string;
+  productName: string;
+  companyName: string;
+  chemicalCombination?: string;
+  category?: string;
+  subCategory?: string;
+  gstPercent?: number;
+}
+
+/** Category with optional subcategories */
+export interface CategoryItem {
+  id: string;
+  name: string;
+  slug?: string;
+  description?: string;
+  productCount?: number;
+  subcategories?: SubCategoryItem[];
+}
+
+export interface SubCategoryItem {
+  id: string;
+  name: string;
+  categoryId: string;
+  slug?: string;
+  productCount?: number;
+}
+
+/** Extra field on a product (key-value pair) */
+export interface ExtraField {
+  key: string;
+  value: string;
+}
 
 export type ProductPayload = {
   product_name: string;
@@ -165,8 +234,10 @@ export type ProductPayload = {
   min_order_qty: number;
   max_order_qty: number;
   expire_date: string;
+  gst_percent: number;
   bulk: boolean;
   image_list: string[];
-  extra_fields: Record<string, string>;
-  discount_details: DiscountDetails;
+  extra_fields: ExtraField[] | Record<string, string>;
+  discount_form_details: DiscountFormDetails;
+  discount_details?: DiscountDetails;
 };

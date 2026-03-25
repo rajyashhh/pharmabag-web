@@ -10,6 +10,7 @@ import {
   getSellerCustomOrders, getSellerCancelledOrders,
   getSellerNotifications, markNotificationRead, markAllNotificationsRead,
   getSellerFullProfile, getProductRequests, createProductRequest, getSellerAnalytics,
+  searchSuggestions, getCategoriesWithSubs,
 } from "@/api/seller.api";
 import type { ProductPayload } from "@pharmabag/utils";
 import { useSellerAuth } from "@/store";
@@ -210,4 +211,25 @@ export function useSellerAnalytics() {
 // ─── Ticket by ID ─────────────────────────────────────
 export function useSellerTicketById(ticketId: string) {
   return useQuery({ queryKey: ["seller", "ticket", ticketId], queryFn: () => getSellerTicketById(ticketId), enabled: !!ticketId, staleTime: 10_000, refetchInterval: 10_000, retry: 1 });
+}
+
+// ─── Suggestion Search (Autocomplete) ─────────────────
+export function useSuggestionSearch(query: string) {
+  return useQuery({
+    queryKey: ["suggestions", query],
+    queryFn: () => searchSuggestions(query),
+    enabled: query.length >= 2,
+    staleTime: 30_000,
+    retry: 1,
+  });
+}
+
+// ─── Categories with Subcategories ────────────────────
+export function useCategoriesWithSubs() {
+  return useQuery({
+    queryKey: ["categories", "with-subs"],
+    queryFn: getCategoriesWithSubs,
+    staleTime: 300_000,
+    retry: 1,
+  });
 }

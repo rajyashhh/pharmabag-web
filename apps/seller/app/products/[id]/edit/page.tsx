@@ -41,8 +41,8 @@ export default function EditProductPage() {
                 expire_date: product.expiryDate || "",
                 gst_percent: product.gstPercent || 12,
                 image_list: product.images || [],
-                custom_extra_fields: [], // Ideally parsed from extra_fields if present in product type
-                discount_details: { type: "ptr_discount", discountPercent: product.discount },
+                custom_extra_fields: product.extraFields || [],
+                discount_form_details: product.discountFormDetails || { type: "ptr_discount", discountPercent: product.discount },
               }} 
             />
           )}
