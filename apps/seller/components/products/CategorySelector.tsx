@@ -47,7 +47,23 @@ export function CategorySelector({ selectedCategoryIds, onChangeCategories, sele
   // Find subcategories belonging to selected categories
   const availableSubcats = safeCategories
     .filter((c: any) => selectedCategoryIds.includes(c.id))
-    .flatMap((c: any) => c.subCategories || c.subcategories || []);
+    .flatMap((c: any) => {
+      const subs = c.subCategories || c.subcategories || [];
+      // Normalize subcategories to ensure they have id and name as strings
+      return Array.isArray(subs) ? subs.map((sc: any) => {
+        // Handle both direct properties and nested structures
+        const id = sc?.id || sc?._id;
+        let name: string = 'Unknown';
+        if (typeof sc?.name === 'string') {
+          name = sc.name;
+        } else if (sc?.name && typeof sc.name === 'object' && sc.name.name) {
+          name = String(sc.name.name);
+        } else if (sc?.name) {
+          name = String(sc.name);
+        }
+        return { id, name };  // Only return id and name to avoid rendering nested objects
+      }).filter((sc: any) => sc && sc.id && sc.name) : [];
+    });
 
   return (
     <div className="space-y-4">

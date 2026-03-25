@@ -168,7 +168,7 @@ export function ProductForm({ defaultValues, productId }: { defaultValues?: Part
         manufacturer: data.company_name,
         chemicalComposition: data.chemical_combination || "N/A",
         categoryId: data.categories[0],
-        subCategoryId: data.sub_categories?.[0] || data.categories[0],
+        ...(data.sub_categories?.length && { subCategoryId: data.sub_categories[0] }),
         stock: data.stock,
         expiryDate: new Date(data.expire_date).toISOString(),
         minimumOrderQuantity: data.min_order_qty,

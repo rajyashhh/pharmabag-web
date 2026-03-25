@@ -36,22 +36,45 @@ export async function updateSellerProfile(payload: Partial<any>) {
 
 export async function getSellerProducts() {
   const { data } = await apiClient.get<{ data: { products: Product[] } }>("/products/seller/own");
-  return data.data?.products ?? [];
+  const products = data.data?.products ?? [];
+  // Normalize category field: if it's an object, extract the name; if it's already a string, keep it
+  return products.map(p => {
+    let categoryName: string | undefined = p.category as any;
+    if (typeof p.category === 'object' && p.category) {
+      categoryName = (p.category as any).name || (p.category as any).id || 'Unknown';
+    }
+    return {
+      ...p,
+      category: categoryName,
+    };
+  });
 }
 
 export async function createSellerProduct(input: ProductPayload | Record<string, any>) {
   const { data } = await apiClient.post<{ data: Product }>("/products", input);
-  return data.data;
+  const product = data.data;
+  return {
+    ...product,
+    category: typeof product?.category === 'object' && product?.category ? (product.category as any).name || (product.category as any).id : product?.category,
+  };
 }
 
 export async function updateSellerProduct(productId: string, input: Partial<ProductPayload>) {
   const { data } = await apiClient.patch<{ data: Product }>(`/products/${productId}`, input);
-  return data.data;
+  const product = data.data;
+  return {
+    ...product,
+    category: typeof product?.category === 'object' && product?.category ? (product.category as any).name || (product.category as any).id : product?.category,
+  };
 }
 
 export async function getSellerProductById(productId: string) {
   const { data } = await apiClient.get<{ data: Product }>(`/products/${productId}`);
-  return data.data;
+  const product = data.data;
+  return {
+    ...product,
+    category: typeof product?.category === 'object' && product?.category ? (product.category as any).name || (product.category as any).id : product?.category,
+  };
 }
 
 export async function getCategories() {
@@ -188,17 +211,41 @@ export async function getCategoriesWithSubs(): Promise<CategoryItem[]> {
   try {
     const { data } = await apiClient.get<{ data: CategoryItem[] }>("/products/categories?includeSubs=true");
     const categories = data.data ?? [];
-    // Normalize and filter to ensure correct structure, removing unexpected fields
+    console.log("Raw categories response:", categories);
+    // Normalize and filter to ensure correct structure, handling both camelCase and lowercase field names
     return Array.isArray(categories)
       ? categories
           .filter(c => c && typeof c === 'object' && c.id && c.name)
-          .map(c => ({
-            id: c.id,
-            name: c.name,
-            subcategories: Array.isArray(c.subcategories)
-              ? c.subcategories.filter((sc: any) => sc && sc.id && sc.name)
-              : [],
-          }))
+          .map(c => {
+            // Handle both subCategories (camelCase) and subcategories (lowercase)
+            const subs = (c as any).subCategories || (c as any).subcategories || [];
+            
+            // Extract category name, handling object structures
+            let categoryName: string = 'Unknown';
+            if (typeof c.name === 'string') {
+              categoryName = c.name;
+            } else if (c.name && typeof c.name === 'object') {
+              categoryName = String((c.name as any).name || (c.name as any).id || c.name);
+            }
+            
+            return {
+              id: c.id,
+              name: categoryName,
+              subcategories: Array.isArray(subs)
+                ? subs.map((sc: any) => {
+                    const scId = sc?.id || sc?._id;
+                    // Extract subcategory name, handling object structures
+                    let scName: string = 'Unknown';
+                    if (typeof sc?.name === 'string') {
+                      scName = sc.name;
+                    } else if (sc?.name && typeof sc.name === 'object') {
+                      scName = String((sc.name as any).name || (sc.name as any).id || sc.name);
+                    }
+                    return { id: scId, name: scName };
+                  }).filter((sc: any) => sc && sc.id && sc.name)
+                : [],
+            };
+          })
       : [];
   } catch (error) {
     console.warn("Failed to fetch categories with subs, using fallback", error);
