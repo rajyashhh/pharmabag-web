@@ -85,7 +85,7 @@ export default function ProductDetailPage({ params }: { params: { productId: str
 
   // Compute pricing from discount details if available
   const dd = (product as any).discountDetails || (product as any).discountFormDetails;
-  let sellingPrice = product.price ?? 0;
+  let sellingPrice = (product as any).sellingPrice || (product as any).ptr || product.price || product.mrp || 0;
   let computedPtr: number | undefined;
   let buyGetTag = '';
 
@@ -102,7 +102,10 @@ export default function ProductDetailPage({ params }: { params: { productId: str
     }
   }
 
-  const discount = product.mrp ? Math.round(getEffectiveDiscountPercent(product.mrp, sellingPrice)) : 0;
+  // If sellingPrice is still 0 or invalid, fall back to MRP (no discount)
+  if (!sellingPrice || sellingPrice <= 0) sellingPrice = product.mrp || 0;
+
+  const discount = product.mrp && sellingPrice > 0 ? Math.round(getEffectiveDiscountPercent(product.mrp, sellingPrice)) : 0;
   const inStock = (product.stock ?? 0) > 0;
 
   return (

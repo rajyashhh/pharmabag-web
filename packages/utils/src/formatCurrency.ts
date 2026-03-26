@@ -10,6 +10,7 @@ export function formatCurrency(
     maximumFractionDigits?: number;
   },
 ): string {
+  const safeAmount = (amount == null || isNaN(amount)) ? 0 : amount;
   const {
     locale = 'en-IN',
     currency = 'INR',
@@ -22,7 +23,7 @@ export function formatCurrency(
     currency,
     minimumFractionDigits,
     maximumFractionDigits,
-  }).format(amount);
+  }).format(safeAmount);
 }
 
 /**

@@ -290,7 +290,7 @@ export default function PremiumProductCard({
           <div className="grid grid-cols-3 gap-1 items-center w-full min-w-0">
             <span className="text-[7px] sm:text-[8px] font-bold text-gray-400 uppercase tracking-wider">MRP</span>
             <div className="flex justify-center">
-              <span className="text-[7px] sm:text-[8px] font-bold text-gray-400 uppercase tracking-wider">MOQ</span>
+              <span className="text-[7px] sm:text-[8px] font-bold text-gray-400 uppercase tracking-wider flex items-center gap-1">MOQ <span className="inline-block bg-gray-900 text-white px-1.5 py-0.5 rounded text-[10px] sm:text-[11px] font-black leading-none">{moq}</span></span>
             </div>
             <span className="text-[7px] sm:text-[8px] font-bold text-gray-400 uppercase tracking-wider text-right whitespace-nowrap">{rateLabel}</span>
           </div>
@@ -298,9 +298,7 @@ export default function PremiumProductCard({
           {/* Values Row */}
           <div className="grid grid-cols-3 gap-1 items-center w-full min-w-0">
             <span className="text-[11px] sm:text-[12px] font-extrabold text-gray-900 truncate">₹{mrp || price}</span>
-            <div className="flex justify-center">
-              <span className="inline-block bg-gray-900 text-white px-2.5 py-1 rounded-md text-[13px] sm:text-[14px] font-black whitespace-nowrap">{moq}</span>
-            </div>
+            <div className="flex justify-center"></div>
             <span className="text-[11px] sm:text-[12px] font-extrabold text-gray-900 truncate text-right max-w-full">₹{ptr || price}</span>
           </div>
         </div>

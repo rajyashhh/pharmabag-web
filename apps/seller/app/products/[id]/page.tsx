@@ -69,7 +69,7 @@ export default function ProductDetailPage() {
                      <ApprovalBadge status={product.approvalStatus || "PENDING"} />
                    </div>
                    <div className="grid grid-cols-2 gap-4 pt-4 border-t border-border/50">
-                     <div><p className="text-xs text-muted-foreground font-medium uppercase">Price</p><p className="font-semibold text-lg">{formatCurrency(product.price)}</p></div>
+                     <div><p className="text-xs text-muted-foreground font-medium uppercase">MRP</p><p className="font-semibold text-lg">{formatCurrency(product.mrp ?? product.price ?? 0)}</p></div>
                      <div><p className="text-xs text-muted-foreground font-medium uppercase">Manufacturer</p><p className="font-medium">{product.manufacturer || "-"}</p></div>
                      <div><p className="text-xs text-muted-foreground font-medium uppercase">Category</p><Badge className="uppercase mt-1">{product.category || product.categoryId || "-"}</Badge></div>
                      <div><p className="text-xs text-muted-foreground font-medium uppercase">Expiry Date</p><p className="font-medium">{product.expiryDate ? formatDate(product.expiryDate) : "-"}</p></div>

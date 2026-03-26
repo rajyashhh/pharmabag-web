@@ -132,7 +132,7 @@ export default function AdminProductsPage() {
                     </td>
                     <td className="px-5 py-4 text-sm text-muted-foreground">{p.manufacturer ?? "—"}</td>
                     <td className="px-5 py-4"><Badge className="capitalize">{p.category?.name ?? "—"}</Badge></td>
-                    <td className="px-5 py-4 text-sm font-semibold text-foreground">{formatCurrency(p.mrp ?? 0)}</td>
+                    <td className="px-5 py-4 text-sm font-semibold text-foreground">{formatCurrency(p.mrp ?? p.price ?? 0)}</td>
                     <td className="px-5 py-4 text-xs text-muted-foreground">
                       {(() => {
                         const dd = p.discountDetails || p.discountFormDetails;

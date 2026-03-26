@@ -77,8 +77,8 @@ export default function ProductsPage() {
                       </td>
                       <td className="px-5 py-4"><Badge className="capitalize">{p.category}</Badge></td>
                       <td className="px-5 py-4">
-                        <div className="text-sm font-semibold text-foreground">{formatCurrency(p.price)}</div>
-                        {p.mrp != null && <div className="text-xs text-muted-foreground line-through">{formatCurrency(p.mrp)}</div>}
+                        <div className="text-sm font-semibold text-foreground">{formatCurrency(p.mrp ?? p.price ?? 0)}</div>
+                        {p.sellingPrice != null && p.sellingPrice !== p.mrp && <div className="text-xs text-muted-foreground">Sell: {formatCurrency(p.sellingPrice)}</div>}
                       </td>
                       <td className="px-5 py-4">
                         <span className={`text-sm font-medium ${(p.stock ?? 0)>100?"text-green-600":(p.stock ?? 0)>0?"text-yellow-600":"text-red-500"}`}>

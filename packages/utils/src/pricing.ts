@@ -261,6 +261,7 @@ export function getSellingPrice(p: PricingOutput): number {
 
 /** Calculate effective discount percentage for display tag */
 export function getEffectiveDiscountPercent(mrp: number, sellingPrice: number): number {
-  if (mrp <= 0) return 0;
-  return round2(((mrp - sellingPrice) / mrp) * 100);
+  if (mrp <= 0 || sellingPrice <= 0 || sellingPrice >= mrp) return 0;
+  const pct = round2(((mrp - sellingPrice) / mrp) * 100);
+  return pct > 0 && pct < 100 ? pct : 0;
 }

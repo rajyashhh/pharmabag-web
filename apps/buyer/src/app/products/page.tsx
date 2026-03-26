@@ -366,7 +366,7 @@ export default function ProductsPage() {
                     // Compute pricing from discount details if available
                     const dd = product.discountDetails || product.discountFormDetails;
                     let computedPtr = product.ptr;
-                    let computedSellingPrice = product.sellingPrice || product.price || product.mrp || 0;
+                    let computedSellingPrice = product.sellingPrice || product.ptr || product.price || product.mrp || 0;
                     let computedDiscountTag = product.discountTag || product.discountMeta?.tag;
 
                     if (dd?.type && product.mrp && product.gstPercent != null) {
@@ -385,6 +385,11 @@ export default function ProductsPage() {
                       } catch {
                         // Fallback to raw product values if pricing computation fails
                       }
+                    }
+
+                    // If selling price is still 0 or invalid, fall back to MRP (no discount)
+                    if (!computedSellingPrice || computedSellingPrice <= 0) {
+                      computedSellingPrice = product.mrp || 0;
                     }
 
                     const handleCartChange = (quantity: number | null) => {
