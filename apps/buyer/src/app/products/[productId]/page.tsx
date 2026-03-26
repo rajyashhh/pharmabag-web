@@ -283,10 +283,10 @@ export default function ProductDetailPage({ params }: { params: { productId: str
                   )}
 
                   {/* GST */}
-                  {product.gstPercent && (
+                  {((product as any).gstPercent || (product as any).gst) && (
                     <div className="flex flex-col">
                       <span className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-1">GST</span>
-                      <span className="text-sm sm:text-base font-bold text-gray-900">{product.gstPercent}%</span>
+                      <span className="text-sm sm:text-base font-bold text-gray-900">{(product as any).gstPercent || (product as any).gst}%</span>
                     </div>
                   )}
 
@@ -299,52 +299,52 @@ export default function ProductDetailPage({ params }: { params: { productId: str
                   </div>
 
                   {/* Min Qty */}
-                  {product.minimumOrderQuantity && (
+                  {(product as any).minimumOrderQuantity && (
                     <div className="flex flex-col">
                       <span className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-1">Min Qty</span>
-                      <span className="text-sm sm:text-base font-bold text-gray-900">{product.minimumOrderQuantity}</span>
+                      <span className="text-sm sm:text-base font-bold text-gray-900">{(product as any).minimumOrderQuantity}</span>
                     </div>
                   )}
 
                   {/* Max Qty */}
-                  {product.maximumOrderQuantity && (
+                  {(product as any).maximumOrderQuantity && (
                     <div className="flex flex-col">
                       <span className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-1">Max Qty</span>
-                      <span className="text-sm sm:text-base font-bold text-gray-900">{product.maximumOrderQuantity}</span>
+                      <span className="text-sm sm:text-base font-bold text-gray-900">{(product as any).maximumOrderQuantity}</span>
                     </div>
                   )}
 
                   {/* Expiry Date */}
-                  {product.expiryDate && (
+                  {(product as any).expiryDate && (
                     <div className="flex flex-col">
                       <span className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-1">Expiry</span>
                       <span className="text-sm sm:text-base font-bold text-gray-900">
-                        {new Date(product.expiryDate).toLocaleDateString('en-IN', { year: 'numeric', month: '2-digit' })}
+                        {new Date((product as any).expiryDate).toLocaleDateString('en-IN', { year: 'numeric', month: '2-digit' })}
                       </span>
                     </div>
                   )}
 
                   {/* Generic Name (from extraFields) */}
-                  {product.genericName && (
+                  {(product as any).genericName && (
                     <div className="flex flex-col">
                       <span className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-1">Generic</span>
-                      <span className="text-sm sm:text-base font-bold text-gray-900">{product.genericName}</span>
+                      <span className="text-sm sm:text-base font-bold text-gray-900">{(product as any).genericName}</span>
                     </div>
                   )}
 
                   {/* Manufacturer */}
-                  {product.manufacturer && (
+                  {(product as any).manufacturer && (
                     <div className="flex flex-col">
                       <span className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-1">Manufacturer</span>
-                      <span className="text-sm sm:text-base font-bold text-gray-900">{product.manufacturer}</span>
+                      <span className="text-sm sm:text-base font-bold text-gray-900">{(product as any).manufacturer}</span>
                     </div>
                   )}
 
                   {/* Chemical Composition */}
-                  {product.chemicalComposition && (
+                  {(product as any).chemicalComposition && (
                     <div className="flex flex-col">
                       <span className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-1">Chemical</span>
-                      <span className="text-sm sm:text-base font-bold text-gray-900">{product.chemicalComposition}</span>
+                      <span className="text-sm sm:text-base font-bold text-gray-900">{(product as any).chemicalComposition}</span>
                     </div>
                   )}
 
