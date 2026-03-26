@@ -45,7 +45,7 @@ export function StockBasedButton({
   const badgeMap = {
     'good': '',
     'selling-fast': 'SELLING FAST',
-    'low': 'LOW STOCK',
+    'low': '',
     'out-of-stock': 'OUT OF STOCK',
   };
 

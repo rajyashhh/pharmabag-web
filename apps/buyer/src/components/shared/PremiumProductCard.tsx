@@ -3,7 +3,7 @@
 import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Plus, Minus, ArrowUpRight, Trash2, Bookmark } from 'lucide-react';
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { ShareButton } from './ShareButton';
 import { StockBasedButton } from './StockBasedButton';
 
@@ -56,6 +56,11 @@ export default function PremiumProductCard({
   // Track whether an action button was clicked so we can suppress card navigation
   const actionClicked = useRef(false);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  // Sync count when cartQuantity prop changes (e.g., from previous session cart data)
+  useEffect(() => {
+    setCount(cartQuantity ?? 0);
+  }, [cartQuantity]);
 
   const handleCardClick = () => {
     // Only navigate if no action button was clicked

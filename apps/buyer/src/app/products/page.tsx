@@ -14,7 +14,7 @@ import { SkeletonCard } from '@/components/shared/LoaderSkeleton';
 import EmptyState from '@/components/shared/EmptyState';
 import { useProducts, useCategories, useManufacturers, useCities } from '@/hooks/useProducts';
 import { useDebounce } from '@/hooks/useDebounce';
-import { useAddToCart } from '@/hooks/useCart';
+import { useAddToCart, useCart } from '@/hooks/useCart';
 import { useToast } from '@/components/shared/Toast';
 import { calculatePricing, getSellingPrice, getEffectiveDiscountPercent } from '@pharmabag/utils';
 
@@ -40,8 +40,19 @@ export default function ProductsPage() {
 
   const addToCart = useAddToCart();
   const { toast } = useToast();
+  const { data: cartData } = useCart();
   
   const debouncedSearch = useDebounce(searchTerm, 500);
+  
+  // Create a map of productId to cart quantity for quick lookup
+  const cartQuantityMap = new Map<string, number>();
+  if (cartData?.items) {
+    cartData.items.forEach(item => {
+      if (item.productId) {
+        cartQuantityMap.set(item.productId, item.quantity);
+      }
+    });
+  }
   
   // Real API calls with mock fallbacks (only APPROVED products are returned)
   const { data: productsData, isLoading, isError } = useProducts({
@@ -467,7 +478,7 @@ export default function ProductsPage() {
                           moq={product.moq || product.minimumOrderQuantity || 1}
                           ptr={computedPtr}
                           discountTag={computedDiscountTag}
-                          cartQuantity={product.cartQuantity}
+                          cartQuantity={cartQuantityMap.get(product.id) ?? null}
                           plusColor={product.plusColor}
                           rateLabel={computedPtr ? 'PTR' : (product.rateLabel || 'N. RATE')}
                           infoIcon={product.infoIcon}
