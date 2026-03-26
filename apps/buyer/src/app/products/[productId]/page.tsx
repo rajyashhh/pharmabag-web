@@ -250,6 +250,114 @@ export default function ProductDetailPage({ params }: { params: { productId: str
                 </div>
               )}
 
+              {/* Product Details Grid */}
+              <div className="bg-white/40 backdrop-blur-xl p-4 sm:p-6 md:p-8 rounded-2xl sm:rounded-3xl border border-white/40 shadow-lg">
+                <h2 className="text-base sm:text-lg font-bold text-gray-900 mb-4 sm:mb-6">Product Details</h2>
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6">
+                  {/* MRP */}
+                  <div className="flex flex-col">
+                    <span className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-1">MRP</span>
+                    <span className="text-sm sm:text-base font-bold text-gray-900">₹{product.mrp?.toLocaleString('en-IN') || 'N/A'}</span>
+                  </div>
+
+                  {/* PTR */}
+                  {computedPtr && (
+                    <div className="flex flex-col">
+                      <span className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-1">PTR</span>
+                      <span className="text-sm sm:text-base font-bold text-gray-900">₹{computedPtr.toLocaleString('en-IN')}</span>
+                    </div>
+                  )}
+
+                  {/* Net Rate */}
+                  <div className="flex flex-col">
+                    <span className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-1">Net Rate</span>
+                    <span className="text-sm sm:text-base font-bold text-gray-900">₹{sellingPrice.toLocaleString('en-IN')}</span>
+                  </div>
+
+                  {/* Discount */}
+                  {discount > 0 && (
+                    <div className="flex flex-col">
+                      <span className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-1">Discount</span>
+                      <span className="text-sm sm:text-base font-bold text-green-600">{discount}%</span>
+                    </div>
+                  )}
+
+                  {/* GST */}
+                  {(product as any).gstPercent && (
+                    <div className="flex flex-col">
+                      <span className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-1">GST</span>
+                      <span className="text-sm sm:text-base font-bold text-gray-900">{(product as any).gstPercent}%</span>
+                    </div>
+                  )}
+
+                  {/* Stock */}
+                  <div className="flex flex-col">
+                    <span className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-1">Stock</span>
+                    <span className={`text-sm sm:text-base font-bold ${inStock ? 'text-green-600' : 'text-red-600'}`}>
+                      {product.stock ?? 'N/A'} {inStock ? 'units' : ''}
+                    </span>
+                  </div>
+
+                  {/* Min Qty */}
+                  {product.minimumOrderQuantity && (
+                    <div className="flex flex-col">
+                      <span className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-1">Min Qty</span>
+                      <span className="text-sm sm:text-base font-bold text-gray-900">{product.minimumOrderQuantity}</span>
+                    </div>
+                  )}
+
+                  {/* Max Qty */}
+                  {(product as any).maximumOrderQuantity && (
+                    <div className="flex flex-col">
+                      <span className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-1">Max Qty</span>
+                      <span className="text-sm sm:text-base font-bold text-gray-900">{(product as any).maximumOrderQuantity}</span>
+                    </div>
+                  )}
+
+                  {/* Expiry Date */}
+                  {product.expiryDate && (
+                    <div className="flex flex-col">
+                      <span className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-1">Expiry</span>
+                      <span className="text-sm sm:text-base font-bold text-gray-900">
+                        {new Date(product.expiryDate).toLocaleDateString('en-IN', { year: 'numeric', month: '2-digit' })}
+                      </span>
+                    </div>
+                  )}
+
+                  {/* Medicine Type */}
+                  {(product as any).medicineType && (
+                    <div className="flex flex-col">
+                      <span className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-1">Medicine Type</span>
+                      <span className="text-sm sm:text-base font-bold text-gray-900">{(product as any).medicineType}</span>
+                    </div>
+                  )}
+
+                  {/* Country */}
+                  {(product as any).country && (
+                    <div className="flex flex-col">
+                      <span className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-1">Country</span>
+                      <span className="text-sm sm:text-base font-bold text-gray-900">{(product as any).country}</span>
+                    </div>
+                  )}
+
+                  {/* Manufacturer */}
+                  {product.manufacturer && (
+                    <div className="flex flex-col">
+                      <span className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-1">Manufacturer</span>
+                      <span className="text-sm sm:text-base font-bold text-gray-900">{product.manufacturer}</span>
+                    </div>
+                  )}
+
+                  {/* Buy Get Tag */}
+                  {buyGetTag && (
+                    <div className="flex flex-col">
+                      <span className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-1">Offer</span>
+                      <span className="text-sm sm:text-base font-bold text-blue-600">{buyGetTag}</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+
               {/* Description */}
               {product.description && (
                 <div className="bg-white/40 backdrop-blur-xl p-4 sm:p-6 md:p-8 rounded-2xl sm:rounded-3xl border border-white/40 shadow-lg">
