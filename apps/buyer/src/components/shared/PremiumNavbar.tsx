@@ -71,7 +71,7 @@ export default function PremiumNavbar({ onLoginClick }: PremiumNavbarProps) {
   return (
     <>
       <nav className="fixed top-0 left-0 right-0 z-50 flex justify-center pt-2 sm:pt-4 px-2 sm:px-4 transition-all duration-300 ease-out">
-        <div className={`max-w-[1600px] w-full mx-auto flex items-center justify-between px-4 sm:px-6 md:px-12 py-2.5 sm:py-3 rounded-2xl transition-all duration-300 ${
+        <div className={`w-[92vw] mx-auto flex items-center justify-between px-4 sm:px-6 md:px-12 py-2.5 sm:py-3 rounded-2xl transition-all duration-300 ${
           scrolled 
             ? 'bg-white/80 backdrop-blur-md shadow-sm border border-gray-100' 
             : 'bg-white/40 backdrop-blur-xl shadow-xl border border-white/40'

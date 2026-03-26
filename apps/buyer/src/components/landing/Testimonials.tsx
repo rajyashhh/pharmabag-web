@@ -37,8 +37,8 @@ const TESTIMONIALS: Testimonial[] = [
 
 export default function Testimonials() {
   return (
-    <div className="py-16 sm:py-24 md:py-32 lg:py-40 px-4">
-      <div className="max-w-6xl mx-auto">
+    <div className="py-16 sm:py-24 md:py-32 lg:py-40 px-[4vw]">
+      <div className="w-full mx-auto">
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-10 sm:gap-12 md:gap-16 lg:gap-24">
           {TESTIMONIALS.map((testimonial) => (
             <div

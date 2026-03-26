@@ -21,7 +21,7 @@ export default function PremiumFooter() {
     <footer className="bg-white border-t border-gray-100 relative overflow-hidden">
       <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-gray-200 to-transparent" />
       
-      <div className="max-w-7xl mx-auto px-6 py-24 relative z-10">
+      <div className="w-full mx-auto px-[4vw] py-24 relative z-10">
         <div className="flex flex-col xl:flex-row justify-between items-start gap-20 xl:gap-32">
           {/* Brand Matrix */}
           <div className="flex-1 space-y-12">

@@ -26,8 +26,8 @@ const TRUST_ITEMS: TrustItem[] = [
 
 export default function TrustSection() {
   return (
-    <div className="py-16 sm:py-24 md:py-32 lg:py-40 px-4">
-      <div className="max-w-6xl mx-auto">
+    <div className="py-16 sm:py-24 md:py-32 lg:py-40 px-[4vw]">
+      <div className="w-full mx-auto">
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-8 sm:gap-12 md:gap-y-24 lg:gap-y-32 md:gap-x-16 lg:gap-x-24 text-center">
           {TRUST_ITEMS.map((item, index) => (
             <div

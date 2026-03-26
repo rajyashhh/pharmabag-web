@@ -21,30 +21,38 @@ const FEATURED_PRODUCTS: Product[] = [
   { id: 8, name: 'Fhtture Injection', price: '₹1,200', image: '/products/pharma_bottle.png' },
 ];
 
-// Card width + gap: 136px (w-32=128 + gap 8) per card, 8 cards = 1088px per set
-const CARD_WIDTH = 136;
-const SCROLL_DISTANCE = FEATURED_PRODUCTS.length * CARD_WIDTH;
+// Designed for exactly 8 products visible: available width is 92vw (after 4vw padding on each side)
+// Each product card width = 92vw / 8 = 11.5vw (including gap)
+const PRODUCTS_VISIBLE = 8;
 
 export default function ProductCarousel() {
   const scrollProducts = [...FEATURED_PRODUCTS, ...FEATURED_PRODUCTS, ...FEATURED_PRODUCTS];
+  const cardWidthVw = (92 / PRODUCTS_VISIBLE); // 11.5vw per product card
+  const gapPercentage = 1.5; // gap as percentage of available width
+  const scrollDistance = (FEATURED_PRODUCTS.length * cardWidthVw);
 
   return (
-    <div className="w-full py-8 sm:py-10 md:py-12 overflow-hidden bg-transparent">
-      <div className="relative">
+    <div className="w-full h-full overflow-hidden bg-transparent mx-auto px-[4vw] flex flex-col justify-center items-center pt-4">
+      <div className="relative w-full flex items-center justify-center bg-transparent">
         <motion.div 
-          animate={{ x: [0, -SCROLL_DISTANCE] }}
+          animate={{ x: [0, -scrollDistance + '%'] }}
           transition={{ 
             x: {
               repeat: Infinity,
               repeatType: "loop",
-              duration: 25,
+              duration: 40,
               ease: "linear",
             }
           }}
-          className="flex gap-2 px-3 sm:px-6"
+          className="flex"
+          style={{ gap: `${gapPercentage}%` }}
         >
           {scrollProducts.map((product, index) => (
-            <div key={`${product.id}-${index}`} className="flex-shrink-0 w-32 sm:w-36 md:w-40">
+            <div 
+              key={`${product.id}-${index}`} 
+              className="flex-shrink-0"
+              style={{ width: `calc(${cardWidthVw}vw - ${gapPercentage / 2}%)` }}
+            >
               <ProductCard 
                 name={product.name} 
                 price={product.price} 

@@ -85,7 +85,7 @@ export default function BrandsMegaMenu({ isOpen, onMouseEnter, onMouseLeave }: B
           onMouseLeave={onMouseLeave}
           className="fixed top-[88px] left-0 right-0 z-40 flex justify-center px-6"
         >
-          <div className="max-w-7xl w-full bg-white rounded-[32px] shadow-[0_32px_64px_-12px_rgba(0,0,0,0.14)] border border-gray-100/50 overflow-hidden backdrop-blur-3xl">
+          <div className="w-[92vw] bg-white rounded-[32px] shadow-[0_32px_64px_-12px_rgba(0,0,0,0.14)] border border-gray-100/50 overflow-hidden backdrop-blur-3xl">
             <div className="flex p-12 gap-16">
               {/* Brand Columns */}
               <div className="flex-1 grid grid-cols-3 gap-12">

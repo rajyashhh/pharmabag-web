@@ -17,7 +17,7 @@ export default function Footer() {
 
   return (
     <footer className="bg-transparent">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-12 sm:py-16 md:py-20">
+      <div className="w-full mx-auto px-[4vw] py-12 sm:py-16 md:py-20">
         <div className="flex flex-col md:flex-row justify-between items-start gap-8 md:gap-16 lg:gap-24">
           {/* Left Section - Logo & Company Info */}
           <div className="flex items-start gap-4 sm:gap-6 md:gap-8 max-w-2xl">

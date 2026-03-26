@@ -67,7 +67,7 @@ export default function ProductReviewsPage() {
     <main className="min-h-screen bg-[#f8fbfa]">
       <Navbar showUserActions={true} />
 
-      <div className="pt-20 sm:pt-24 md:pt-28 lg:pt-32 pb-12 sm:pb-20 px-3 sm:px-4 md:px-6 max-w-5xl mx-auto">
+      <div className="pt-20 sm:pt-24 md:pt-28 lg:pt-32 pb-12 sm:pb-20 px-[4vw] w-full mx-auto">
         <Link 
           href={`/products/${productId}`} 
           className="inline-flex items-center gap-2 text-gray-400 font-bold hover:text-gray-900 transition-colors mb-6 sm:mb-8 group"

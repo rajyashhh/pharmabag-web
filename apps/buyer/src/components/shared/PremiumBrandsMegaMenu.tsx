@@ -88,7 +88,7 @@ export default function PremiumBrandsMegaMenu({ isOpen, onMouseEnter, onMouseLea
           onMouseLeave={onMouseLeave}
           className="fixed top-[96px] left-0 right-0 z-40 flex justify-center px-6"
         >
-          <div className="max-w-[1400px] w-full bg-white/80 backdrop-blur-3xl rounded-[48px] shadow-[0_48px_96px_-24px_rgba(0,0,0,0.18)] border border-white/60 overflow-hidden group">
+          <div className="w-[92vw] bg-white/80 backdrop-blur-3xl rounded-[48px] shadow-[0_48px_96px_-24px_rgba(0,0,0,0.18)] border border-white/60 overflow-hidden group">
              <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-white/10 -z-10" />
              
             <div className="flex p-16 gap-20 relative z-10">

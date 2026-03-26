@@ -74,7 +74,7 @@ export default function ProductsPage() {
 
 <Navbar showUserActions={true} onLoginClick={() => setIsLoginOpen(true)} />
 
-      <div className="pt-20 sm:pt-24 pb-12 sm:pb-20 px-3 sm:px-4 md:px-8 max-w-[1600px] mx-auto relative z-10 w-full">
+      <div className="pt-20 sm:pt-24 pb-12 sm:pb-20 px-[4vw] w-full mx-auto relative z-10">
         <div className="flex flex-col lg:flex-row gap-4 sm:gap-6 lg:gap-8">
           {/* Mobile Filter Overlay */}
           <AnimatePresence>
