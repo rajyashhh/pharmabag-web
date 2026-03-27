@@ -126,7 +126,7 @@ export default function PremiumProductCard({
 
   return (
     <div
-      className="relative flex flex-col w-full rounded-2xl sm:rounded-[22px] overflow-visible bg-gradient-to-b from-[#f4fdf7] to-white shadow-[0_2px_20px_rgba(0,0,0,0.06)] hover:shadow-[0_12px_40px_rgba(0,0,0,0.12)] hover:-translate-y-1.5 transition-all duration-300 cursor-pointer group border border-gray-100/80"
+      className="relative flex flex-col w-full rounded-2xl sm:rounded-[22px] overflow-visible bg-white shadow-[0_2px_12px_rgba(0,0,0,0.04)] hover:shadow-[0_8px_24px_rgba(0,0,0,0.08)] hover:-translate-y-1 transition-all duration-300 cursor-pointer group border border-gray-200/60"
       onClick={handleCardClick}
     >
       {/* Bookmark Icon - Positioned at card center */}
@@ -146,7 +146,7 @@ export default function PremiumProductCard({
         />
       </button>
       {/* Image Section */}
-      <div className="relative w-full h-[140px] xs:h-[160px] sm:h-[180px] flex items-center justify-center p-3 sm:p-4 pt-8 sm:pt-10 bg-gradient-to-b from-[#eef9f2]/60 to-transparent">
+      <div className="relative w-full h-[140px] xs:h-[160px] sm:h-[180px] flex items-center justify-center p-3 sm:p-4 pt-8 sm:pt-10 bg-white/50">
         
         {/* Discount Tag */}
         {discountTag && (
@@ -156,13 +156,13 @@ export default function PremiumProductCard({
         )}
         
         {/* Top Left: Share Icon */}
-        <div className="absolute top-3 left-2 z-10">
+        <div className="absolute top-2.5 left-2 z-20">
           <ShareButton
             productName={name}
             productPrice={Number(price)}
             productImage={image}
             productId={productId || ''}
-            className="p-2.5"
+            className=""
           />
         </div>
 
@@ -271,64 +271,41 @@ export default function PremiumProductCard({
       </div>
 
       {/* Info Section */}
-      <div className="p-2.5 px-3 sm:p-3 sm:px-3.5 bg-white flex flex-col flex-grow rounded-t-3xl -mt-3 relative z-10 overflow-hidden">
+      <div className="p-2 px-2.5 sm:p-2.5 sm:px-3 bg-white flex flex-col flex-grow relative z-10 overflow-hidden">
         {/* Name + Arrow */}
-        <div className="flex items-center justify-between gap-1.5 mb-2">
-          <h3 className="font-extrabold text-gray-900 text-[11px] sm:text-[13px] leading-snug line-clamp-1 min-w-0 truncate tracking-tight">
+        <div className="flex items-center justify-between gap-1 mb-1.5">
+          <h3 className="font-bold text-gray-900 text-[11px] sm:text-[12px] leading-tight line-clamp-1 min-w-0 truncate tracking-tight">
             {name}
           </h3>
-          <div className="w-5 h-5 bg-gray-900 rounded-full flex items-center justify-center flex-shrink-0 shadow-sm">
+          <div className="w-4 h-4 bg-gray-900 rounded-full flex items-center justify-center flex-shrink-0">
             {infoIcon ? (
-              <span className="text-white font-bold text-[9px] font-serif italic">i</span>
+              <span className="text-white font-bold text-[8px] font-serif italic">i</span>
             ) : (
-              <ArrowUpRight className="w-3 h-3 text-white" strokeWidth={2.5} />
+              <ArrowUpRight className="w-2.5 h-2.5 text-white" strokeWidth={2.5} />
             )}
           </div>
         </div>
 
-        {/* Divider */}
-        <div className="w-full h-px bg-gradient-to-r from-transparent via-gray-200 to-transparent mb-2"></div>
-
         {/* Pricing Row */}
-        <div className="space-y-1.5 w-full min-w-0">
+        <div className="space-y-1 w-full min-w-0">
           {/* Labels Row */}
-          <div className="grid grid-cols-3 gap-1 items-center w-full min-w-0">
-            <span className="text-[7px] sm:text-[8px] font-bold text-gray-400 uppercase tracking-wider">MRP</span>
-            <div className="flex justify-center">
-              <span className="text-[7px] sm:text-[8px] font-bold text-gray-400 uppercase tracking-wider flex items-center gap-1">MOQ <span className="inline-block bg-gray-900 text-white px-1.5 py-0.5 rounded text-[10px] sm:text-[11px] font-black leading-none">{moq}</span></span>
-            </div>
-            <span className="text-[7px] sm:text-[8px] font-bold text-gray-400 uppercase tracking-wider text-right whitespace-nowrap">{rateLabel}</span>
+          <div className="grid grid-cols-3 gap-2 items-center w-full min-w-0">
+            <span className="text-[7px] sm:text-[8px] font-bold text-gray-500 uppercase tracking-wider">MRP</span>
+            <span className="text-[7px] sm:text-[8px] font-bold text-gray-500 uppercase tracking-wider text-center">MOQ</span>
+            <span className="text-[7px] sm:text-[8px] font-bold text-gray-500 uppercase tracking-wider text-right whitespace-nowrap">{rateLabel}</span>
           </div>
 
           {/* Values Row */}
-          <div className="grid grid-cols-3 gap-1 items-center w-full min-w-0">
+          <div className="grid grid-cols-3 gap-2 items-center w-full min-w-0">
             <span className="text-[11px] sm:text-[12px] font-extrabold text-gray-900 truncate">₹{mrp || price}</span>
-            <div className="flex justify-center"></div>
+            <div className="flex justify-center">
+              <span className="text-[10px] sm:text-[11px] font-black text-gray-900 bg-gray-100 px-1.5 py-0.5 rounded">{moq}</span>
+            </div>
             <span className="text-[11px] sm:text-[12px] font-extrabold text-gray-900 truncate text-right max-w-full">₹{ptr || price}</span>
           </div>
         </div>
 
-        {/* Cart indicator bar */}
-        <AnimatePresence>
-          {hasItems && (
-            <motion.div 
-              initial={{ opacity: 0, height: 0, marginTop: 0 }}
-              animate={{ opacity: 1, height: 'auto', marginTop: 8 }}
-              exit={{ opacity: 0, height: 0, marginTop: 0 }}
-              transition={{ duration: 0.2 }}
-              className="overflow-hidden"
-            >
-              <div className="pt-2 border-t border-dashed border-gray-200">
-                <div className="flex items-center justify-between">
-                  <span className="text-[9px] font-bold text-emerald-600 uppercase tracking-wider">In Cart</span>
-                  <span className="text-[11px] font-black text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full">
-                    {count} {count === 1 ? 'unit' : 'units'}
-                  </span>
-                </div>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
+
       </div>
     </div>
   );

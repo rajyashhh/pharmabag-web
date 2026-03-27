@@ -80,29 +80,29 @@ export function ShareButton({
   return (
     <div className="relative">
       <motion.button
-        whileHover={{ scale: 1.1 }}
-        whileTap={{ scale: 0.95 }}
+        whileHover={{ scale: 1.15 }}
+        whileTap={{ scale: 0.9 }}
         type="button"
         onClick={(e) => {
           e.stopPropagation();
           e.preventDefault();
           setShowMenu(!showMenu);
         }}
-        className={`text-gray-500 hover:text-gray-900 hover:scale-110 active:scale-95 transition-all z-10 rounded-full hover:bg-white/70 shadow-sm hover:shadow-md ${className}`}
+        className={`text-gray-600 hover:text-gray-900 active:scale-90 transition-all relative z-30 p-0.5 ${className}`}
         title="Share product"
       >
-        <Share2 className="w-6 h-6" strokeWidth={2.5} />
+        <Share2 className="w-5 h-5" strokeWidth={2} />
       </motion.button>
 
       {/* Share Menu */}
       <AnimatePresence>
         {showMenu && (
           <motion.div
-            initial={{ opacity: 0, scale: 0.8, y: -10 }}
+            initial={{ opacity: 0, scale: 0.9, y: -8 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.8, y: -10 }}
-            transition={{ duration: 0.2 }}
-            className="absolute top-full right-0 mt-2 bg-white rounded-lg shadow-xl border border-gray-200 p-1 z-50 min-w-[160px]"
+            exit={{ opacity: 0, scale: 0.9, y: -8 }}
+            transition={{ duration: 0.15 }}
+            className="absolute top-full right-0 mt-2 bg-white rounded-lg shadow-2xl border border-gray-200 p-1 z-[60] min-w-[160px]"
             onClick={(e) => e.stopPropagation()}
           >
             <button
