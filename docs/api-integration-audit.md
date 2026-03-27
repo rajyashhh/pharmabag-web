@@ -247,4 +247,4 @@ These landing page components use static/hardcoded data which is **appropriate f
 - **Mutations:** All write operations show isPending disabled states and success feedback
 - **No External Dependencies Added:** Used built-in `Date` and `Intl` APIs instead of adding `date-fns`
 - **Type Safety:** All API functions have TypeScript types via Zod schemas
-- **Flexible Parsing:** Strict Zod `.parse()` removed from response handling to prevent breakage from minor backend schema differences
+- **Flexible Parsing:** Strict Zod `.parse()` removed from response handling to prevent breakage from minor backend schema difference
