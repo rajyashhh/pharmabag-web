@@ -80,18 +80,17 @@ export function ShareButton({
   return (
     <div className="relative">
       <motion.button
-        whileHover={{ scale: 1.15 }}
-        whileTap={{ scale: 0.9 }}
+        whileTap={{ scale: 0.95 }}
         type="button"
         onClick={(e) => {
           e.stopPropagation();
           e.preventDefault();
           setShowMenu(!showMenu);
         }}
-        className={`text-gray-600 hover:text-gray-900 active:scale-90 transition-all relative z-30 p-0.5 ${className}`}
+        className={`text-gray-700 hover:text-black transition-colors z-10 ${className}`}
         title="Share product"
       >
-        <Share2 className="w-5 h-5" strokeWidth={2} />
+        <Share2 className="w-[18px] h-[18px]" strokeWidth={2} />
       </motion.button>
 
       {/* Share Menu */}
