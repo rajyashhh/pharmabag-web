@@ -7,10 +7,11 @@ export function useCart() {
   return useQuery({
     queryKey: ['cart'],
     queryFn: getCart,
-    staleTime: 30 * 1000,
-    gcTime: 60 * 1000,
-    refetchOnMount: true,
-    refetchOnWindowFocus: true,
+    staleTime: 15 * 1000, // 15s: keeps data fresh for shorter window, ensures relatively recent cart state
+    gcTime: 60 * 1000,    // 1 minute: keeps data in cache for 1 minute for offline resilience
+    refetchOnMount: true,    // Always refetch when component mounts (new page visit)
+    refetchOnWindowFocus: true, // Refetch when user switches tabs/windows
+    refetchIntervalInBackground: false, // Don't refetch in background (user not viewing)
   });
 }
 

@@ -5,24 +5,41 @@ import { ChevronLeft, Package, ShoppingCart, Star, Loader2, AlertCircle, Minus, 
 import Navbar from '@/components/landing/Navbar';
 import Footer from '@/components/landing/Footer';
 import { useProductById } from '@/hooks/useProducts';
-import { useAddToCart } from '@/hooks/useCart';
+import { useAddToCart, useCart } from '@/hooks/useCart';
 import { useProductReviews, useCreateReview } from '@/hooks/useReviews';
 import { useWishlist, useAddToWishlist, useRemoveFromWishlist } from '@/hooks/useWishlist';
 import { useToast } from '@/components/shared/Toast';
 import Image from 'next/image';
 import Link from 'next/link';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { calculatePricing, getSellingPrice, getEffectiveDiscountPercent } from '@pharmabag/utils';
 
 export default function ProductDetailPage({ params }: { params: { productId: string } }) {
   const { data: product, isLoading, isError } = useProductById(params.productId);
   const addToCart = useAddToCart();
+  const { data: cartData } = useCart();
   const { data: wishlistData } = useWishlist();
   const addToWishlist = useAddToWishlist();
   const removeFromWishlist = useRemoveFromWishlist();
   const { toast } = useToast();
   const [quantity, setQuantity] = useState(1);
   const [added, setAdded] = useState(false);
+
+  // Sync quantity with cart when product loads
+  useEffect(() => {
+    if (!product) return;
+    
+    // Check if product is already in cart
+    const cartItem = cartData?.items?.find(item => item.productId === product.id);
+    
+    if (cartItem) {
+      // Product is in cart, show current cart quantity
+      setQuantity(cartItem.quantity);
+    } else {
+      // Product not in cart, start with MOQ
+      setQuantity(product.minimumOrderQuantity || 1);
+    }
+  }, [product?.id, cartData?.items]);
 
   const wishlistItems = wishlistData?.items ?? [];
   const wishlistEntry = wishlistItems.find((w) => w.productId === params.productId || w.product?.id === params.productId);

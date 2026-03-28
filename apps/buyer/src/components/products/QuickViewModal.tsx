@@ -10,7 +10,7 @@ import { StockBasedButton } from '@/components/shared/StockBasedButton';
 import { ShareButton } from '@/components/shared/ShareButton';
 import { PriceSection } from '@/components/shared/PriceSection';
 import { NotifyStockAlertModal } from '@/components/shared/NotifyStockAlertModal';
-import { useAddToCart } from '@/hooks/useCart';
+import { useAddToCart, useCart } from '@/hooks/useCart';
 import { calculatePricing, getSellingPrice, getEffectiveDiscountPercent } from '@pharmabag/utils';
 import type { Product } from '@pharmabag/utils';
 
@@ -24,14 +24,26 @@ export function QuickViewModal({ product, isOpen, onClose }: QuickViewModalProps
   const router = useRouter();
   const { toast } = useToast();
   const addToCart = useAddToCart();
+  const { data: cartData } = useCart();
   const [showStockAlert, setShowStockAlert] = useState(false);
   const [isBookmarked, setIsBookmarked] = useState(false);
   const [orderQty, setOrderQty] = useState(product?.minimumOrderQuantity || 1);
 
-  // Auto-reset quantity when opening a new product
+  // Sync quantity with cart when product changes
   useEffect(() => {
-    if (product) setOrderQty(product.minimumOrderQuantity || 1);
-  }, [product?.id]);
+    if (!product) return;
+    
+    // Check if product is already in cart
+    const cartItem = cartData?.items?.find(item => item.productId === product.id);
+    
+    if (cartItem) {
+      // Product is in cart, use current cart quantity
+      setOrderQty(cartItem.quantity);
+    } else {
+      // Product not in cart, use MOQ
+      setOrderQty(product.minimumOrderQuantity || 1);
+    }
+  }, [product?.id, cartData?.items]);
 
   const handleAddToCart = () => {
     if (!product) return;
@@ -44,7 +56,23 @@ export function QuickViewModal({ product, isOpen, onClose }: QuickViewModalProps
           // Don't close modal - let user continue shopping
         },
         onError: (err: any) => {
-          toast(err?.message || 'Failed to add to cart', 'error');
+          const status = err?.response?.status || err?.status;
+          const message = err?.response?.data?.message || err?.message || '';
+          let errorMsg = 'Failed to add to cart';
+          
+          if (status === 401 || status === 403) {
+            errorMsg = 'Please log in to add items to cart';
+          } else if (status === 400 && message.includes('already in cart')) {
+            errorMsg = 'Product quantity has been updated in cart';
+          } else if (status === 400 && message.includes('Minimum order quantity')) {
+            const match = message.match(/(\d+)/);
+            const requiredQty = match ? match[1] : '1';
+            errorMsg = `Minimum order quantity is ${requiredQty}. Please add at least ${requiredQty} items.`;
+          } else if (message) {
+            errorMsg = message;
+          }
+          
+          toast(errorMsg, 'error');
         },
       }
     );
