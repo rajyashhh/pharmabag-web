@@ -21,22 +21,17 @@ const FEATURED_PRODUCTS: Product[] = [
   { id: 8, name: 'Fhtture Injection', price: '₹1,200', image: '/products/pharma_bottle.png' },
 ];
 
-// Designed for exactly 8 products visible: available width is 92vw (after 4vw padding on each side)
-// Each product card width = 92vw / 8 = 11.5vw (including gap)
 const PRODUCTS_VISIBLE = 8;
 
 export default function ProductCarousel({ reverse = false }: { reverse?: boolean } = {}) {
   const scrollProducts = [...FEATURED_PRODUCTS, ...FEATURED_PRODUCTS, ...FEATURED_PRODUCTS];
-  const cardWidthVw = (92 / PRODUCTS_VISIBLE); // 11.5vw per product card
-  const gapPercentage = 1.5; // gap as percentage of available width
-  const scrollDistance = (FEATURED_PRODUCTS.length * cardWidthVw);
 
   return (
-    <div className="w-full h-full overflow-hidden bg-transparent mx-auto px-[4vw] flex flex-col justify-center items-center pt-4">
-      <div className="relative w-full flex items-center justify-center bg-transparent">
-        <motion.div 
-          animate={{ x: reverse ? [-scrollDistance + '%', 0] : [0, -scrollDistance + '%'] }}
-          transition={{ 
+    <div className="w-full h-full overflow-hidden bg-transparent mx-auto pl-[4vw] lg:pl-4 pr-[4vw] flex flex-col justify-center items-center pt-4">
+      <div className="relative w-full flex items-center bg-transparent">
+        <motion.div
+          animate={{ x: reverse ? ['-33.33%', 0] : [0, '-33.33%'] }}
+          transition={{
             x: {
               repeat: Infinity,
               repeatType: "loop",
@@ -44,19 +39,18 @@ export default function ProductCarousel({ reverse = false }: { reverse?: boolean
               ease: "linear",
             }
           }}
-          className="flex"
-          style={{ gap: `${gapPercentage}%` }}
+          className="flex w-max"
         >
+          {/* We duplicated FEATURED_PRODUCTS 3 times, so one set is 33.33% of the total width */}
           {scrollProducts.map((product, index) => (
-            <div 
-              key={`${product.id}-${index}`} 
-              className="flex-shrink-0"
-              style={{ width: `calc(${cardWidthVw}vw - ${gapPercentage / 2}%)` }}
+            <div
+              key={`${product.id}-${index}`}
+              className="flex-shrink-0 px-2 sm:px-3 w-[120px] sm:w-[140px] md:w-[160px]"
             >
-              <ProductCard 
-                name={product.name} 
-                price={product.price} 
-                image={product.image} 
+              <ProductCard
+                name={product.name}
+                price={product.price}
+                image={product.image}
               />
             </div>
           ))}

@@ -9,25 +9,25 @@ import { useToast } from '@/components/shared/Toast';
 import ProductCarousel from '@/components/landing/ProductCarousel';
 
 const TRUST_HIGHLIGHTS = [
-  { 
+  {
     label: 'STRICTLY AUTHENTIC',
     icon: (
       <Image src="/authentic_icon.png" alt="Strictly Authentic" width={80} height={80} className="w-16 h-16 md:w-20 md:h-20 object-contain" />
     )
   },
-  { 
+  {
     label: 'FASTEST SHIPPING',
     icon: (
       <Image src="/shipping_icon.png" alt="Fastest Shipping" width={80} height={80} className="w-16 h-16 md:w-20 md:h-20 object-contain" />
     )
   },
-  { 
+  {
     label: 'ONLY B2B PRICES',
     icon: (
       <Image src="/b2b_icon.png" alt="Only B2B Prices" width={80} height={80} className="w-16 h-16 md:w-20 md:h-20 object-contain" />
     )
   },
-  { 
+  {
     label: 'SECURE CHECKOUT',
     icon: (
       <Image src="/secure_checkout_icon.png" alt="Secure Checkout" width={80} height={80} className="w-16 h-16 md:w-20 md:h-20 object-contain" />
@@ -102,7 +102,7 @@ export default function LoginModal() {
   };
 
   return (
-    <div 
+    <div
       className="fixed inset-0 z-[100] overflow-hidden w-full h-full flex flex-col items-center justify-center"
       style={{
         backgroundImage: "url('/Pharma_ui.png')",
@@ -112,7 +112,7 @@ export default function LoginModal() {
       }}
     >
       {/* Close Button */}
-      <button 
+      <button
         onClick={onClose}
         className="fixed top-6 right-6 p-3 text-black/40 hover:text-black hover:bg-black/5 rounded-full transition-all z-[110]"
       >
@@ -125,19 +125,19 @@ export default function LoginModal() {
         <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-sky-200/20 blur-[120px] rounded-full" />
       </div>
 
-      <div className="py-20 px-[4vw] w-full mx-auto relative z-10 flex-1 flex items-center justify-center">
-        <div className="flex flex-col lg:flex-row items-center justify-between gap-16 lg:gap-24 w-full">
-          
-          {/* Left Side */}
-          <motion.div 
+      <div className="py-6 sm:py-10 md:py-20 pr-[4vw] pl-[4vw] lg:pl-6 xl:pl-12 w-full min-h-max mx-auto relative z-10 flex-1 flex items-center justify-center">
+        <div className="flex flex-col lg:flex-row items-center justify-between gap-0 w-full mt-4 lg:mt-0 xl:pr-12">
+
+          {/* Left Side (Marketing) */}
+          <motion.div
             initial={{ opacity: 0, x: -30 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.6, ease: 'easeOut' }}
-            className="flex-1 flex flex-col items-center justify-center w-full max-w-3xl xl:max-w-4xl mx-auto lg:pr-12"
+            className="w-full lg:w-1/2 flex flex-col items-center justify-center order-2 lg:order-1"
           >
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-x-4 lg:gap-x-8 gap-y-10 w-full">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-x-4 xl:gap-x-8 gap-y-8 xl:gap-y-12 w-full max-w-4xl mx-auto">
               {TRUST_HIGHLIGHTS.map((item, idx) => (
-                <motion.div 
+                <motion.div
                   key={item.label}
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -150,26 +150,26 @@ export default function LoginModal() {
               ))}
             </div>
 
-            <div className="w-full mt-6 sm:mt-8 pt-6 sm:pt-8 border-t border-gray-200/60 overflow-hidden flex flex-col gap-4">
+            <div className="w-full mt-6 sm:mt-8 pt-6 sm:pt-8 border-t border-gray-200/60 flex flex-col gap-4 overflow-hidden [mask-image:linear-gradient(to_right,transparent,black_5%,black_95%,transparent)]">
               <ProductCarousel />
               <ProductCarousel />
             </div>
           </motion.div>
 
-          {/* Right Side */}
-          <motion.div 
+          {/* Right Side (Login Form) */}
+          <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.6, delay: 0.2 }}
-            className="w-full max-w-md mx-auto"
+            className="w-full lg:w-1/2 flex items-center justify-center order-1 lg:order-2"
           >
-             <div className="bg-white/40 backdrop-blur-3xl border border-white/50 rounded-[48px] p-10 md:p-12 shadow-2xl shadow-lime-900/5">
+            <div className="w-full max-w-lg bg-white/40 backdrop-blur-3xl border border-white/50 rounded-[48px] py-8 px-4 sm:px-6 md:py-10 md:px-8 xl:py-12 xl:px-10 shadow-2xl shadow-lime-900/5">
               <div className="text-center mb-10">
                 <h2 className="text-4xl md:text-[52px] font-black text-black mb-2 whitespace-nowrap tracking-tight">Express Login!</h2>
                 <p className="text-lg md:text-xl text-black/50 font-medium">No Signup Required</p>
               </div>
 
-              <form 
+              <form
                 onSubmit={(e) => {
                   e.preventDefault();
                   step === 'phone' ? handleSendOtp() : handleVerifyOtp();
@@ -181,8 +181,8 @@ export default function LoginModal() {
                     <label className="block text-sm font-bold text-gray-400 uppercase tracking-widest text-center">
                       Phone number
                     </label>
-                    <input 
-                      type="tel" 
+                    <input
+                      type="tel"
                       value={phone}
                       onChange={(e) => setPhone(e.target.value)}
                       placeholder="Enter 10-digit number"
@@ -195,8 +195,8 @@ export default function LoginModal() {
                     <label className="block text-sm font-bold text-gray-400 uppercase tracking-widest text-center">
                       OTP
                     </label>
-                    <input 
-                      type="text" 
+                    <input
+                      type="text"
                       value={otp}
                       onChange={(e) => setOtp(e.target.value)}
                       placeholder="_ _ _ _ _ _"
@@ -208,7 +208,7 @@ export default function LoginModal() {
                 )}
 
                 <div className="pt-2">
-                  <button 
+                  <button
                     type="submit"
                     disabled={isLoading}
                     className="w-full h-16 bg-lime-300 hover:bg-lime-400 text-gray-900 rounded-2xl text-xl font-black shadow-xl shadow-lime-300/20 transition-all active:scale-95 flex items-center justify-center gap-3"
@@ -220,8 +220,8 @@ export default function LoginModal() {
                     )}
                   </button>
                   {step === 'otp' && (
-                    <button 
-                      type="button" 
+                    <button
+                      type="button"
                       onClick={handleSendOtp}
                       className="w-full mt-6 text-center text-sm font-bold text-gray-400 hover:text-black tracking-widest transition-colors uppercase"
                     >
@@ -233,18 +233,18 @@ export default function LoginModal() {
                 <div className="pt-8 border-t border-gray-100">
                   <p className="text-center text-xs font-bold text-gray-400 uppercase tracking-widest mb-6">Download our App</p>
                   <div className="flex gap-4">
-                    <Image 
-                      src="/app_store_badge.png" 
-                      alt="App Store" 
-                      width={160} 
-                      height={50} 
+                    <Image
+                      src="/app_store_badge.png"
+                      alt="App Store"
+                      width={160}
+                      height={50}
                       className="flex-1 h-auto transition-transform hover:scale-105 cursor-pointer"
                     />
-                    <Image 
-                      src="/google_play_badge.png" 
-                      alt="Google Play" 
-                      width={160} 
-                      height={50} 
+                    <Image
+                      src="/google_play_badge.png"
+                      alt="Google Play"
+                      width={160}
+                      height={50}
                       className="flex-1 h-auto transition-transform hover:scale-105 cursor-pointer"
                     />
                   </div>
