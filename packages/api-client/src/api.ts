@@ -176,8 +176,10 @@ api.interceptors.response.use(
 
       // List of read-only endpoints that handle errors gracefully (don't show toast)
       // These endpoints have fallback logic (mock data, empty arrays, etc)
-      const readOnlyEndpoints = ['/products', '/categories', '/manufacturers', '/locations', '/cities', '/discount', '/auth/me', '/cart', '/config'];
-      const isReadOnlyEndpoint = readOnlyEndpoints.some(endpoint => url.includes(endpoint));
+      // Note: Only GET requests to /cart are read-only; POST/PATCH/DELETE to /cart/* are write operations
+      const readOnlyEndpoints = ['/products', '/categories', '/manufacturers', '/locations', '/cities', '/discount', '/auth/me', '/config'];
+      const isWriteCartOp = url.startsWith('/cart/add') || url.startsWith('/cart/item/') || (url === '/cart' && originalRequest?.method?.toUpperCase() !== 'GET');
+      const isReadOnlyEndpoint = !isWriteCartOp && readOnlyEndpoints.some(endpoint => url.includes(endpoint));
 
       if (status === 403) {
         console.warn(`[API] 403 Forbidden on ${url} | ReadOnly: ${isReadOnlyEndpoint} | Token: ${getAccessToken() ? 'present' : 'missing'}`);

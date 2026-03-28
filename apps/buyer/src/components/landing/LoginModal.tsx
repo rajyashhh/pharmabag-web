@@ -35,8 +35,13 @@ const TRUST_HIGHLIGHTS = [
   }
 ];
 
-export default function LoginModal() {
-  const [isOpen, setIsOpen] = useState(false);
+interface LoginModalProps {
+  isOpen?: boolean;
+  onClose?: () => void;
+}
+
+export default function LoginModal({ isOpen: isOpenProp, onClose: onCloseProp }: LoginModalProps = {}) {
+  const [isOpenState, setIsOpenState] = useState(false);
   const [phone, setPhone] = useState('');
   const [otp, setOtp] = useState('');
   const [step, setStep] = useState<'phone' | 'otp'>('phone');
@@ -44,13 +49,51 @@ export default function LoginModal() {
   const { toast } = useToast();
   const { sendOtp, verifyOtp } = useAuth();
 
+  // Use prop if provided, otherwise use internal state
+  const isOpen = isOpenProp !== undefined ? isOpenProp : isOpenState;
+  const onClose = onCloseProp !== undefined ? onCloseProp : () => setIsOpenState(false);
+
+  // Restore phone and step from sessionStorage on mount
   useEffect(() => {
-    const handleOpen = () => setIsOpen(true);
-    window.addEventListener('open-login', handleOpen);
-    return () => window.removeEventListener('open-login', handleOpen);
+    if (typeof window === 'undefined') return;
+
+    const savedPhone = sessionStorage.getItem('loginModal_phone') || '';
+    const savedStep = (sessionStorage.getItem('loginModal_step') as 'phone' | 'otp') || 'phone';
+
+    if (savedPhone) {
+      setPhone(savedPhone);
+      setStep(savedStep);
+    }
   }, []);
 
-  const onClose = () => setIsOpen(false);
+  // Persist phone and step to sessionStorage whenever they change
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    if (phone) {
+      sessionStorage.setItem('loginModal_phone', phone);
+    }
+    sessionStorage.setItem('loginModal_step', step);
+  }, [phone, step]);
+
+  // Clear sessionStorage when modal closes
+  const handleCloseWithCleanup = () => {
+    if (typeof window !== 'undefined') {
+      sessionStorage.removeItem('loginModal_phone');
+      sessionStorage.removeItem('loginModal_step');
+    }
+    onClose();
+  };
+
+  useEffect(() => {
+    const handleOpen = () => {
+      if (isOpenProp === undefined) {
+        setIsOpenState(true);
+      }
+    };
+    window.addEventListener('open-login', handleOpen);
+    return () => window.removeEventListener('open-login', handleOpen);
+  }, [isOpenProp]);
 
   if (!isOpen) return null;
 
@@ -92,7 +135,7 @@ export default function LoginModal() {
     try {
       await verifyOtp(cleanPhone, otp);
       toast('Login successful!', 'success');
-      onClose();
+      handleCloseWithCleanup();
       window.location.href = '/products';
     } catch (error: any) {
       toast(error?.response?.data?.message || 'Invalid OTP', 'error');
