@@ -20,13 +20,19 @@ export default function AdminAuthPage() {
 
   const sendOTP = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (phone.length !== 10 || !/^[6-9]/.test(phone)) {
+    // Sanitize phone: remove non-digits and handle optional '91' prefix
+    let cleaned = phone.replace(/\D/g, "");
+    if (cleaned.length === 12 && cleaned.startsWith("91")) cleaned = cleaned.slice(2);
+
+    if (cleaned.length !== 10 || !/^[6-9]/.test(cleaned)) {
       toast.error("Enter a valid 10-digit Indian mobile number");
       return;
     }
 
+    setPhone(cleaned); // Clean state for consistency
+
     try {
-      await sendOtpMutation.mutateAsync({ phone });
+      await sendOtpMutation.mutateAsync({ phone: cleaned });
       setStep("otp");
       toast.success("OTP sent successfully");
     } catch (err: any) {
@@ -37,8 +43,10 @@ export default function AdminAuthPage() {
   const verify = async (e: React.FormEvent) => {
     e.preventDefault();
     if (otp.length < 6) { toast.error("Enter the 6-digit OTP"); return; }
+    let cleaned = phone.replace(/\D/g, "");
+    if (cleaned.length === 12 && cleaned.startsWith("91")) cleaned = cleaned.slice(2);
     try {
-      const res = await verifyOtpMutation.mutateAsync({ phone, otp, role: "ADMIN" });
+      const res = await verifyOtpMutation.mutateAsync({ phone: cleaned, otp, role: "ADMIN" });
       const inner = (res as any).data ?? res;
       const user = inner.user;
       const role = user?.role?.toUpperCase?.() ?? "";
@@ -104,8 +112,8 @@ export default function AdminAuthPage() {
           </div>
           {step === "phone" ? (
             <form onSubmit={sendOTP} className="space-y-4">
-              <Input label="Phone Number" type="tel" value={phone} onChange={(e) => setPhone(e.target.value.replace(/\D/g, ""))}
-                placeholder="Enter your phone number" leftIcon={<Phone className="h-4 w-4" />} required maxLength={10} />
+              <Input label="Phone Number" type="tel" value={phone} onChange={(e) => setPhone(e.target.value)}
+                placeholder="Enter your phone number" leftIcon={<Phone className="h-4 w-4" />} required maxLength={15} />
               <Button type="submit" className="w-full" size="lg" loading={loading} rightIcon={<ArrowRight className="h-4 w-4" />}>
                 Send OTP
               </Button>
