@@ -76,8 +76,8 @@ export default function Navbar({ onLoginClick, showUserActions = false }: Navbar
 
   return (
     <>
-      <nav className="fixed top-0 left-0 right-0 z-50 flex justify-center pt-2 px-2 sm:px-4">
-        <div className="w-[92vw] mx-auto px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl backdrop-blur-xl bg-white/40 border border-white/40 shadow-[0_8px_32px_rgba(0,0,0,0.12)]">
+      <nav className="fixed bottom-2 lg:bottom-auto lg:top-0 left-0 right-0 z-40 flex justify-center pb-2 lg:pb-0 lg:pt-2 px-2 sm:px-4">
+        <div className="w-[92vw] mx-auto px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl backdrop-blur-xl bg-white/40 border border-white/40 shadow-[0_-8px_32px_rgba(0,0,0,0.12)] lg:shadow-[0_8px_32px_rgba(0,0,0,0.12)]">
           <div className="flex items-center justify-between">
             {/* Hamburger Menu (Mobile) */}
             <button

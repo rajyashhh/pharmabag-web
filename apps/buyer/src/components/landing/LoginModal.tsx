@@ -49,35 +49,23 @@ export default function LoginModal({ isOpen: isOpenProp, onClose: onCloseProp }:
   const { toast } = useToast();
   const { sendOtp, verifyOtp } = useAuth();
 
-  // Use prop if provided, otherwise use internal state
   const isOpen = isOpenProp !== undefined ? isOpenProp : isOpenState;
   const onClose = onCloseProp !== undefined ? onCloseProp : () => setIsOpenState(false);
 
-  // Restore phone and step from sessionStorage on mount
   useEffect(() => {
     if (typeof window === 'undefined') return;
-
-    const savedPhone = sessionStorage.getItem('loginModal_phone') || '';
-    const savedStep = (sessionStorage.getItem('loginModal_step') as 'phone' | 'otp') || 'phone';
-
-    if (savedPhone) {
-      setPhone(savedPhone);
-      setStep(savedStep);
-    }
+    const savedPhone = sessionStorage.getItem('loginModal_phone');
+    const savedStep = sessionStorage.getItem('loginModal_step') as 'phone' | 'otp';
+    if (savedPhone) { setPhone(savedPhone); setStep(savedStep || 'phone'); }
   }, []);
 
-  // Persist phone and step to sessionStorage whenever they change
   useEffect(() => {
     if (typeof window === 'undefined') return;
-
-    if (phone) {
-      sessionStorage.setItem('loginModal_phone', phone);
-    }
+    if (phone) { sessionStorage.setItem('loginModal_phone', phone); }
     sessionStorage.setItem('loginModal_step', step);
   }, [phone, step]);
 
-  // Clear sessionStorage when modal closes
-  const handleCloseWithCleanup = () => {
+  const handleCloseCleanup = () => {
     if (typeof window !== 'undefined') {
       sessionStorage.removeItem('loginModal_phone');
       sessionStorage.removeItem('loginModal_step');
@@ -86,215 +74,130 @@ export default function LoginModal({ isOpen: isOpenProp, onClose: onCloseProp }:
   };
 
   useEffect(() => {
-    const handleOpen = () => {
-      if (isOpenProp === undefined) {
-        setIsOpenState(true);
-      }
-    };
+    const handleOpen = () => { if (isOpenProp === undefined) setIsOpenState(true); };
     window.addEventListener('open-login', handleOpen);
     return () => window.removeEventListener('open-login', handleOpen);
   }, [isOpenProp]);
 
-  if (!isOpen) return null;
-
   const sanitizePhone = (input: string) => {
     let cleaned = input.replace(/\D/g, '');
-    if (cleaned.length === 12 && cleaned.startsWith('91')) {
-      cleaned = cleaned.substring(2);
-    }
+    if (cleaned.length === 12 && cleaned.startsWith('91')) cleaned = cleaned.substring(2);
     return cleaned;
   };
 
   const handleSendOtp = async () => {
     const cleanPhone = sanitizePhone(phone);
-    if (cleanPhone.length !== 10) {
-      toast('Please enter a valid 10-digit phone number', 'error');
-      return;
-    }
-
+    if (cleanPhone.length !== 10) { toast('Please enter 10 digits', 'error'); return; }
     setIsLoading(true);
     try {
       await sendOtp(cleanPhone);
       setStep('otp');
-      toast('OTP sent successfully!', 'success');
-    } catch (error: any) {
-      toast(error?.response?.data?.message || 'Failed to send OTP', 'error');
-    } finally {
-      setIsLoading(false);
-    }
+      toast('OTP sent!', 'success');
+    } catch (e: any) { toast('Failed', 'error'); } finally { setIsLoading(false); }
   };
 
   const handleVerifyOtp = async () => {
     const cleanPhone = sanitizePhone(phone);
-    if (otp.length !== 6) {
-      toast('Please enter the 6-digit OTP', 'error');
-      return;
-    }
-
+    if (otp.length !== 6) { toast('Enter 6-digit OTP', 'error'); return; }
     setIsLoading(true);
     try {
       await verifyOtp(cleanPhone, otp);
       toast('Login successful!', 'success');
-      handleCloseWithCleanup();
+      handleCloseCleanup();
       window.location.href = '/products';
-    } catch (error: any) {
-      toast(error?.response?.data?.message || 'Invalid OTP', 'error');
-    } finally {
-      setIsLoading(false);
-    }
+    } catch (e: any) { toast('Invalid OTP', 'error'); } finally { setIsLoading(false); }
   };
 
+  if (!isOpen) return null;
+
   return (
-    <div
-      className="fixed inset-0 z-[100] overflow-hidden w-full h-full flex flex-col items-center justify-center"
-      style={{
-        backgroundImage: "url('/Pharma_ui.png')",
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-        backgroundRepeat: 'no-repeat',
-      }}
-    >
+    <div role="dialog" className="fixed inset-0 z-[1000] h-screen w-screen overflow-hidden flex flex-col items-center justify-center p-0 select-none">
+      {/* Backgrounds */}
+      <div className="fixed inset-0 bg-gradient-to-b from-[#E0F7FA] to-[#B2EBF2] z-0 md:hidden" />
+      <div className="fixed inset-0 z-0 hidden md:block" style={{ backgroundImage: "url('/Pharma_ui.png')", backgroundSize: 'cover', backgroundPosition: 'center', backgroundAttachment: 'fixed' }} />
+
       {/* Close Button */}
-      <button
-        onClick={onClose}
-        className="fixed top-6 right-6 p-3 text-black/40 hover:text-black hover:bg-black/5 rounded-full transition-all z-[110]"
-      >
-        <X size={32} strokeWidth={2} />
+      <button onClick={() => onClose()} className="fixed top-4 right-4 p-2 text-black hover:bg-black/10 rounded-full z-[150] bg-white shadow-xl border border-black/5">
+        <X size={24} strokeWidth={3} />
       </button>
 
-      {/* Decorative Variables */}
-      <div className="fixed top-0 left-0 w-full h-full pointer-events-none">
-        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-lime-200/20 blur-[120px] rounded-full" />
-        <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-sky-200/20 blur-[120px] rounded-full" />
-      </div>
+      {/* Main UI Container */}
+      <div className="relative z-10 w-full h-full flex flex-col items-center justify-start md:justify-center pt-6 pb-2 md:pt-16 md:pb-12 overflow-hidden">
 
-      <div className="py-6 sm:py-10 md:py-20 pr-[4vw] pl-[4vw] lg:pl-6 xl:pl-12 w-full min-h-max mx-auto relative z-10 flex-1 flex items-center justify-center">
-        <div className="flex flex-col lg:flex-row items-center justify-between gap-0 w-full mt-4 lg:mt-0 xl:pr-12">
+        {/* TOP: Badges - Mobile Only */}
+        <div className="w-full flex md:hidden justify-center px-0 mb-3">
+          <div className="flex flex-row gap-3 w-full max-w-xs justify-center">
+            <Image src="/app_store_badge.png" alt="App Store" width={112} height={34} className="w-auto h-auto opacity-90" />
+            <Image src="/google_play_badge.png" alt="Google Play" width={112} height={34} className="w-auto h-auto opacity-90" />
+          </div>
+        </div>
 
-          {/* Left Side (Marketing) */}
-          <motion.div
-            initial={{ opacity: 0, x: -30 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.6, ease: 'easeOut' }}
-            className="w-full lg:w-1/2 flex flex-col items-center justify-center order-2 lg:order-1"
-          >
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-x-4 xl:gap-x-8 gap-y-8 xl:gap-y-12 w-full max-w-4xl mx-auto">
-              {TRUST_HIGHLIGHTS.map((item, idx) => (
-                <motion.div
-                  key={item.label}
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.3 + idx * 0.1 }}
-                  className="flex flex-col items-center justify-start text-center gap-4"
-                >
-                  {item.icon}
-                  <p className="text-xs lg:text-sm font-bold text-gray-500 uppercase tracking-widest px-1 leading-snug">{item.label}</p>
-                </motion.div>
-              ))}
-            </div>
+        <div className="container max-w-7xl mx-auto flex flex-col items-center justify-center w-full px-0">
+          <div className="flex flex-col lg:flex-row items-center justify-between gap-2 lg:gap-16 xl:gap-24 w-full h-fit">
 
-            <div className="w-full mt-6 sm:mt-8 pt-6 sm:pt-8 border-t border-gray-200/60 flex flex-col gap-4 overflow-hidden [mask-image:linear-gradient(to_right,transparent,black_5%,black_95%,transparent)]">
-              <ProductCarousel />
-              <ProductCarousel />
-            </div>
-          </motion.div>
+            {/* FORM SECTION (Desktop Right, Mobile Top) */}
+            <motion.div initial={{ opacity: 0, y: 15, scale: 0.98 }} animate={{ opacity: 1, y: 0, scale: 1 }} className="w-full lg:w-[45%] flex flex-col items-center justify-center order-1 lg:order-2 px-0 lg:px-0">
+              <div className="w-full md:max-w-lg md:bg-white/60 md:backdrop-blur-3xl md:border md:border-white/60 md:rounded-[48px] p-0 sm:p-4 md:p-10 xl:p-12 md:shadow-2xl md:shadow-lime-900/10 transition-all flex flex-col items-center">
+                
+                {/* Titles - Mobile: mb-3, Desktop: mb-10 */}
+                <div className="text-center mb-3 md:mb-10 w-full">
+                  <h2 className="text-[36px] md:text-[52px] font-black text-[#1A1A1A] md:text-black mb-0 tracking-tighter leading-none uppercase md:normal-case">Express Login!</h2>
+                  <p className="text-[18px] md:text-xl text-[#1A1A1A] font-bold uppercase tracking-tight md:text-black/50">NO SIGNUP REQUIRED</p>
+                </div>
 
-          {/* Right Side (Login Form) */}
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.6, delay: 0.2 }}
-            className="w-full lg:w-1/2 flex items-center justify-center order-1 lg:order-2"
-          >
-            <div className="w-full max-w-lg bg-white/40 backdrop-blur-3xl border border-white/50 rounded-[48px] py-8 px-4 sm:px-6 md:py-10 md:px-8 xl:py-12 xl:px-10 shadow-2xl shadow-lime-900/5">
-              <div className="text-center mb-10">
-                <h2 className="text-4xl md:text-[52px] font-black text-black mb-2 whitespace-nowrap tracking-tight">Express Login!</h2>
-                <p className="text-lg md:text-xl text-black/50 font-medium">No Signup Required</p>
+                <form onSubmit={(e) => { e.preventDefault(); step === 'phone' ? handleSendOtp() : handleVerifyOtp(); }} className="space-y-4 md:space-y-8 flex flex-col items-center w-full px-0">
+                  {step === 'phone' ? (
+                    <div className="space-y-2 w-full flex flex-col items-center px-6">
+                      <label className="block text-[11px] md:text-xs font-bold text-[#999999] md:text-gray-400 uppercase tracking-[0.2em] text-center">PHONE NUMBER</label>
+                      <input type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="00000 00000" autoFocus className="w-full h-[72px] md:h-16 bg-white md:bg-white/80 rounded-full md:rounded-2xl shadow-[0_10px_30px_-10px_rgba(0,0,0,0.1)] md:shadow-none text-[22px] md:text-2xl px-10 text-center focus:ring-4 focus:ring-lime-300 focus:bg-white outline-none border-none md:border md:border-white/50 font-black" />
+                    </div>
+                  ) : (
+                    <div className="space-y-2 w-full flex flex-col items-center px-6">
+                      <label className="block text-[11px] md:text-xs font-bold text-[#999999] md:text-gray-400 uppercase tracking-[0.2em] text-center">ENTER CODE</label>
+                      <input type="text" value={otp} onChange={(e) => setOtp(e.target.value)} placeholder="••••••" maxLength={6} autoFocus className="w-full h-[72px] md:h-16 bg-white md:bg-white/80 rounded-full md:rounded-2xl shadow-[0_10px_30px_-10px_rgba(0,0,0,0.1)] md:shadow-none text-[24px] md:text-2xl px-10 text-center focus:ring-4 focus:ring-lime-300 focus:bg-white outline-none border-none md:border md:border-white/50 font-black tracking-[0.5em]" />
+                    </div>
+                  )}
+
+                  <div className="w-full px-6">
+                    <button type="submit" disabled={isLoading} className="w-full h-[72px] md:h-16 bg-[#C4FF4B] md:bg-lime-300 hover:bg-[#B3F23A] md:hover:bg-lime-400 text-black md:text-gray-900 rounded-full md:rounded-2xl text-[20px] md:text-xl font-black shadow-[0_10px_25px_-5px_rgba(196,255,75,0.4)] md:shadow-xl shadow-lime-900/10 md:shadow-lime-300/20 transition-all active:scale-[0.98] flex items-center justify-center gap-3 disabled:opacity-70">
+                      {isLoading ? <Loader2 className="w-6 h-6 animate-spin" /> : <span className="tracking-tight uppercase">{step === 'phone' ? 'Send OTP' : 'Continue'}</span>}
+                    </button>
+                  </div>
+
+                   {/* Desktop App Badges */}
+                   <div className="hidden md:block pt-8 border-t border-gray-100/50 w-full">
+                    <p className="text-center text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-6">Experience on our App</p>
+                    <div className="flex flex-row gap-4 max-w-sm mx-auto">
+                      <Image src="/app_store_badge.png" alt="App Store" width={160} height={50} className="w-full h-auto cursor-pointer" />
+                      <Image src="/google_play_badge.png" alt="Google Play" width={160} height={50} className="w-full h-auto cursor-pointer" />
+                    </div>
+                  </div>
+                </form>
+              </div>
+            </motion.div>
+
+            {/* CONTENT SECTION (Desktop Left, Mobile Bottom) */}
+            <motion.div initial={{ opacity: 0, x: -30 }} animate={{ opacity: 1, x: 0 }} className="w-full lg:w-1/2 flex flex-col items-center justify-center order-2 lg:order-1 px-4 lg:px-0 mt-3 md:mt-0">
+              <div className="grid grid-cols-4 gap-0 w-full mx-auto md:mb-12 px-0 bg-transparent">
+                {TRUST_HIGHLIGHTS.map((item, idx) => (
+                  <motion.div key={item.label} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 * idx }} className="flex flex-col items-center justify-start text-center gap-1">
+                    <div className="flex-shrink-0 scale-75 sm:scale-100">{item.icon}</div>
+                    <p className="text-[8px] sm:text-xs font-bold text-[#1A1A1A] lg:text-gray-500 uppercase tracking-tight leading-none max-w-[70px]">{item.label}</p>
+                  </motion.div>
+                ))}
               </div>
 
-              <form
-                onSubmit={(e) => {
-                  e.preventDefault();
-                  step === 'phone' ? handleSendOtp() : handleVerifyOtp();
-                }}
-                className="space-y-6"
-              >
-                {step === 'phone' ? (
-                  <div className="space-y-2">
-                    <label className="block text-sm font-bold text-gray-400 uppercase tracking-widest text-center">
-                      Phone number
-                    </label>
-                    <input
-                      type="tel"
-                      value={phone}
-                      onChange={(e) => setPhone(e.target.value)}
-                      placeholder="Enter 10-digit number"
-                      autoFocus
-                      className="w-full h-16 bg-white/70 rounded-2xl shadow-[0_10px_40px_-15px_rgba(0,0,0,0.08)] text-xl md:text-2xl px-8 text-center focus:ring-4 focus:ring-lime-300 focus:bg-white outline-none transition-all placeholder:text-gray-300 border border-white/50"
-                    />
-                  </div>
-                ) : (
-                  <div className="space-y-2">
-                    <label className="block text-sm font-bold text-gray-400 uppercase tracking-widest text-center">
-                      OTP
-                    </label>
-                    <input
-                      type="text"
-                      value={otp}
-                      onChange={(e) => setOtp(e.target.value)}
-                      placeholder="_ _ _ _ _ _"
-                      maxLength={6}
-                      autoFocus
-                      className="w-full h-16 bg-white/70 rounded-2xl shadow-[0_10px_40px_-15px_rgba(0,0,0,0.08)] text-xl md:text-2xl px-8 text-center focus:ring-4 focus:ring-lime-300 focus:bg-white outline-none transition-all placeholder:text-gray-300 border border-white/50"
-                    />
-                  </div>
-                )}
+              {/* Desktop Product Carousel only */}
+              <div className="hidden lg:flex w-full mt-12 pt-10 border-t border-gray-200/60 flex-col gap-6 overflow-hidden">
+                <ProductCarousel />
+              </div>
+            </motion.div>
+          </div>
+        </div>
 
-                <div className="pt-2">
-                  <button
-                    type="submit"
-                    disabled={isLoading}
-                    className="w-full h-16 bg-lime-300 hover:bg-lime-400 text-gray-900 rounded-2xl text-xl font-black shadow-xl shadow-lime-300/20 transition-all active:scale-95 flex items-center justify-center gap-3"
-                  >
-                    {isLoading ? (
-                      <Loader2 className="w-6 h-6 animate-spin" />
-                    ) : (
-                      <span>{step === 'phone' ? 'Send OTP' : 'Continue'}</span>
-                    )}
-                  </button>
-                  {step === 'otp' && (
-                    <button
-                      type="button"
-                      onClick={handleSendOtp}
-                      className="w-full mt-6 text-center text-sm font-bold text-gray-400 hover:text-black tracking-widest transition-colors uppercase"
-                    >
-                      RESEND OTP
-                    </button>
-                  )}
-                </div>
-
-                <div className="pt-8 border-t border-gray-100">
-                  <p className="text-center text-xs font-bold text-gray-400 uppercase tracking-widest mb-6">Download our App</p>
-                  <div className="flex gap-4">
-                    <Image
-                      src="/app_store_badge.png"
-                      alt="App Store"
-                      width={160}
-                      height={50}
-                      className="flex-1 h-auto transition-transform hover:scale-105 cursor-pointer"
-                    />
-                    <Image
-                      src="/google_play_badge.png"
-                      alt="Google Play"
-                      width={160}
-                      height={50}
-                      className="flex-1 h-auto transition-transform hover:scale-105 cursor-pointer"
-                    />
-                  </div>
-                </div>
-              </form>
-            </div>
-          </motion.div>
+        {/* BOTTOM: Carousel for mobile */}
+        <div className="lg:hidden w-full pt-1 flex-shrink-0 border-none">
+          <ProductCarousel />
         </div>
       </div>
     </div>
