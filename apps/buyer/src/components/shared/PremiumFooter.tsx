@@ -7,7 +7,7 @@ import { ShieldCheck, Globe, Zap } from 'lucide-react';
 
 export default function PremiumFooter() {
   const footerLinks = [
-    { label: 'Intelligence Blogs', href: '#' },
+    { label: 'Intelligence Blogs', href: '/blogs' },
     { label: 'Response Center', href: '/support' },
     { label: 'Corporate Entity', href: '#' },
     { label: 'Governance Protocol', href: '#' },
