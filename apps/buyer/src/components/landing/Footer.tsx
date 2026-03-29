@@ -12,6 +12,7 @@ export default function Footer() {
     { label: 'Contact', href: '#' },
     { label: 'Support', href: '#' },
     { label: 'About', href: '#' },
+    { label: 'Blog', href: '/blogs' },
   ];
 
   return (

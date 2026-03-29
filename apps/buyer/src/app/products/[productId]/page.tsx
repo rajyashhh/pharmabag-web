@@ -188,11 +188,11 @@ export default function ProductDetailPage({ params }: { params: { productId: str
             Back to Products
           </Link>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8 md:gap-10 lg:gap-12">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-4 md:gap-5 lg:gap-4">
             {/* Product Image */}
             <motion.div
               whileHover={{ scale: 1.02 }}
-              className="relative bg-white/40 backdrop-blur-xl rounded-2xl sm:rounded-3xl md:rounded-[40px] border border-white/40 shadow-xl overflow-hidden flex items-center justify-center aspect-square max-h-[400px] sm:max-h-[500px] lg:max-h-none"
+              className="relative bg-white/40 backdrop-blur-xl rounded-2xl sm:rounded-3xl md:rounded-[40px] border border-white/40 shadow-xl overflow-hidden flex items-center justify-center aspect-square lg:col-span-1"
             >
               {product.images && product.images.length > 0 ? (
                 <Image
@@ -212,7 +212,7 @@ export default function ProductDetailPage({ params }: { params: { productId: str
             </motion.div>
 
             {/* Product Info */}
-            <div className="space-y-4 sm:space-y-6 md:space-y-8">
+            <div className="space-y-4 sm:space-y-6 md:space-y-8 lg:col-span-2">
               <div>
                 {product.category && (
                   <span className="text-[10px] font-bold text-lime-700 bg-lime-100 px-3 py-1 rounded-2xl uppercase tracking-widest">
