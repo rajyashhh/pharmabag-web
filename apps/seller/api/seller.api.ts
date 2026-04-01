@@ -316,6 +316,16 @@ export async function uploadKycDocument(formData: FormData) {
 }
 
 /**
+ * Upload product image to S3
+ */
+export async function uploadProductImage(formData: FormData) {
+  const { data } = await apiClient.post<any>('/storage/product-image', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  });
+  return data.data ?? data;
+}
+
+/**
  * Upload drug license document during seller onboarding
  */
 export async function uploadDrugLicense(formData: FormData) {

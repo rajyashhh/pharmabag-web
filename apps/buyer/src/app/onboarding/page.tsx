@@ -9,7 +9,7 @@ import {
 import Navbar from '@/components/landing/Navbar';
 import LoginModal from '@/components/landing/LoginModal';
 import AuthGuard from '@/components/shared/AuthGuard';
-import { useCreateBuyerProfile, useVerifyPanGst } from '@/hooks/useBuyerProfile';
+import { useCreateBuyerProfile, useUpdateBuyerProfile, useVerifyPanGst } from '@/hooks/useBuyerProfile';
 import { useUploadKycDocument } from '@/hooks/useStorage';
 import { useToast } from '@/components/shared/Toast';
 import { useAuth } from '@pharmabag/api-client';
@@ -30,6 +30,7 @@ export default function OnboardingPage() {
   const { user } = useAuth();
   const { toast } = useToast();
   const createProfile = useCreateBuyerProfile();
+  const updateProfile = useUpdateBuyerProfile();
   const verifyPanGst = useVerifyPanGst();
   const uploadKyc = useUploadKycDocument();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -111,32 +112,6 @@ export default function OnboardingPage() {
           if (res.address) updateField('address', res.address);
           
           toast(`${res.message}: ${res.legalName}`, 'success');
-          
-          // Auto-submit to profile with gstPanResponse
-          createProfile.mutate({
-            phone: user?.phone || undefined,
-            name: (user as any)?.name || res.legalName,
-            email: user?.email || undefined,
-            legalName: res.legalName,
-            gstNumber: verifyType === 'GST' ? value.toUpperCase() : form.gstNumber.trim().toUpperCase(),
-            panNumber: verifyType === 'PAN' ? value.toUpperCase() : form.panNumber.trim().toUpperCase(),
-            drugLicenseNumber: form.drugLicenseNumber.trim() || undefined,
-            drugLicenseUrl: form.drugLicenseUrl || undefined,
-            address: {
-              street1: res.address || form.address.trim() || ' ',
-              street2: '',
-              city: form.city.trim() || ' ',
-              state: form.state || ' ',
-              pincode: form.pincode.trim() || ' '
-            },
-            licence: form.drugLicenseNumber.trim() ? [{
-              type: 'DL20B',
-              number: form.drugLicenseNumber.trim(),
-              expiry: '',
-              imgUrl: form.drugLicenseUrl || undefined,
-            }] : undefined,
-            gstPanResponse: res
-          } as any);
         } else {
           toast(res.message || `Invalid ${verifyType}`, 'error');
         }
@@ -173,7 +148,7 @@ export default function OnboardingPage() {
   };
 
   const handleSubmit = () => {
-    createProfile.mutate({
+    const payload = {
       phone: user?.phone || undefined,
       name: (user as any)?.name || form.legalName.trim(),
       email: user?.email || undefined,
@@ -198,12 +173,23 @@ export default function OnboardingPage() {
         }
       ] : undefined,
       gstPanResponse: verificationResult || undefined,
-    }, {
-      onSuccess: () => {
-        toast('Profile created successfully! Verification in progress.', 'success');
-        router.push('/profile');
+    };
+
+    const onSuccess = () => {
+      toast('Profile submitted successfully! Verification in progress.', 'success');
+      router.push('/profile');
+    };
+
+    // Try update first (profile may already exist from login), fallback to create
+    updateProfile.mutate(payload as any, {
+      onSuccess,
+      onError: () => {
+        // Profile doesn't exist yet — create it
+        createProfile.mutate(payload, {
+          onSuccess,
+          onError: () => toast('Failed to submit profile. Please try again.', 'error'),
+        });
       },
-      onError: () => toast('Failed to create profile. Please try again.', 'error'),
     });
   };
 

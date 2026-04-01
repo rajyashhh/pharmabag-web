@@ -12,6 +12,76 @@ import { useAdminUsers, useAffirmUserStatus, useUserById, useUpdateGstPanStatus 
 type RoleFilter = "all" | "BUYER" | "SELLER" | "ADMIN";
 type StatusFilter = "all" | "APPROVED" | "PENDING" | "BLOCKED" | "VACATION";
 
+function BuyerDetails({ userId }: { userId: string }) {
+  const { data: user, isLoading } = useUserById(userId);
+  if (isLoading) return <div className="py-4 text-center text-sm text-muted-foreground">Loading buyer details…</div>;
+  const bp = user?.buyerProfile;
+  if (!bp) return <div className="py-4 text-center text-sm text-muted-foreground">No buyer profile submitted yet</div>;
+  return (
+    <div className="py-4 space-y-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="space-y-1">
+          <div className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground uppercase"><Building2 className="h-3 w-3" />Legal Name</div>
+          <p className="text-sm font-medium text-foreground">{bp.legalName || bp.name || "—"}</p>
+        </div>
+        <div className="space-y-1">
+          <div className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground uppercase"><FileText className="h-3 w-3" />GST Number</div>
+          <p className="text-sm font-mono text-foreground">{bp.gstNumber || "—"}</p>
+        </div>
+        <div className="space-y-1">
+          <div className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground uppercase"><FileText className="h-3 w-3" />PAN Number</div>
+          <p className="text-sm font-mono text-foreground">{bp.panNumber || "—"}</p>
+        </div>
+        <div className="space-y-1">
+          <div className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground uppercase"><FileText className="h-3 w-3" />Drug License</div>
+          <p className="text-sm font-mono text-foreground">{bp.drugLicenseNumber || "—"}</p>
+        </div>
+        {bp.drugLicenseUrl && (
+          <div className="space-y-1 lg:col-span-2">
+            <div className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground uppercase"><FileText className="h-3 w-3" />Drug License Document</div>
+            {/\.(jpe?g|png|webp)$/i.test(bp.drugLicenseUrl) ? (
+              <a href={bp.drugLicenseUrl} target="_blank" rel="noopener noreferrer">
+                <img src={bp.drugLicenseUrl} alt="Drug License" className="max-w-[200px] max-h-32 rounded-lg border border-border object-contain" />
+              </a>
+            ) : (
+              <a href={bp.drugLicenseUrl} target="_blank" rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 text-sm text-primary hover:underline">
+                View Document <ExternalLink className="h-3 w-3" />
+              </a>
+            )}
+          </div>
+        )}
+        <div className="space-y-1 sm:col-span-2">
+          <div className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground uppercase"><MapPin className="h-3 w-3" />Address</div>
+          <p className="text-sm text-foreground">{
+            bp.address
+              ? (typeof bp.address === 'object'
+                  ? [bp.address.street1, bp.address.city, bp.address.state, bp.address.pincode].filter(Boolean).join(", ")
+                  : [bp.address, bp.city, bp.state, bp.pincode].filter(Boolean).join(", "))
+              : "—"
+          }</p>
+        </div>
+        {bp.verificationStatus && (
+          <div className="space-y-1">
+            <div className="text-xs font-semibold text-muted-foreground uppercase">Verification</div>
+            <Badge variant={bp.verificationStatus === "VERIFIED" ? "success" : bp.verificationStatus === "PENDING" ? "warning" : "error"}>{bp.verificationStatus}</Badge>
+          </div>
+        )}
+      </div>
+      {(bp.gstPanResponse || user?.gstPanResponse) && (
+        <div>
+          <div className="flex items-center gap-2 text-sm font-bold text-foreground mb-2">
+            <FileText className="h-4 w-4" /> IDFY Verification Response
+          </div>
+          <pre className="p-4 bg-muted/20 border border-border rounded-xl text-xs font-mono overflow-auto max-h-60">
+            {JSON.stringify(bp.gstPanResponse ?? user?.gstPanResponse, null, 2)}
+          </pre>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function SellerDetails({ userId }: { userId: string }) {
   const { data: user, isLoading } = useUserById(userId);
   if (isLoading) return <div className="py-4 text-center text-sm text-muted-foreground">Loading seller details…</div>;
@@ -170,8 +240,8 @@ export default function UsersPage() {
                             </div>
                             <div>
                               <span className="font-mono text-sm text-foreground">{u.phone ?? "—"}</span>
-                              {u.sellerProfile?.companyName && (
-                                <p className="text-xs text-muted-foreground mt-0.5">{u.sellerProfile.companyName}</p>
+                              {(u.sellerProfile?.companyName || u.sellerProfile?.businessName || u.buyerProfile?.legalName || u.businessName) && (
+                                <p className="text-xs text-muted-foreground mt-0.5">{u.sellerProfile?.companyName || u.sellerProfile?.businessName || u.buyerProfile?.legalName || u.businessName}</p>
                               )}
                             </div>
                           </div>
@@ -250,16 +320,7 @@ export default function UsersPage() {
                       {isExpanded && (
                         <tr>
                           <td colSpan={6} className="px-5 bg-muted/10">
-                            {u.role === "SELLER" ? <SellerDetails userId={u.id} /> : (
-                              <div className="py-4 space-y-4">
-                                <div className="flex items-center gap-2 text-sm font-bold text-foreground">
-                                  <FileText className="h-4 w-4" /> IDFY Verification Response
-                                </div>
-                                <pre className="p-4 bg-muted/20 border border-border rounded-xl text-xs font-mono overflow-auto max-h-60">
-                                  {JSON.stringify(u.gstPanResponse, null, 2)}
-                                </pre>
-                              </div>
-                            )}
+                            {u.role === "SELLER" ? <SellerDetails userId={u.id} /> : <BuyerDetails userId={u.id} />}
                           </td>
                         </tr>
                       )}
