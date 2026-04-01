@@ -4,25 +4,25 @@ import Image from 'next/image';
 import { motion } from 'framer-motion';
 
 const TRUST_HIGHLIGHTS = [
-  { 
+  {
     label: '0 Tolerance to Duplicacy',
     icon: (
       <Image src="/authentic_icon.png" alt="0 Tolerance" width={100} height={100} className="w-20 h-20 md:w-24 md:h-24 object-contain" />
     )
   },
-  { 
+  {
     label: 'Fastest Delivery',
     icon: (
       <Image src="/shipping_icon.png" alt="Fastest Delivery" width={100} height={100} className="w-20 h-20 md:w-24 md:h-24 object-contain" />
     )
   },
-  { 
+  {
     label: 'Only B2B rates',
     icon: (
       <Image src="/b2b_icon.png" alt="Only B2B Rates" width={100} height={100} className="w-20 h-20 md:w-24 md:h-24 object-contain" />
     )
   },
-  { 
+  {
     label: 'Controlled Quality',
     icon: (
       <Image src="/secure_checkout_icon.png" alt="Controlled Quality" width={100} height={100} className="w-20 h-20 md:w-24 md:h-24 object-contain" />
@@ -36,7 +36,7 @@ export default function TrustSection() {
       <div className="w-full max-w-7xl mx-auto">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-x-8 gap-y-16">
           {TRUST_HIGHLIGHTS.map((item, idx) => (
-            <motion.div 
+            <motion.div
               key={item.label}
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
