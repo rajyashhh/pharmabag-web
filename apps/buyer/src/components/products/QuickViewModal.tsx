@@ -134,10 +134,10 @@ export function QuickViewModal({ product, isOpen, onClose }: QuickViewModalProps
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
               transition={{ type: 'spring', damping: 25, stiffness: 300 }}
               onClick={(e) => e.stopPropagation()}
-              className="relative w-full max-w-[580px] max-h-[90vh] overflow-y-auto bg-white/95 backdrop-blur-sm rounded-[24px] shadow-[0_25px_60px_-12px_rgba(0,0,0,0.25),0_0_0_1px_rgba(255,255,255,0.1)] border border-white/40 overflow-hidden"
+              className="relative w-full max-w-[760px] max-h-[90vh] overflow-y-auto bg-white/95 backdrop-blur-sm rounded-[24px] shadow-[0_25px_60px_-12px_rgba(0,0,0,0.25),0_0_0_1px_rgba(255,255,255,0.1)] border border-white/40 overflow-hidden"
             >
               {/* Header: Title Left, Actions Right */}
-              <div className="flex items-center justify-between pl-6 pt-6 pr-6 pb-2 relative">
+              <div className="flex items-center justify-between px-8 pt-8 pb-2 relative">
                 {/* Product Title */}
                 <h2 className="text-[22px] md:text-[26px] font-[800] text-gray-800 tracking-tight leading-tight w-[80%] pr-4">
                   {product.name}
@@ -159,7 +159,7 @@ export function QuickViewModal({ product, isOpen, onClose }: QuickViewModalProps
                 {/* Flush Right Ribbon Bookmark */}
                 <button
                   onClick={() => setIsBookmarked(!isBookmarked)}
-                  className="absolute right-0 top-6 transition-all hover:opacity-80"
+                  className="absolute right-0 top-8 transition-all hover:opacity-80"
                   title="Bookmark"
                 >
                   <svg width="64" height="46" viewBox="0 0 64 46" fill={isBookmarked ? "#e5e7eb" : "white"} stroke="#d1d5db" strokeWidth="2.5" strokeLinejoin="miter">
@@ -172,7 +172,7 @@ export function QuickViewModal({ product, isOpen, onClose }: QuickViewModalProps
               </div>
 
               {/* Dynamic Info Grid & Image vs Actions */}
-              <div className="px-6 pb-6 pt-1 grid grid-cols-1 md:grid-cols-[48%_52%] gap-4 md:gap-5">
+              <div className="px-8 pb-8 pt-1 grid grid-cols-1 md:grid-cols-[62%_38%] gap-4 md:gap-7">
                 
                 {/* ── LEFT COLUMN: Grid + Image ── */}
                 <div className="flex flex-col">
@@ -195,7 +195,7 @@ export function QuickViewModal({ product, isOpen, onClose }: QuickViewModalProps
                   </div>
 
                   {/* Product Image */}
-                  <div className="relative w-full h-[280px] mt-4 flex items-center justify-center pt-2">
+                  <div className="relative w-full aspect-[4/3.5] min-h-[440px] mt-6 flex items-center justify-center">
                     <Image
                       src={product.images?.[0] || '/product_placeholder.png'}
                       alt={product.name}
@@ -210,11 +210,11 @@ export function QuickViewModal({ product, isOpen, onClose }: QuickViewModalProps
                 <div className="flex flex-col pt-1">
                   
                   {/* Pricing Matrix */}
-                  <div className="grid grid-cols-1 gap-y-[8px] text-[15px] mb-6">
-                    <div className="flex items-center"><span className="font-[900] text-black tracking-wide w-20">MRP:</span> <span className="text-[#3b82f6] font-bold">₹{product.mrp?.toFixed(2) || '0.00'}</span></div>
-                    <div className="flex items-center"><span className="font-[900] text-black tracking-wide w-20">PTR:</span> <span className="text-[#3b82f6] font-bold">₹{computedPtr?.toFixed(2) || '0.00'}</span></div>
-                    <div className="flex items-center mb-0.5"><span className="font-[900] text-black tracking-wide w-20">Net rate:</span> <span className="text-[#3b82f6] font-[900] text-[16px]">₹{sellingPrice.toFixed(2)}</span></div>
-                    <div className="flex items-center"><span className="font-[900] text-black tracking-wide w-20">Country:</span> <span className="text-gray-700 font-medium">{(product as any).country || 'India'}</span></div>
+                  <div className="flex flex-col gap-y-2 text-[15px] mb-6 mt-1 pr-6">
+                    <div className="flex items-center justify-between"><span className="font-[900] text-black tracking-wide">MRP:</span> <span className="text-[#3b82f6] font-bold">₹{product.mrp?.toFixed(2) || '0.00'}</span></div>
+                    <div className="flex items-center justify-between"><span className="font-[900] text-black tracking-wide">PTR:</span> <span className="text-[#3b82f6] font-bold">₹{computedPtr?.toFixed(2) || '0.00'}</span></div>
+                    <div className="flex items-center justify-between mb-0.5"><span className="font-[900] text-black tracking-wide">Net rate:</span> <span className="text-[#3b82f6] font-[900] text-[16px]">₹{sellingPrice.toFixed(2)}</span></div>
+                    <div className="flex items-center justify-between"><span className="font-[900] text-black tracking-wide">Country:</span> <span className="text-gray-700 font-medium whitespace-nowrap">{(product as any).country || 'India'}</span></div>
                   </div>
 
                   {/* Add to Cart Custom GUI */}
@@ -252,7 +252,7 @@ export function QuickViewModal({ product, isOpen, onClose }: QuickViewModalProps
                   </div>
 
                   {/* Delivery Info */}
-                  <div className="text-[17px] font-[800] text-black tracking-tight mb-4">
+                  <div className="text-[17px] font-[800] text-black tracking-tight mb-5 mt-2">
                     Delivery in 4-8 days
                   </div>
 

@@ -14,10 +14,10 @@ interface Props {
 
 export function CategorySelector({ selectedCategoryIds, onChangeCategories, selectedSubcategoryIds, onChangeSubcategories, error }: Props) {
   const { data: categories, isLoading } = useCategories();
-  
+
   // Safe default: assuming data is array of { id: string, name: string, subcategories?: ... }
-  const safeCategories = Array.isArray(categories) 
-    ? categories.filter(c => c && typeof c === 'object' && c.id && c.name) 
+  const safeCategories = Array.isArray(categories)
+    ? categories.filter(c => c && typeof c === 'object' && c.id && c.name)
     : [];
 
   const toggleCategory = (id: string) => {
