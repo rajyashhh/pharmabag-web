@@ -21,6 +21,8 @@ export const BuyerProfileSchema = z.object({
   latitude: z.number().optional(),
   longitude: z.number().optional(),
   isVerified: z.boolean().optional(),
+  verificationStatus: z.string().optional(),
+  creditTier: z.string().optional(),
   createdAt: z.string().optional(),
   updatedAt: z.string().optional(),
 });

@@ -29,11 +29,13 @@ type PaymentMethod = 'COD' | 'UPI' | 'BANK_TRANSFER' | 'CREDIT';
 
 export default function CheckoutPage() {
   const { user } = useAuth();
+  const bp = user?.buyerProfile as any;
   const isApproved = user?.status === 'APPROVED';
+  const isBuyerProfileVerified = bp?.verificationStatus === 'VERIFIED';
   const isLegacyVerified = user?.verificationStatus === 'VERIFIED';
-  const isVerified = isApproved || isLegacyVerified;
-  const isPending = !isVerified && (user?.status === 'PENDING' || user?.verificationStatus === 'PENDING' || !!user?.buyerProfile);
-  const isRejected = user?.status === 'REJECTED' || user?.verificationStatus === 'REJECTED';
+  const isVerified = isApproved || isBuyerProfileVerified || isLegacyVerified;
+  const isPending = !isVerified && (user?.status === 'PENDING' || bp?.verificationStatus === 'PENDING' || user?.verificationStatus === 'PENDING');
+  const isRejected = user?.status === 'REJECTED' || bp?.verificationStatus === 'REJECTED' || user?.verificationStatus === 'REJECTED';
 
   const { data: cartData, isLoading: isCartLoading } = useCart();
   const { data: profileData } = useBuyerProfile();

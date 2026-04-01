@@ -176,15 +176,17 @@ export default function OnboardingPage() {
 
     const onSuccess = () => {
       toast('Profile submitted successfully! Verification in progress.', 'success');
+      // Refresh auth to pick up the new status
+      refresh();
       router.push('/profile');
     };
 
-    // Try update first (profile may already exist from login), fallback to create
-    updateProfile.mutate(payload as any, {
+    // Try create first (backend converts empty stub to real profile), fallback to update
+    createProfile.mutate(payload, {
       onSuccess,
       onError: () => {
-        // Profile doesn't exist yet — create it
-        createProfile.mutate(payload, {
+        // If create fails (profile already has data), try update
+        updateProfile.mutate(payload as any, {
           onSuccess,
           onError: () => toast('Failed to submit profile. Please try again.', 'error'),
         });
@@ -205,11 +207,23 @@ export default function OnboardingPage() {
     return null;
   }
 
-  // Check if buyer profile already exists (form was already submitted) — show pending state
-  const profileExists = !isProfileLoading && (existingProfile?.id || user?.buyerProfile);
-  const isRejected = user?.status === 'REJECTED' || user?.verificationStatus === 'REJECTED';
+  // Check if buyer has actually completed the onboarding form (not just an empty stub)
+  // Backend auto-creates an empty stub at registration (legalName is empty)
+  // A completed profile has legalName filled + verificationStatus is PENDING or VERIFIED
+  const profile = existingProfile as any;
+  const bp = user?.buyerProfile as any;
+  const hasCompletedOnboarding = !isProfileLoading && (
+    (profile?.legalName && profile.legalName.trim() !== '') ||
+    (bp?.legalName && bp.legalName.trim() !== '') ||
+    profile?.verificationStatus === 'PENDING' ||
+    profile?.verificationStatus === 'VERIFIED' ||
+    bp?.verificationStatus === 'PENDING' ||
+    bp?.verificationStatus === 'VERIFIED' ||
+    user?.status === 'PENDING'
+  );
+  const isRejected = user?.status === 'REJECTED' || user?.verificationStatus === 'REJECTED' || profile?.verificationStatus === 'REJECTED';
 
-  if (profileExists && !isRejected) {
+  if (hasCompletedOnboarding && !isRejected) {
     return (
       <AuthGuard>
         <main className="min-h-screen bg-[#f2fcf6] relative overflow-hidden">

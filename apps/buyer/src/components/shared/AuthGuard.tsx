@@ -22,10 +22,12 @@ export default function AuthGuard({ children }: { children: React.ReactNode }) {
     }
 
     if (!isLoading && isAuthenticated && user) {
-      // Check if buyer is verified: admin sets user.status = 'APPROVED'
+      // Check if buyer is verified: admin sets user.status = 'APPROVED' and buyerProfile.verificationStatus = 'VERIFIED'
+      const bp = user.buyerProfile as any;
       const isApproved = user.status === 'APPROVED';
+      const isBuyerProfileVerified = bp?.verificationStatus === 'VERIFIED';
       const isLegacyVerified = user.verificationStatus === 'VERIFIED';
-      const isVerified = isApproved || isLegacyVerified;
+      const isVerified = isApproved || isBuyerProfileVerified || isLegacyVerified;
 
       const allowedPaths = ['/onboarding', '/cart', '/checkout', '/profile', '/products', '/blogs', '/support', '/notifications', '/wishlist'];
       if (!isVerified && !allowedPaths.some(p => pathname.startsWith(p))) {
