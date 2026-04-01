@@ -1,31 +1,22 @@
-'use client';
-
-export interface CartItem {
-  id: string;
-  productId: string;
-  productName?: string;
-  quantity: number;
-  price?: number;
-  mrp?: number;
-  imageUrl?: string;
-}
-
-export interface Cart {
-  items: CartItem[];
-  totalAmount: number;
-}
+import { type Cart, type CartItem } from '@pharmabag/api-client';
 
 const STORAGE_KEY = 'pharmabag_local_cart';
 
 export const localCart = {
   get: (): Cart => {
-    if (typeof window === 'undefined') return { items: [], totalAmount: 0 };
+    if (typeof window === 'undefined') return { items: [], subtotal: 0, total: 0 };
     const stored = localStorage.getItem(STORAGE_KEY);
-    if (!stored) return { items: [], totalAmount: 0 };
+    if (!stored) return { items: [], subtotal: 0, total: 0 };
     try {
-      return JSON.parse(stored);
+      const parsed = JSON.parse(stored);
+      // Ensure it has everything needed by components — mapping total if missing
+      return {
+        ...parsed,
+        subtotal: parsed.subtotal || 0,
+        total: parsed.total || parsed.subtotal || 0,
+      };
     } catch {
-      return { items: [], totalAmount: 0 };
+      return { items: [], subtotal: 0, total: 0 };
     }
   },
 
@@ -36,7 +27,7 @@ export const localCart = {
     window.dispatchEvent(new Event('storage'));
   },
 
-  addItem: (itemData: Omit<CartItem, 'id'>) => {
+  addItem: (itemData: any) => {
     const cart = localCart.get();
     const existingIndex = cart.items.findIndex(item => item.productId === itemData.productId);
     
@@ -49,6 +40,10 @@ export const localCart = {
       });
     }
     
+    // Recalculate totals
+    cart.subtotal = cart.items.reduce((sum, item) => sum + (item.price || 0) * item.quantity, 0);
+    cart.total = cart.subtotal;
+    
     localCart.set(cart);
     return cart;
   },
@@ -58,6 +53,8 @@ export const localCart = {
     const item = cart.items.find(i => i.id === itemId);
     if (item) {
       item.quantity = quantity;
+      cart.subtotal = cart.items.reduce((sum, item) => sum + (item.price || 0) * item.quantity, 0);
+      cart.total = cart.subtotal;
       localCart.set(cart);
     }
     return cart;
@@ -66,11 +63,13 @@ export const localCart = {
   removeItem: (itemId: string) => {
     const cart = localCart.get();
     cart.items = cart.items.filter(i => i.id !== itemId);
+    cart.subtotal = cart.items.reduce((sum, item) => sum + (item.price || 0) * item.quantity, 0);
+    cart.total = cart.subtotal;
     localCart.set(cart);
     return cart;
   },
 
   clear: () => {
-    localCart.set({ items: [], totalAmount: 0 });
+    localCart.set({ items: [], subtotal: 0, total: 0 });
   }
 };

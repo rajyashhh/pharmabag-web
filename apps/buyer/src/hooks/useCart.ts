@@ -109,10 +109,12 @@ export function useSyncCart() {
 
       // Sync local items to backend
       for (const item of local.items) {
-        try {
-          await addToCart(item.productId, item.quantity);
-        } catch (e) {
-          console.error(`Failed to sync item ${item.productId}`, e);
+        if (item.productId) {
+          try {
+            await addToCart(item.productId, item.quantity);
+          } catch (e) {
+            console.error(`Failed to sync item ${item.productId}`, e);
+          }
         }
       }
       

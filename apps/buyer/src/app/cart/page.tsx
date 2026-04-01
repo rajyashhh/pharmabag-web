@@ -27,9 +27,9 @@ export default function CartPage() {
   const minOrderAmount = config?.min_order_amount ?? 20000;
 
   const items = cart?.items ?? [];
-  const subtotal = items.reduce((acc, item) => {
+  const subtotal = items.reduce((acc, item: any) => {
     const price = item.product?.price ?? item.price;
-    return acc + price * item.quantity;
+    return acc + (price || 0) * item.quantity;
   }, 0);
   const gst = Math.round(subtotal * gstRate);
   const total = subtotal + gst;
@@ -116,7 +116,7 @@ export default function CartPage() {
                 )}
 
                 <AnimatePresence mode="popLayout">
-                  {items.map((item) => {
+                  {items.map((item: any) => {
                     const itemName = item.product?.name ?? item.productName ?? item.name ?? 'Product';
                     const itemPrice = item.product?.price ?? item.price;
                     const itemMrp = item.product?.mrp;
@@ -190,7 +190,7 @@ export default function CartPage() {
 
                               {/* Price */}
                               <div className="text-right">
-                                <p className="font-bold text-gray-900">{formatCurrency(itemPrice * item.quantity)}</p>
+                                <p className="font-bold text-gray-900">{formatCurrency((itemPrice || 0) * item.quantity)}</p>
                                 {itemMrp && itemMrp > itemPrice && (
                                   <p className="text-xs text-gray-400 line-through">{formatCurrency(itemMrp * item.quantity)}</p>
                                 )}
@@ -229,14 +229,14 @@ export default function CartPage() {
                   </div>
 
                   {/* Savings */}
-                  {items.some(i => i.product?.mrp && i.product.mrp > (i.product?.price ?? i.price)) && (
+                  {items.some((i: any) => i.product?.mrp && i.product.mrp > (i.product?.price ?? i.price)) && (
                     <div className="bg-emerald-50 rounded-xl p-3 text-center">
                       <p className="text-sm font-semibold text-emerald-700">
                         You save {formatCurrency(
-                          items.reduce((acc, i) => {
+                          items.reduce((acc, i: any) => {
                             const mrp = i.product?.mrp ?? i.price;
                             const price = i.product?.price ?? i.price;
-                            return acc + (mrp - price) * i.quantity;
+                            return acc + ((mrp || 0) - (price || 0)) * i.quantity;
                           }, 0)
                         )}
                       </p>
@@ -271,7 +271,7 @@ export default function CartPage() {
             </div>
           )}
         </div>
-<LoginModal isOpen={isLoginOpen} onClose={() => setIsLoginOpen(false)} />
+        <LoginModal isOpen={isLoginOpen} onClose={() => setIsLoginOpen(false)} />
       </main>
     </AuthGuard>
   );
