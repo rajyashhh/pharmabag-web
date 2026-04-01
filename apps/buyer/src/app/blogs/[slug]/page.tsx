@@ -4,7 +4,6 @@ import { useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { ArrowLeft, Calendar, User, Tag } from 'lucide-react';
-import Image from 'next/image';
 import Navbar from '@/components/landing/Navbar';
 import LoginModal from '@/components/landing/LoginModal';
 import { useBlogBySlug } from '@/hooks/useBlogs';
@@ -91,11 +90,10 @@ export default function BlogDetailPage() {
 
             {blog.coverImage && (
               <div className="relative w-full h-64 sm:h-80 rounded-2xl overflow-hidden mb-8">
-                <Image
+                <img
                   src={blog.coverImage}
                   alt={blog.title}
-                  fill
-                  className="object-cover"
+                  className="absolute inset-0 w-full h-full object-cover"
                 />
               </div>
             )}

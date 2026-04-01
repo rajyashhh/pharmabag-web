@@ -26,9 +26,6 @@ export const BuyerProfileSchema = z.object({
 });
 
 export const CreateBuyerProfileSchema = z.object({
-  phone: z.string().optional(),
-  name: z.string().optional(),
-  email: z.string().optional(),
   legalName: z.string().min(1),
   gstNumber: z.string().min(1),
   panNumber: z.string().min(1),

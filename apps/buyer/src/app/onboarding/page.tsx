@@ -149,9 +149,6 @@ export default function OnboardingPage() {
 
   const handleSubmit = () => {
     const payload = {
-      phone: user?.phone || undefined,
-      name: (user as any)?.name || form.legalName.trim(),
-      email: user?.email || undefined,
       legalName: form.legalName.trim(),
       gstNumber: form.gstNumber.trim().toUpperCase(),
       panNumber: form.panNumber.trim().toUpperCase(),
