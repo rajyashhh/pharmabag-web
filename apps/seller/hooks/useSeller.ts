@@ -50,7 +50,23 @@ export function useSellerMe(enabled: boolean = false) {
 
 export function useSellerDashboard() { return useQuery({ queryKey: ["seller", "dashboard"], queryFn: getSellerDashboard, staleTime: 60_000, retry: 1 }); }
 
-export function useSellerProfile(enabled: boolean = true) { return useQuery({ queryKey: ["seller", "profile"], queryFn: getSellerProfile, enabled, staleTime: 60_000, retry: 1 }); }
+export function useSellerProfile(enabled: boolean = true) {
+  const { setUser, user } = useSellerAuth();
+  return useQuery({
+    queryKey: ["seller", "profile"],
+    queryFn: getSellerProfile,
+    enabled,
+    staleTime: 60_000,
+    retry: 1,
+    select: (data: any) => {
+      // Sync vacation state from profile to store so sidebar/guard stay in sync
+      if (data && typeof data.isOnVacation === "boolean" && user && user.isOnVacation !== data.isOnVacation) {
+        setUser({ ...user, isOnVacation: data.isOnVacation } as any);
+      }
+      return data;
+    },
+  });
+}
 export function useUpdateSellerProfile() {
   const qc = useQueryClient();
   return useMutation({
@@ -99,9 +115,23 @@ export function useToggleVacationMode() {
   const { user, setUser } = useSellerAuth();
   return useMutation({
     mutationFn: (isOnVacation: boolean) => toggleVacationMode(isOnVacation),
-    onSuccess: (_, isOnVacation) => {
+    onSuccess: (updatedProfile, isOnVacation) => {
+      // Update Zustand store immediately
       if (user) setUser({ ...user, isOnVacation } as any);
+      // Optimistically update the profile cache to prevent stale re-fetch from reverting state
+      qc.setQueryData(["seller", "profile"], (old: any) => ({
+        ...(old || {}),
+        ...(updatedProfile || {}),
+        isOnVacation,
+      }));
+      // Also update the /auth/me cache so the SellerGuard doesn't overwrite store on refocus
+      qc.setQueryData(["seller", "me"], (old: any) => {
+        if (!old) return old;
+        return { ...old, isOnVacation };
+      });
+      // Invalidate to eventually refetch fresh data from server
       void qc.invalidateQueries({ queryKey: ["seller", "profile"] });
+      void qc.invalidateQueries({ queryKey: ["seller", "me"] });
     },
   });
 }

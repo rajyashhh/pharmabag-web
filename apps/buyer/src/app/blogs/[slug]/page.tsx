@@ -9,11 +9,32 @@ import LoginModal from '@/components/landing/LoginModal';
 import { useBlogBySlug } from '@/hooks/useBlogs';
 
 export default function BlogDetailPage() {
-  const { slug } = useParams<{ slug: string }>();
+  const params = useParams();
+  const slug = Array.isArray(params?.slug) ? params.slug[0] : params?.slug;
   const router = useRouter();
   const [isLoginOpen, setIsLoginOpen] = useState(false);
 
-  const { data: blog, isLoading, isError } = useBlogBySlug(slug);
+  const { data: blog, isLoading, isError, error } = useBlogBySlug(slug || '');
+
+  // Log errors for debugging
+  if (isError && error) {
+    console.error('[BlogDetailPage] Error loading blog:', error);
+  }
+
+  if (!slug) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <Navbar onLoginClick={() => setIsLoginOpen(true)} />
+        <LoginModal isOpen={isLoginOpen} onClose={() => setIsLoginOpen(false)} />
+        <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+          <div className="text-center py-20">
+            <h3 className="text-lg font-bold text-gray-800 mb-1">Invalid blog URL</h3>
+            <p className="text-sm text-gray-500">The blog URL is missing or invalid.</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -41,7 +62,21 @@ export default function BlogDetailPage() {
               ))}
             </div>
           </div>
-        ) : isError || !blog ? (
+        ) : isError ? (
+          <div className="text-center py-20">
+            <h3 className="text-lg font-bold text-gray-800 mb-1">Failed to load blog</h3>
+            <p className="text-sm text-gray-500 mb-4">
+              {error instanceof Error ? error.message : 'Unable to fetch this blog post. Please try again later.'}
+            </p>
+            <button
+              onClick={() => router.push('/blogs')}
+              className="inline-flex items-center gap-2 px-4 py-2 bg-lime-600 text-white text-sm font-medium rounded-lg hover:bg-lime-700 transition-colors"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              Back to Blogs
+            </button>
+          </div>
+        ) : !blog ? (
           <div className="text-center py-20">
             <h3 className="text-lg font-bold text-gray-800 mb-1">Blog not found</h3>
             <p className="text-sm text-gray-500">The blog post you&apos;re looking for doesn&apos;t exist.</p>
@@ -98,10 +133,14 @@ export default function BlogDetailPage() {
               </div>
             )}
 
-            <div
-              className="prose prose-gray max-w-none prose-headings:font-bold prose-a:text-lime-600 prose-img:rounded-xl"
-              dangerouslySetInnerHTML={{ __html: blog.content }}
-            />
+            {blog.content ? (
+              <div
+                className="prose prose-gray max-w-none prose-headings:font-bold prose-a:text-lime-600 prose-img:rounded-xl"
+                dangerouslySetInnerHTML={{ __html: blog.content }}
+              />
+            ) : (
+              <p className="text-gray-500">No content available for this blog post.</p>
+            )}
           </motion.article>
         )}
       </div>
