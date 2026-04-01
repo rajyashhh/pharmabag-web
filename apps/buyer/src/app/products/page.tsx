@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X } from 'lucide-react';
 import { Search, Filter, SlidersHorizontal, ChevronRight, LayoutGrid, List, Truck, ShieldCheck, ArrowUpDown, Check } from 'lucide-react';
@@ -18,7 +18,7 @@ import { useToast } from '@/components/shared/Toast';
 import { calculatePricing, getSellingPrice, getEffectiveDiscountPercent } from '@pharmabag/utils';
 import { useSearchParams } from 'next/navigation';
 
-export default function ProductsPage() {
+function ProductsPageContent() {
   const searchParams = useSearchParams();
   const querySearch = searchParams.get('search');
   const queryCategory = searchParams.get('category');
@@ -806,5 +806,17 @@ export default function ProductsPage() {
       />
 
     </main>
+  );
+}
+
+export default function ProductsPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-[#f2fcf6] flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-4 border-emerald-500/20 border-t-emerald-500"></div>
+      </div>
+    }>
+      <ProductsPageContent />
+    </Suspense>
   );
 }
