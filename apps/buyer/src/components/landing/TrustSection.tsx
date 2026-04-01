@@ -32,7 +32,7 @@ const TRUST_HIGHLIGHTS = [
 
 export default function TrustSection() {
   return (
-    <div className="pt-16 md:pt-24 pb-0 bg-transparent px-[4vw]">
+    <div className="pt-16 mb-16 md:pt-24 pb-0 bg-transparent px-[4vw]">
       <div className="w-full max-w-7xl mx-auto">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-x-8 gap-y-16">
           {TRUST_HIGHLIGHTS.map((item, idx) => (
