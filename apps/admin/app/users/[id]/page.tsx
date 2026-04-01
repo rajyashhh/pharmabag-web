@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { ArrowLeft, Phone, Mail, Building2, FileText, MapPin, Calendar, ShieldCheck, Edit, Trash2, Ban, Unlock, UserCheck, UserX } from "lucide-react";
+import { ArrowLeft, Phone, Mail, Building2, FileText, MapPin, Calendar, ShieldCheck, Edit, Trash2, Ban, Unlock, UserCheck, UserX, ExternalLink, Image } from "lucide-react";
 import { AdminLayout } from "@/components/layout/admin-layout";
 import { Button, Badge, Input, Modal, Skeleton } from "@/components/ui";
 import { cn } from "@/lib/utils";
@@ -81,6 +81,7 @@ export default function UserDetailPage() {
   }
 
   const sp = user.sellerProfile;
+  const bp = user.buyerProfile;
   const isSeller = user.role === "SELLER";
   const isBuyer = user.role === "BUYER";
 
@@ -94,7 +95,7 @@ export default function UserDetailPage() {
               <ArrowLeft className="h-4 w-4" />
             </button>
             <div>
-              <h1 className="font-semibold text-2xl text-foreground">{sp?.companyName || user.name || user.phone}</h1>
+              <h1 className="font-semibold text-2xl text-foreground">{sp?.companyName || bp?.legalName || user.businessName || user.name || user.phone}</h1>
               <div className="flex items-center gap-2 mt-1">
                 <Badge variant={user.role === "BUYER" ? "success" : user.role === "SELLER" ? "info" : "orange"}>{user.role}</Badge>
                 <Badge variant={user.status === "APPROVED" ? "success" : user.status === "PENDING" ? "warning" : "error"}>{user.status}</Badge>
@@ -136,20 +137,67 @@ export default function UserDetailPage() {
             <h2 className="font-semibold text-foreground mb-4">{isSeller ? "Seller Profile" : "Buyer Profile"}</h2>
             {isSeller && sp ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <InfoRow icon={Building2} label="Company" value={sp.companyName ?? "—"} />
+                <InfoRow icon={Building2} label="Company" value={sp.companyName ?? sp.businessName ?? "—"} />
                 <InfoRow icon={FileText} label="GST Number" value={sp.gstNumber ?? "—"} mono />
                 <InfoRow icon={FileText} label="PAN Number" value={sp.panNumber ?? "—"} mono />
                 <InfoRow icon={FileText} label="Drug License" value={sp.drugLicenseNumber ?? "—"} mono />
+                {sp.drugLicenseUrl && (
+                  <div className="space-y-1 sm:col-span-2">
+                    <div className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground uppercase">
+                      <Image className="h-3 w-3" />Drug License Document
+                    </div>
+                    <div className="mt-2">
+                      {/\.(jpe?g|png|webp)$/i.test(sp.drugLicenseUrl) ? (
+                        <a href={sp.drugLicenseUrl} target="_blank" rel="noopener noreferrer" className="block">
+                          <img src={sp.drugLicenseUrl} alt="Drug License" className="max-w-xs max-h-48 rounded-xl border border-border object-contain" />
+                        </a>
+                      ) : (
+                        <a href={sp.drugLicenseUrl} target="_blank" rel="noopener noreferrer"
+                          className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-border bg-accent/30 text-sm font-medium text-foreground hover:bg-accent transition-colors">
+                          <FileText className="h-4 w-4" />View Drug License Document<ExternalLink className="h-3.5 w-3.5 text-muted-foreground" />
+                        </a>
+                      )}
+                    </div>
+                  </div>
+                )}
                 <InfoRow icon={MapPin} label="Address" value={[sp.address, sp.city, sp.state, sp.pincode].filter(Boolean).join(", ") || "—"} className="sm:col-span-2" />
                 {sp.bankAccountNumber && <InfoRow icon={Building2} label="Bank Account" value={`${sp.bankName ?? ""} — ${sp.bankAccountNumber}`} mono />}
                 {sp.ifscCode && <InfoRow icon={FileText} label="IFSC" value={sp.ifscCode} mono />}
               </div>
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <InfoRow icon={Building2} label="Business Name" value={user.businessName ?? user.name ?? "—"} />
-                <InfoRow icon={FileText} label="GST Number" value={user.gstNumber ?? "—"} mono />
-                <InfoRow icon={FileText} label="Drug License" value={user.drugLicenseNumber ?? "—"} mono />
-                <InfoRow icon={MapPin} label="Address" value={[user.address, user.city, user.state, user.pincode].filter(Boolean).join(", ") || "—"} className="sm:col-span-2" />
+                <InfoRow icon={Building2} label="Legal / Business Name" value={bp?.legalName ?? user.businessName ?? user.name ?? "—"} />
+                <InfoRow icon={FileText} label="GST Number" value={bp?.gstNumber ?? user.gstNumber ?? "—"} mono />
+                <InfoRow icon={FileText} label="PAN Number" value={bp?.panNumber ?? user.panNumber ?? "—"} mono />
+                <InfoRow icon={FileText} label="Drug License No." value={bp?.drugLicenseNumber ?? user.drugLicenseNumber ?? "—"} mono />
+                {(bp?.drugLicenseUrl ?? user.drugLicenseUrl) && (
+                  <div className="space-y-1 sm:col-span-2">
+                    <div className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground uppercase">
+                      <Image className="h-3 w-3" />Drug License Document
+                    </div>
+                    <div className="mt-2">
+                      {/\.(jpe?g|png|webp)$/i.test(bp?.drugLicenseUrl ?? user.drugLicenseUrl ?? '') ? (
+                        <a href={bp?.drugLicenseUrl ?? user.drugLicenseUrl} target="_blank" rel="noopener noreferrer" className="block">
+                          <img src={bp?.drugLicenseUrl ?? user.drugLicenseUrl} alt="Drug License" className="max-w-xs max-h-48 rounded-xl border border-border object-contain" />
+                        </a>
+                      ) : (
+                        <a href={bp?.drugLicenseUrl ?? user.drugLicenseUrl} target="_blank" rel="noopener noreferrer"
+                          className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-border bg-accent/30 text-sm font-medium text-foreground hover:bg-accent transition-colors">
+                          <FileText className="h-4 w-4" />View Drug License Document<ExternalLink className="h-3.5 w-3.5 text-muted-foreground" />
+                        </a>
+                      )}
+                    </div>
+                  </div>
+                )}
+                <InfoRow icon={MapPin} label="Address" value={
+                  bp?.address
+                    ? (typeof bp.address === 'object'
+                        ? [bp.address.street1, bp.address.city, bp.address.state, bp.address.pincode].filter(Boolean).join(", ")
+                        : [bp.address, bp.city, bp.state, bp.pincode].filter(Boolean).join(", "))
+                    : ([user.address, user.city, user.state, user.pincode].filter(Boolean).join(", ") || "—")
+                } className="sm:col-span-2" />
+                {bp?.email && <InfoRow icon={Mail} label="Email" value={bp.email} />}
+                {bp?.phone && <InfoRow icon={Phone} label="Phone" value={bp.phone} mono />}
               </div>
             )}
           </motion.div>
@@ -180,7 +228,7 @@ export default function UserDetailPage() {
           </motion.div>
         )}
 
-        {/* KYC Documents */}
+        {/* KYC Documents - Seller */}
         {isSeller && sp && (
           <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="glass-card rounded-2xl p-6">
             <h2 className="font-semibold text-foreground mb-4">KYC Verification</h2>
@@ -189,6 +237,26 @@ export default function UserDetailPage() {
               <KycCard label="GST Verification" status={sp.gstVerified ? "verified" : "pending"} value={sp.gstNumber} />
               <KycCard label="Drug License" status={sp.drugLicenseVerified ? "verified" : "pending"} value={sp.drugLicenseNumber} />
             </div>
+          </motion.div>
+        )}
+
+        {/* KYC Documents - Buyer */}
+        {isBuyer && bp && (
+          <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="glass-card rounded-2xl p-6">
+            <h2 className="font-semibold text-foreground mb-4">Buyer Verification</h2>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <KycCard label="GST Verification" status={bp.verificationStatus === "VERIFIED" ? "verified" : "pending"} value={bp.gstNumber} />
+              <KycCard label="PAN" status={bp.panNumber ? "verified" : "pending"} value={bp.panNumber} />
+              <KycCard label="Drug License" status={bp.drugLicenseNumber ? "verified" : "pending"} value={bp.drugLicenseNumber} />
+            </div>
+            {(bp.gstPanResponse || user.gstPanResponse) && (
+              <div className="mt-4">
+                <p className="text-xs font-semibold text-muted-foreground uppercase mb-2">IDFY Verification Response</p>
+                <pre className="p-4 bg-muted/20 border border-border rounded-xl text-xs font-mono overflow-auto max-h-48">
+                  {JSON.stringify(bp.gstPanResponse ?? user.gstPanResponse, null, 2)}
+                </pre>
+              </div>
+            )}
           </motion.div>
         )}
       </div>

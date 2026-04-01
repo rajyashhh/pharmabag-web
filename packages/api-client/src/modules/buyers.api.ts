@@ -21,6 +21,8 @@ export const BuyerProfileSchema = z.object({
   latitude: z.number().optional(),
   longitude: z.number().optional(),
   isVerified: z.boolean().optional(),
+  verificationStatus: z.string().optional(),
+  creditTier: z.string().optional(),
   createdAt: z.string().optional(),
   updatedAt: z.string().optional(),
 });
@@ -29,14 +31,36 @@ export const CreateBuyerProfileSchema = z.object({
   legalName: z.string().min(1),
   gstNumber: z.string().min(1),
   panNumber: z.string().min(1),
-  drugLicenseNumber: z.string().min(1),
+  drugLicenseNumber: z.string().optional(),
   drugLicenseUrl: z.string().optional(),
-  address: z.string().min(1),
-  city: z.string().min(1),
-  state: z.string().min(1),
-  pincode: z.string().min(1),
+  address: z.object({
+    street1: z.string().min(1),
+    street2: z.string().optional(),
+    city: z.string().min(1),
+    state: z.string().min(1),
+    pincode: z.string().min(1),
+  }),
+  licence: z.array(
+    z.object({
+      type: z.string().optional(),
+      number: z.string().optional(),
+      expiry: z.string().optional(),
+      imgUrl: z.string().optional(),
+    })
+  ).optional(),
+  bankAccount: z.object({
+    accountNumber: z.string().optional(),
+    ifsc: z.string().optional(),
+    bankName: z.string().optional(),
+    branch: z.string().optional(),
+    holderName: z.string().optional(),
+  }).optional(),
+  cancelCheck: z.string().optional(),
+  document: z.string().optional(),
+  inviteCode: z.string().optional(),
   latitude: z.number().optional(),
   longitude: z.number().optional(),
+  gstPanResponse: z.record(z.any()).optional(),
 });
 
 export const UpdateBuyerProfileSchema = CreateBuyerProfileSchema.partial();

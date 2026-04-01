@@ -3,6 +3,7 @@ import React, { useRef, useState } from "react";
 import { UploadCloud, X, Loader2, Image as ImageIcon, Link as LinkIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Input } from "../ui";
+import { uploadProductImage } from "@/api/seller.api";
 
 interface Props {
   value: string[];
@@ -17,22 +18,14 @@ export function ImageUploader({ value = [], onChange, error, maxFiles = 5 }: Pro
   const [imageUrl, setImageUrl] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const simulateUpload = (file: File): Promise<string> => {
-    return new Promise((resolve, reject) => {
-      // Limit file size to 5MB
-      if (file.size > 5 * 1024 * 1024) {
-        reject(new Error("File size must be less than 5MB"));
-        return;
-      }
-      
-      const reader = new FileReader();
-      reader.readAsDataURL(file);
-      reader.onload = () => {
-        // Simulate network delay
-        setTimeout(() => resolve(reader.result as string), 800 + Math.random() * 1000);
-      };
-      reader.onerror = () => reject(new Error("Failed to read file"));
-    });
+  const uploadFile = async (file: File): Promise<string> => {
+    if (file.size > 5 * 1024 * 1024) {
+      throw new Error("File size must be less than 5MB");
+    }
+    const formData = new FormData();
+    formData.append("file", file);
+    const result = await uploadProductImage(formData);
+    return result.url ?? result;
   };
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -46,7 +39,7 @@ export function ImageUploader({ value = [], onChange, error, maxFiles = 5 }: Pro
 
     setIsUploading(true);
     try {
-      const uploadPromises = files.map(simulateUpload);
+      const uploadPromises = files.map(uploadFile);
       const newUrls = await Promise.all(uploadPromises);
       onChange([...value, ...newUrls]);
     } catch (err: any) {

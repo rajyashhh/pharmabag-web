@@ -9,11 +9,12 @@ import {
 import Navbar from '@/components/landing/Navbar';
 import LoginModal from '@/components/landing/LoginModal';
 import AuthGuard from '@/components/shared/AuthGuard';
-import { useCreateBuyerProfile, useVerifyPanGst } from '@/hooks/useBuyerProfile';
+import { useCreateBuyerProfile, useUpdateBuyerProfile, useVerifyPanGst, useBuyerProfile } from '@/hooks/useBuyerProfile';
 import { useUploadKycDocument } from '@/hooks/useStorage';
 import { useToast } from '@/components/shared/Toast';
 import { useAuth } from '@pharmabag/api-client';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 
 type Step = 1 | 2 | 3;
 
@@ -27,11 +28,13 @@ const INDIAN_STATES = [
 
 export default function OnboardingPage() {
   const router = useRouter();
-  const { user } = useAuth();
+  const { user, refresh } = useAuth();
   const { toast } = useToast();
   const createProfile = useCreateBuyerProfile();
+  const updateProfile = useUpdateBuyerProfile();
   const verifyPanGst = useVerifyPanGst();
   const uploadKyc = useUploadKycDocument();
+  const { data: existingProfile, isLoading: isProfileLoading } = useBuyerProfile();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isLoginOpen, setIsLoginOpen] = useState(false);
 
@@ -111,14 +114,6 @@ export default function OnboardingPage() {
           if (res.address) updateField('address', res.address);
           
           toast(`${res.message}: ${res.legalName}`, 'success');
-          
-          // Auto-submit to profile with gst_pan_response
-          createProfile.mutate({
-            ...form,
-            legalName: res.legalName,
-            address: res.address || form.address,
-            gst_pan_response: res
-          } as any);
         } else {
           toast(res.message || `Invalid ${verifyType}`, 'error');
         }
@@ -155,22 +150,47 @@ export default function OnboardingPage() {
   };
 
   const handleSubmit = () => {
-    createProfile.mutate({
+    const payload = {
       legalName: form.legalName.trim(),
       gstNumber: form.gstNumber.trim().toUpperCase(),
       panNumber: form.panNumber.trim().toUpperCase(),
       drugLicenseNumber: form.drugLicenseNumber.trim(),
       drugLicenseUrl: form.drugLicenseUrl || undefined,
-      address: form.address.trim(),
-      city: form.city.trim(),
-      state: form.state,
-      pincode: form.pincode.trim(),
-    }, {
-      onSuccess: () => {
-        toast('Profile created successfully! Verification in progress.', 'success');
-        router.push('/profile');
+      address: {
+        street1: form.address.trim(),
+        street2: '',
+        city: form.city.trim(),
+        state: form.state,
+        pincode: form.pincode.trim(),
       },
-      onError: () => toast('Failed to create profile. Please try again.', 'error'),
+      licence: form.drugLicenseNumber.trim() ? [
+        {
+          type: 'DL20B',
+          number: form.drugLicenseNumber.trim(),
+          expiry: '',
+          imgUrl: form.drugLicenseUrl || undefined,
+        }
+      ] : undefined,
+      gstPanResponse: verificationResult || undefined,
+    };
+
+    const onSuccess = () => {
+      toast('Profile submitted successfully! Verification in progress.', 'success');
+      // Refresh auth to pick up the new status
+      refresh();
+      router.push('/profile');
+    };
+
+    // Try create first (backend converts empty stub to real profile), fallback to update
+    createProfile.mutate(payload, {
+      onSuccess,
+      onError: () => {
+        // If create fails (profile already has data), try update
+        updateProfile.mutate(payload as any, {
+          onSuccess,
+          onError: () => toast('Failed to submit profile. Please try again.', 'error'),
+        });
+      },
     });
   };
 
@@ -179,6 +199,57 @@ export default function OnboardingPage() {
     { num: 2, label: 'Address', icon: MapPin },
     { num: 3, label: 'Review & Submit', icon: Shield },
   ];
+
+  // Check if buyer is already approved — redirect to products
+  const isApproved = user?.status === 'APPROVED' || user?.verificationStatus === 'VERIFIED';
+  if (isApproved) {
+    router.replace('/products');
+    return null;
+  }
+
+  // Check if buyer has actually completed the onboarding form (not just an empty stub)
+  // Backend auto-creates an empty stub at registration (legalName is empty)
+  // A completed profile has legalName filled + verificationStatus is PENDING or VERIFIED
+  const profile = existingProfile as any;
+  const bp = user?.buyerProfile as any;
+  const hasCompletedOnboarding = !isProfileLoading && (
+    (profile?.legalName && profile.legalName.trim() !== '') ||
+    (bp?.legalName && bp.legalName.trim() !== '') ||
+    profile?.verificationStatus === 'PENDING' ||
+    profile?.verificationStatus === 'VERIFIED' ||
+    bp?.verificationStatus === 'PENDING' ||
+    bp?.verificationStatus === 'VERIFIED' ||
+    user?.status === 'PENDING'
+  );
+  const isRejected = user?.status === 'REJECTED' || user?.verificationStatus === 'REJECTED' || profile?.verificationStatus === 'REJECTED';
+
+  if (hasCompletedOnboarding && !isRejected) {
+    return (
+      <AuthGuard>
+        <main className="min-h-screen bg-[#f2fcf6] relative overflow-hidden">
+          <Navbar showUserActions onLoginClick={() => setIsLoginOpen(true)} />
+          <div className="flex-1 flex flex-col items-center justify-center p-6 text-center" style={{ minHeight: 'calc(100vh - 80px)', paddingTop: '120px' }}>
+            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="max-w-md w-full bg-white/80 backdrop-blur-xl border border-white/60 rounded-2xl p-8 shadow-xl">
+              <div className="mx-auto w-16 h-16 bg-yellow-100 rounded-2xl flex items-center justify-center mb-6">
+                <Shield className="w-8 h-8 text-yellow-600" />
+              </div>
+              <h1 className="text-2xl font-black text-gray-900 mb-4">Application Under Review</h1>
+              <p className="text-gray-600 font-medium mb-6">
+                Your business profile has been submitted and is currently being reviewed by our team. You will receive a notification once your account is verified.
+              </p>
+              <p className="text-sm text-gray-400 mb-8">
+                Verification typically takes 24–48 hours.
+              </p>
+              <Link href="/products" className="inline-flex items-center justify-center w-full h-14 bg-gray-900 text-white rounded-xl font-bold transition-all hover:bg-gray-800">
+                Continue Browsing
+              </Link>
+            </motion.div>
+          </div>
+          <LoginModal isOpen={isLoginOpen} onClose={() => setIsLoginOpen(false)} />
+        </main>
+      </AuthGuard>
+    );
+  }
 
   return (
     <AuthGuard>

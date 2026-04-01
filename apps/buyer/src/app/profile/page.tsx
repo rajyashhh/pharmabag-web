@@ -35,7 +35,15 @@ export default function ProfilePage() {
   };
 
   const handleSave = () => {
-    updateProfile.mutate(form, {
+    updateProfile.mutate({
+      ...form,
+      address: {
+        street1: form.address,
+        city: form.city,
+        state: form.state,
+        pincode: form.pincode,
+      }
+    } as any, {
       onSuccess: () => {
         setIsEditing(false);
         toast('Profile updated successfully!', 'success');
@@ -124,7 +132,15 @@ export default function ProfilePage() {
               <motion.button
                 whileTap={{ scale: 0.95 }}
                 onClick={() => {
-                  createProfile.mutate(form as any, {
+                  createProfile.mutate({
+                    ...form,
+                    address: {
+                      street1: form.address,
+                      city: form.city,
+                      state: form.state,
+                      pincode: form.pincode,
+                    }
+                  } as any, {
                     onSuccess: () => toast('Profile created successfully!', 'success'),
                     onError: () => toast('Failed to create profile. Please fill all required fields.', 'error'),
                   });

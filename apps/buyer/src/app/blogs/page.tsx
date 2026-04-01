@@ -3,7 +3,6 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Search, Calendar, User, ArrowRight, BookOpen } from 'lucide-react';
-import Image from 'next/image';
 import Link from 'next/link';
 import Navbar from '@/components/landing/Navbar';
 import LoginModal from '@/components/landing/LoginModal';
@@ -115,11 +114,10 @@ export default function BlogsPage() {
                       {/* Cover Image */}
                       <div className="relative h-48 bg-gray-100 overflow-hidden">
                         {blog.coverImage ? (
-                          <Image
+                          <img
                             src={blog.coverImage}
                             alt={blog.title}
-                            fill
-                            className="object-cover group-hover:scale-105 transition-transform duration-500"
+                            className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                           />
                         ) : (
                           <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-lime-50 to-gray-100">
