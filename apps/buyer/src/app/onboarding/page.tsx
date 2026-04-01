@@ -112,12 +112,30 @@ export default function OnboardingPage() {
           
           toast(`${res.message}: ${res.legalName}`, 'success');
           
-          // Auto-submit to profile with gst_pan_response
+          // Auto-submit to profile with gstPanResponse
           createProfile.mutate({
-            ...form,
+            phone: user?.phone || undefined,
+            name: (user as any)?.name || res.legalName,
+            email: user?.email || undefined,
             legalName: res.legalName,
-            address: res.address || form.address,
-            gst_pan_response: res
+            gstNumber: verifyType === 'GST' ? value.toUpperCase() : form.gstNumber.trim().toUpperCase(),
+            panNumber: verifyType === 'PAN' ? value.toUpperCase() : form.panNumber.trim().toUpperCase(),
+            drugLicenseNumber: form.drugLicenseNumber.trim() || undefined,
+            drugLicenseUrl: form.drugLicenseUrl || undefined,
+            address: {
+              street1: res.address || form.address.trim() || ' ',
+              street2: '',
+              city: form.city.trim() || ' ',
+              state: form.state || ' ',
+              pincode: form.pincode.trim() || ' '
+            },
+            licence: form.drugLicenseNumber.trim() ? [{
+              type: 'DL20B',
+              number: form.drugLicenseNumber.trim(),
+              expiry: '',
+              imgUrl: form.drugLicenseUrl || undefined,
+            }] : undefined,
+            gstPanResponse: res
           } as any);
         } else {
           toast(res.message || `Invalid ${verifyType}`, 'error');
@@ -156,15 +174,30 @@ export default function OnboardingPage() {
 
   const handleSubmit = () => {
     createProfile.mutate({
+      phone: user?.phone || undefined,
+      name: (user as any)?.name || form.legalName.trim(),
+      email: user?.email || undefined,
       legalName: form.legalName.trim(),
       gstNumber: form.gstNumber.trim().toUpperCase(),
       panNumber: form.panNumber.trim().toUpperCase(),
       drugLicenseNumber: form.drugLicenseNumber.trim(),
       drugLicenseUrl: form.drugLicenseUrl || undefined,
-      address: form.address.trim(),
-      city: form.city.trim(),
-      state: form.state,
-      pincode: form.pincode.trim(),
+      address: {
+        street1: form.address.trim(),
+        street2: '',
+        city: form.city.trim(),
+        state: form.state,
+        pincode: form.pincode.trim(),
+      },
+      licence: form.drugLicenseNumber.trim() ? [
+        {
+          type: 'DL20B',
+          number: form.drugLicenseNumber.trim(),
+          expiry: '',
+          imgUrl: form.drugLicenseUrl || undefined,
+        }
+      ] : undefined,
+      gstPanResponse: verificationResult || undefined,
     }, {
       onSuccess: () => {
         toast('Profile created successfully! Verification in progress.', 'success');
