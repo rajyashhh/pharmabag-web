@@ -7,7 +7,7 @@ import { Button, Input, Badge, Pagination } from "@/components/ui";
 import { cn } from "@/lib/utils";
 import toast from "react-hot-toast";
 import Link from "next/link";
-import { useAdminUsers, useAffirmUserStatus, useUserById, useUpdateGstPanStatus } from "@/hooks/useAdmin";
+import { useAdminUsers, useAdminSellers, useAffirmUserStatus, useUserById, useUpdateGstPanStatus } from "@/hooks/useAdmin";
 
 type RoleFilter = "all" | "BUYER" | "SELLER" | "ADMIN";
 type StatusFilter = "all" | "APPROVED" | "PENDING" | "BLOCKED" | "VACATION";
@@ -142,13 +142,30 @@ export default function UsersPage() {
   const [page, setPage] = useState(1);
   const limit = 20;
   const { data: usersData, isLoading } = useAdminUsers(page, limit);
+  const { data: sellersData } = useAdminSellers();
   const updateStatus = useAffirmUserStatus();
   const updateGstStatus = useUpdateGstPanStatus();
 
   // Backend returns { data: [...], total: ... } inside data field
-  const users: any[] = Array.isArray(usersData) ? usersData : (usersData?.data ?? []);
-  const totalUsers = usersData?.total ?? users.length;
+  const rawUsers: any[] = Array.isArray(usersData) ? usersData : (usersData?.data ?? []);
+  const totalUsers = usersData?.total ?? rawUsers.length;
   const totalPages = Math.max(1, Math.ceil(totalUsers / limit));
+
+  // Merge vacation status from the sellers endpoint into the users list
+  // The /admin/users endpoint may not include isOnVacation, but /admin/users/sellers does
+  const sellersList: any[] = Array.isArray(sellersData) ? sellersData : (sellersData?.data ?? []);
+  const sellerVacationMap = new Map<string, boolean>();
+  sellersList.forEach((s: any) => {
+    if (s.id && typeof s.isOnVacation === "boolean") {
+      sellerVacationMap.set(s.id, s.isOnVacation);
+    }
+  });
+  const users = rawUsers.map((u: any) => {
+    if (u.role === "SELLER" && sellerVacationMap.has(u.id)) {
+      return { ...u, isOnVacation: sellerVacationMap.get(u.id) };
+    }
+    return u;
+  });
 
   const vacationCount = users.filter((u: any) => u.role === "SELLER" && u.isOnVacation).length;
 

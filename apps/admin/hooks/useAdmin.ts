@@ -49,6 +49,8 @@ export function useAdminDashboard() { return useQuery({ queryKey: ["admin", "das
 
 export function useAdminUsers(page = 1, limit = 20) { return useQuery({ queryKey: ["admin", "users", page, limit], queryFn: () => getAdminUsers(page, limit), staleTime: 60_000, retry: 1 }); }
 
+export function useAdminSellers() { return useQuery({ queryKey: ["admin", "sellers"], queryFn: () => getSellers({ limit: 500 }), staleTime: 60_000, retry: 1 }); }
+
 export function useUserById(userId: string) { return useQuery({ queryKey: ["admin", "user", userId], queryFn: () => getUserById(userId), enabled: !!userId, staleTime: 60_000, retry: 1 }); }
 
 export function useAffirmUserStatus() {

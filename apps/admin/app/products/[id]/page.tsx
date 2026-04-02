@@ -164,6 +164,23 @@ export default function ProductDetailPage() {
 
           {/* Sidebar */}
           <div className="space-y-6">
+            {/* Images */}
+            <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.08 }} className="glass-card rounded-2xl p-6">
+              <h2 className="font-semibold text-foreground mb-4">Images</h2>
+              {product.images && product.images.length > 0 ? (
+                <div className="grid grid-cols-2 gap-3">
+                  {product.images.map((img: string, i: number) => (
+                    <div key={i} className="aspect-square rounded-xl overflow-hidden border border-border">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={img} alt={`${product.name} - ${i + 1}`} className="w-full h-full object-cover" />
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-sm text-muted-foreground text-center py-4">No images uploaded</p>
+              )}
+            </motion.div>
+
             {/* Status */}
             <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="glass-card rounded-2xl p-6">
               <h2 className="font-semibold text-foreground mb-4">Status</h2>

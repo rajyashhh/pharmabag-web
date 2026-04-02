@@ -53,11 +53,21 @@ export async function getBlogs(params?: {
 }
 
 export async function getBlogById(id: string): Promise<Blog> {
-  const { data } = await api.get(`/blogs/${id}`);
-  return data.data ?? data;
+  try {
+    const { data } = await api.get(`/blogs/${id}`);
+    return data.data ?? data;
+  } catch (err) {
+    console.error('[Blogs] Failed to fetch blog by ID:', (err as any)?.response?.status, (err as any)?.message);
+    throw err;
+  }
 }
 
 export async function getBlogBySlug(slug: string): Promise<Blog> {
-  const { data } = await api.get(`/blogs/slug/${slug}`);
-  return data.data ?? data;
+  try {
+    const { data } = await api.get(`/blogs/slug/${slug}`);
+    return data.data ?? data;
+  } catch (err) {
+    console.error('[Blogs] Failed to fetch blog by slug:', (err as any)?.response?.status, (err as any)?.message);
+    throw err;
+  }
 }
