@@ -160,7 +160,7 @@ function ProductsPageContent() {
       images: ['/products/pharma_bottle.png'],
       imageUrl: '/products/pharma_bottle.png',
       category: 'Test Category',
-      description: 'This is a dummy product for development testing only. It will help you test cart functionality, pricing, and UI elements.',
+      description: 'This is a dummy product for development testing only. It will help you test bag functionality, pricing, and UI elements.',
       seller: {
         id: 'dev-seller-001',
         companyName: 'Dev Test Seller',
@@ -481,7 +481,7 @@ function ProductsPageContent() {
                         if (cartItemObj) {
                           removeCartItem.mutate(cartItemObj.id, {
                             onSuccess: () => {
-                              toast(`${product.name} removed from cart`, 'success');
+                              toast(`${product.name} removed from bag`, 'success');
                             },
                             onError: () => {
                               toast('Failed to remove item', 'error');
@@ -532,22 +532,22 @@ function ProductsPageContent() {
                           },
                           {
                             onSuccess: () => {
-                              toast(`${product.name} added to cart!`, 'success');
+                              toast(`${product.name} added to bag!`, 'success');
                               cleanupPending();
                             },
                             onError: (err: any) => {
                               const status = err?.response?.status || err?.status;
                               const message = err?.response?.data?.message || err?.message || '';
-                              let errorMsg = 'Failed to add to cart';
+                              let errorMsg = 'Failed to add to bag';
                               let isSuccess = false;
 
                               if (status === 401 || status === 403) {
-                                errorMsg = 'Please log in to add items to cart';
+                                errorMsg = 'Please log in to add items to bag';
                               } else if (status === 429) {
                                 errorMsg = 'Too many requests. Please try again in a moment';
                               } else if (status === 400) {
-                                if (message.includes('already in cart')) {
-                                  errorMsg = 'Product quantity has been updated in cart';
+                                if (message.includes('already in bag')) {
+                                  errorMsg = 'Product quantity has been updated in bag';
                                   isSuccess = true;
                                 } else if (message.includes('Minimum order quantity')) {
                                   const match = message.match(/(\d+)/);
