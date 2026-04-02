@@ -32,7 +32,7 @@ export function AdminGuard({ children }: { children: React.ReactNode }) {
   const [mounted, setMounted] = useState(false);
 
   // The user requested a master admin with all powers
-  const isMasterAdmin = user?.phone === "9155277350";
+  const isMasterAdmin = user?.phone === "9831864222";
   const permissions = isMasterAdmin ? "x" : (user as any)?.permissions as string | undefined;
 
   useEffect(() => {
