@@ -174,7 +174,7 @@ function ProductsPageContent() {
         </div>
       </div>
 
-      <div className="pt-8 lg:pt-[108px] pb-6 sm:pb-20 w-[96vw] sm:w-[92vw] max-w-[1400px] mx-auto relative z-10">
+      <div className="pt-8 lg:pt-[108px] pb-6 sm:pb-20 w-[96vw] sm:w-[92vw] mx-auto relative z-10">
         <div className="flex flex-col lg:flex-row gap-4 sm:gap-6 lg:gap-8">
           {/* Desktop Sidebar */}
           <aside className="hidden lg:block w-[260px] flex-shrink-0 space-y-6">

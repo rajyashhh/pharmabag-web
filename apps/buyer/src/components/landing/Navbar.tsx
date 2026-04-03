@@ -92,8 +92,8 @@ export default function Navbar({ onLoginClick, onFilterClick, showUserActions = 
 
   return (
     <>
-      <nav className="fixed bottom-0 lg:bottom-auto lg:top-4 left-0 right-0 z-40 flex justify-center pb-2 lg:pb-0 px-2 sm:px-[4vw]">
-        <div className="relative w-[96vw] sm:w-[92vw] max-w-[1400px] mx-auto px-4 lg:px-8 py-2.5 lg:py-3.5 rounded-2xl bg-white shadow-xl flex items-center justify-between border border-gray-100/50">
+      <nav className="fixed bottom-0 lg:bottom-auto lg:top-4 left-0 right-0 z-40 flex justify-center pb-2 lg:pb-0 px-0">
+        <div className="relative w-[96vw] sm:w-[92vw] mx-auto px-4 lg:px-8 py-2.5 lg:py-3.5 rounded-2xl bg-white shadow-xl flex items-center justify-between border border-gray-100/50">
           <div className="flex items-center justify-between gap-3 xl:gap-6 w-full px-2 lg:px-4">
             {/* Left Side: Logo */}
             <div className="flex items-center gap-3 flex-1 lg:flex-none">

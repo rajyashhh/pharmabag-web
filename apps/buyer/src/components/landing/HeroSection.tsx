@@ -38,7 +38,7 @@ export default function HeroSection() {
   };
 
   return (
-    <div className="w-full flex-1 flex flex-col justify-start items-center bg-transparent mt-4 sm:mt-6 lg:mt-8">
+    <div className="w-[96vw] sm:w-[92vw] mx-auto flex-1 flex flex-col justify-start items-center bg-transparent mt-4 sm:mt-6 lg:mt-8">
       {/* Main Heading */}
       <h1 className="text-2xl xs:text-3xl sm:text-5xl md:text-6xl lg:text-[72px] text-gray-900 mb-0 sm:mb-1 lg:mb-2 tracking-tight font-medium">
         <span className="text-gray-800">India&apos;s Only </span>
