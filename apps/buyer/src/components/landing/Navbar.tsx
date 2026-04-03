@@ -4,13 +4,17 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Bell, User, ShoppingCart, ShoppingBag, LogOut, ClipboardList, CreditCard, HelpCircle, ArrowRight, Heart, Bookmark, Menu, X, SlidersHorizontal, Filter, LifeBuoy } from 'lucide-react';
+import { Bell, User, ShoppingBag, LogOut, ClipboardList, CreditCard, HelpCircle, ArrowRight, Bookmark, Menu, X, LifeBuoy } from 'lucide-react';
 import CategoryMegaMenu from '@/components/landing/CategoryMegaMenu';
 import CartDrawer from '@/components/cart/CartDrawer';
+import WishlistDrawer from '@/components/wishlist/WishlistDrawer';
+import NotificationDrawer from '@/components/notifications/NotificationDrawer';
 import SearchBar from '@/components/shared/SearchBar';
 import { useAuth, type Category } from '@pharmabag/api-client';
 import { useCart } from '@/hooks/useCart';
 import { useCategories } from '@/hooks/useProducts';
+import { useNotifications } from '@/hooks/useNotifications';
+import { useWishlist } from '@/hooks/useWishlist';
 
 
 function CartCountBadge() {
@@ -25,18 +29,35 @@ function CartCountBadge() {
   );
 }
 
-interface NavbarProps {
-  onLoginClick?: () => void;
-  onFilterClick?: () => void;
-  showUserActions?: boolean;
+function IconCountBadge({ count }: { count: number }) {
+  if (!count) return null;
+  const label = count > 99 ? '99+' : String(count);
+  return (
+    <span className="absolute -top-1 -right-1 min-w-[18px] h-4 px-1.5 bg-[#1bd1d4] text-white text-[10px] font-bold rounded-full flex items-center justify-center border border-white shadow-sm">
+      {label}
+    </span>
+  );
 }
 
-export default function Navbar({ onLoginClick, onFilterClick, showUserActions = false }: NavbarProps) {
+interface NavbarProps {
+  onLoginClick?: () => void;
+  showUserActions?: boolean;
+  onFilterClick?: () => void;
+}
+
+export default function Navbar({ onLoginClick, showUserActions = false, onFilterClick }: NavbarProps) {
   const { isAuthenticated, user, logout } = useAuth();
   const { data: cartData } = useCart();
   const { data: categories = [] } = useCategories();
+  const { data: notificationsData } = useNotifications();
+  const { data: wishlistData } = useWishlist();
+
+  const unreadNotificationCount = notificationsData?.unreadCount ?? 0;
+  const wishlistCount = wishlistData?.items?.length ?? 0;
   const [activeCategory, setActiveCategory] = useState<Category | null>(null);
   const [isCartOpen, setIsCartOpen] = useState(false);
+  const [isWishlistOpen, setIsWishlistOpen] = useState(false);
+  const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
@@ -80,15 +101,6 @@ export default function Navbar({ onLoginClick, onFilterClick, showUserActions = 
       setActiveCategory(null);
     }, 150);
   };
-
-  const mobileMenuLinks = [
-    { href: '/products', label: 'All Products', icon: ShoppingBag },
-    { href: '/orders', label: 'My Orders', icon: ClipboardList },
-    { href: '/wishlist', label: 'Wishlist', icon: Heart },
-    { href: '/payments', label: 'Payments', icon: CreditCard },
-    { href: '/support', label: 'Support', icon: HelpCircle },
-    { href: '/profile', label: 'Profile', icon: User },
-  ];
 
   return (
     <>
@@ -153,16 +165,28 @@ export default function Navbar({ onLoginClick, onFilterClick, showUserActions = 
               {/* ... existing actions ... */}
               {isMounted && showUserActions && (
                 <div className="flex items-center gap-1 sm:gap-2">
-                  {isAuthenticated && (
-                    <div className="flex items-center gap-1 sm:gap-2">
-                      <Link href="/wishlist" className="p-1.5 text-gray-700 hover:text-sky-600 transition-colors hidden md:block">
-                        <Bookmark className="w-5 h-5" />
-                      </Link>
-                      <Link href="/notifications" className="p-1.5 text-gray-700 hover:text-sky-600 transition-colors hidden lg:block">
-                        <Bell className="w-5 h-5" />
-                      </Link>
-                    </div>
-                  )}
+                  <div className="flex items-center gap-0.5 sm:gap-1">
+                    {isAuthenticated && (
+                      <>
+                        <Link href="/orders" className="p-1.5 text-gray-700 hover:text-sky-600 transition-colors lg:hidden">
+                          <ClipboardList className="w-5 h-5" />
+                        </Link>
+                        <Link href="/payments" className="p-1.5 text-gray-700 hover:text-sky-600 transition-colors lg:hidden">
+                          <CreditCard className="w-5 h-5" />
+                        </Link>
+                      </>
+                    )}
+
+                    <button onClick={() => setIsNotificationsOpen(true)} className="relative p-1.5 text-gray-700 hover:text-sky-600 transition-colors hidden lg:block">
+                      <Bell className="w-5 h-5" />
+                      <IconCountBadge count={unreadNotificationCount} />
+                    </button>
+
+                    <button onClick={() => setIsWishlistOpen(true)} className="relative p-1.5 text-gray-700 hover:text-sky-600 transition-colors hidden lg:block">
+                      <Bookmark className="w-5 h-5" />
+                      <IconCountBadge count={wishlistCount} />
+                    </button>
+                  </div>
                   {(isAuthenticated || (cartData?.items?.length ?? 0) > 0) && (
                     <button
                       onClick={() => setIsCartOpen(true)}
@@ -205,7 +229,7 @@ export default function Navbar({ onLoginClick, onFilterClick, showUserActions = 
                         <span>Payment History</span>
                       </Link>
                       <Link href="/wishlist" className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 hover:text-gray-900 transition-colors">
-                        <Heart className="w-4 h-4" />
+                        <Bookmark className="w-4 h-4" />
                         <span>Wishlist</span>
                       </Link>
                       <Link href="/credit" className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 hover:text-gray-900 transition-colors">
@@ -369,6 +393,8 @@ export default function Navbar({ onLoginClick, onFilterClick, showUserActions = 
       )}
 
       <CartDrawer isOpen={isCartOpen} onClose={() => setIsCartOpen(false)} />
+      <WishlistDrawer isOpen={isWishlistOpen} onClose={() => setIsWishlistOpen(false)} />
+      <NotificationDrawer isOpen={isNotificationsOpen} onClose={() => setIsNotificationsOpen(false)} />
     </>
   );
 }
