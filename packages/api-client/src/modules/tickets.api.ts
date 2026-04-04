@@ -43,31 +43,99 @@ export type CreateTicketInput = z.infer<typeof CreateTicketSchema>;
 
 // ─── API Functions ──────────────────────────────────
 
+function normalizeTicket(ticket: any) {
+  if (!ticket || typeof ticket !== 'object') return ticket;
+  if (!ticket.id && ticket._id) ticket.id = ticket._id;
+  if (!ticket.description && ticket.message) ticket.description = ticket.message;
+  if (!ticket.messages) ticket.messages = [];
+  return ticket;
+}
+
+function normalizeTicketListResponse(response: any): TicketListResponse {
+  const raw = response?.data ?? response;
+  const tickets = Array.isArray(raw)
+    ? raw
+    : Array.isArray(raw?.tickets)
+    ? raw.tickets
+    : Array.isArray(response?.data)
+    ? response.data
+    : [];
+
+  const normalizedTickets = tickets.map(normalizeTicket);
+
+  return {
+    data: normalizedTickets,
+    total: raw?.total ?? normalizedTickets.length,
+    page: raw?.page ?? 1,
+    limit: raw?.limit ?? normalizedTickets.length,
+  };
+}
+
 export async function getTickets(params?: {
   page?: number;
   limit?: number;
   status?: string;
 }): Promise<TicketListResponse> {
-  const { data } = await api.get('/tickets', { params });
-  return data;
+  try {
+    const { data } = await api.get('/buyers/tickets', { params });
+    return normalizeTicketListResponse(data);
+  } catch (error: any) {
+    if (error?.response?.status === 404 || error?.response?.status === 405) {
+      const { data } = await api.get('/tickets', { params });
+      return normalizeTicketListResponse(data);
+    }
+    throw error;
+  }
 }
 
 export async function getTicketById(id: string): Promise<Ticket> {
-  const { data } = await api.get(`/tickets/${id}`);
-  return data.data?.ticket ?? data.ticket ?? data.data ?? data;
+  try {
+    const { data } = await api.get(`/buyers/tickets/${id}`);
+    return normalizeTicket(data.data?.ticket ?? data.ticket ?? data.data ?? data);
+  } catch (error: any) {
+    if (error?.response?.status === 404 || error?.response?.status === 405) {
+      const { data } = await api.get(`/tickets/${id}`);
+      return normalizeTicket(data.data?.ticket ?? data.ticket ?? data.data ?? data);
+    }
+    throw error;
+  }
 }
 
 export async function createTicket(input: CreateTicketInput): Promise<Ticket> {
-  const { data } = await api.post('/tickets', input);
-  return data.data?.ticket ?? data.ticket ?? data.data ?? data;
+  try {
+    const { data } = await api.post('/buyers/tickets', input);
+    return normalizeTicket(data.data?.ticket ?? data.ticket ?? data.data ?? data);
+  } catch (error: any) {
+    if (error?.response?.status === 404 || error?.response?.status === 405) {
+      const { data } = await api.post('/tickets', input);
+      return normalizeTicket(data.data?.ticket ?? data.ticket ?? data.data ?? data);
+    }
+    throw error;
+  }
 }
 
 export async function addTicketMessage(ticketId: string, message: string): Promise<TicketMessage> {
-  const { data } = await api.post(`/tickets/${ticketId}/messages`, { message });
-  return data.data?.ticket ?? data.ticket ?? data.data ?? data;
+  try {
+    const { data } = await api.post(`/buyers/tickets/${ticketId}/messages`, { message });
+    return normalizeTicket(data.data?.ticket ?? data.ticket ?? data.data ?? data);
+  } catch (error: any) {
+    if (error?.response?.status === 404 || error?.response?.status === 405) {
+      const { data } = await api.post(`/tickets/${ticketId}/messages`, { message });
+      return normalizeTicket(data.data?.ticket ?? data.ticket ?? data.data ?? data);
+    }
+    throw error;
+  }
 }
 
 export async function closeTicket(ticketId: string): Promise<Ticket> {
-  const { data } = await api.patch(`/tickets/${ticketId}/close`);
-  return data.data?.ticket ?? data.ticket ?? data.data ?? data;
+  try {
+    const { data } = await api.patch(`/buyers/tickets/${ticketId}/close`);
+    return normalizeTicket(data.data?.ticket ?? data.ticket ?? data.data ?? data);
+  } catch (error: any) {
+    if (error?.response?.status === 404 || error?.response?.status === 405) {
+      const { data } = await api.patch(`/tickets/${ticketId}/close`);
+      return normalizeTicket(data.data?.ticket ?? data.ticket ?? data.data ?? data);
+    }
+    throw error;
+  }
 }

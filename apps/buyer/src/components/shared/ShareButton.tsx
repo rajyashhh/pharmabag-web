@@ -1,7 +1,7 @@
 'use client';
 
 import { Share2, Copy, MessageCircle, Mail, Check } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 interface ShareButtonProps {
@@ -25,6 +25,23 @@ export function ShareButton({
 }: ShareButtonProps) {
   const [showMenu, setShowMenu] = useState(false);
   const [copied, setCopied] = useState(false);
+  const wrapperRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (wrapperRef.current && !wrapperRef.current.contains(event.target as Node)) {
+        setShowMenu(false);
+      }
+    };
+
+    if (showMenu) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+    
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showMenu]);
 
   const deepLink = `${typeof window !== 'undefined' ? window.location.origin : ''}/products/${productId}`;
   const shareText = `Check out ${productName} at ₹${productPrice}${discount ? ` (${discount}% OFF)` : ''} on PharmaBag`;
@@ -80,7 +97,7 @@ export function ShareButton({
   };
 
   return (
-    <div className="relative">
+    <div className="relative" ref={wrapperRef}>
       <motion.button
         whileTap={{ scale: 0.95 }}
         type="button"

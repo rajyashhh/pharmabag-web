@@ -33,8 +33,8 @@ function IconCountBadge({ count }: { count: number }) {
   if (!count) return null;
   const label = count > 99 ? '99+' : String(count);
   return (
-    <span className="absolute -top-1 -right-1 min-w-[18px] h-4 px-1.5 bg-[#1bd1d4] text-white text-[10px] font-bold rounded-full flex items-center justify-center border border-white shadow-sm">
-      {label}
+    <span className="absolute -top-1 -right-1 w-4 h-4 bg-[#1bd1d4] text-gray-900 text-[10px] font-black rounded-full flex items-center justify-center border border-white shadow-sm">
+      {label}  
     </span>
   );
 }

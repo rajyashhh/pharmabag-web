@@ -146,7 +146,16 @@ export function useCreateSellerTicket() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: createSellerTicket,
-    onSuccess: () => void qc.invalidateQueries({ queryKey: ["seller", "tickets"] }),
+    onSuccess: (ticket) => {
+      // Get ticket ID from various possible field names
+      const ticketId = ticket?.id || ticket?._id || ticket?.ticketId || ticket?.ticket_id;
+      if (ticketId) {
+        // Store the created ticket in cache so it's immediately available on detail page
+        qc.setQueryData(["seller", "ticket", ticketId], ticket);
+      }
+      // Invalidate list to refresh
+      void qc.invalidateQueries({ queryKey: ["seller", "tickets"] });
+    }
   });
 }
 
@@ -154,7 +163,14 @@ export function useAddTicketMessage() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: ({ ticketId, message }: { ticketId: string; message: string }) => addTicketMessage(ticketId, message),
-    onSuccess: () => void qc.invalidateQueries({ queryKey: ["seller", "tickets"] }),
+    onSuccess: (ticket, { ticketId }) => {
+      if (ticket && ticketId) {
+        // Update the specific ticket cache with the new message
+        qc.setQueryData(["seller", "ticket", ticketId], ticket);
+      }
+      // Also invalidate the list to keep it fresh
+      void qc.invalidateQueries({ queryKey: ["seller", "tickets"] });
+    }
   });
 }
 
