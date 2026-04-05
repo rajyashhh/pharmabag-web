@@ -16,6 +16,11 @@ export default function OrderCard({ orderId, date, status, total, itemCount }: O
     switch (s.toUpperCase()) {
       case 'DELIVERED': 
         return { cls: 'bg-lime-100 text-lime-700 border-lime-200', icon: CheckCircle2 };
+      case 'ACCEPTED':
+      case 'CONFIRMED':
+        return { cls: 'bg-emerald-100 text-emerald-700 border-emerald-200', icon: CheckCircle2 };
+      case 'PAYMENT_RECEIVED':
+        return { cls: 'bg-purple-100 text-purple-700 border-purple-200', icon: Package };
       case 'PENDING': 
       case 'PLACED':
         return { cls: 'bg-amber-100 text-amber-700 border-amber-200', icon: Clock };

@@ -111,14 +111,34 @@ export async function getBuyerCreditDetails(): Promise<{
     status: string;
   }>;
 }> {
-  const { data } = await api.get('/buyers/credit');
-  return data.data || data;
+  try {
+    const { data } = await api.get('/buyers/credit');
+    return data.data || data;
+  } catch (err: any) {
+    if (err.response?.status === 404) {
+      return { 
+        creditLimit: 0, 
+        usedCredit: 0, 
+        availableCredit: 0, 
+        status: 'normal', 
+        milestones: [] 
+      };
+    }
+    throw err;
+  }
 }
 
 export async function getBuyerInvoices(params?: {
   page?: number;
   limit?: number;
 }): Promise<{ data: Array<{ id: string; orderId: string; amount: number; url: string; createdAt: string }>; total: number }> {
-  const { data } = await api.get('/buyers/invoices', { params });
-  return data.data || data;
+  try {
+    const { data } = await api.get('/buyers/invoices', { params });
+    return data.data || data;
+  } catch (err: any) {
+    if (err.response?.status === 404) {
+      return { data: [], total: 0 };
+    }
+    throw err;
+  }
 }

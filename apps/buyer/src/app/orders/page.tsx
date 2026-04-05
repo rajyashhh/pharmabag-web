@@ -26,7 +26,12 @@ export default function OrdersPage() {
   const ordersData = (Array.isArray(data) ? data : data?.data) ?? [];
   const orders = statusFilter === 'ALL' 
     ? ordersData 
-    : ordersData.filter((o: any) => (o.orderStatus || o.status || 'PLACED').toUpperCase() === statusFilter.toUpperCase());
+    : ordersData.filter((o: any) => {
+        const os = (o.status || o.orderStatus || 'PLACED').toUpperCase();
+        // Handle aliases: PENDING is basically PLACED for the user
+        if (statusFilter === 'PLACED') return os === 'PLACED' || os === 'PENDING';
+        return os === statusFilter.toUpperCase();
+      });
     
   const total = (data as any)?.total ?? (Array.isArray(data) ? ordersData.length : 0);
 
@@ -106,7 +111,7 @@ export default function OrdersPage() {
                       <OrderCard
                         orderId={orderNumber}
                         date={orderDate}
-                        status={order.status || 'PLACED'}
+                        status={order.orderStatus || order.status || 'PLACED'}
                         total={`₹${totalAmount.toLocaleString('en-IN')}`}
                         itemCount={itemCount}
                       />

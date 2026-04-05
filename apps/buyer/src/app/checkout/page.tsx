@@ -111,14 +111,28 @@ export default function CheckoutPage() {
               { orderId, amount: total, method: paymentMethod },
               {
                 onSuccess: () => {
-                  clearCart.mutate();
-                  window.location.href = `/orders/${orderId}?success=true`;
+                  clearCart.mutate(undefined, {
+                    onSuccess: () => {
+                      window.location.href = `/orders/${orderId}?success=true`;
+                    },
+                    onError: () => {
+                      window.location.href = `/orders/${orderId}?success=true`;
+                    }
+                  });
                 },
                 onError: (error: any) => {
-                  // Payment record failed but order was created — redirect without success flag
+                  // Payment record failed but order was created
                   const backendMsg = error?.response?.data?.message || 'Payment recording failed';
                   toast(`Order placed but ${backendMsg}. Please contact support.`, 'error');
-                  window.location.href = `/orders/${orderId}`;
+                  
+                  clearCart.mutate(undefined, {
+                    onSuccess: () => {
+                      window.location.href = `/orders/${orderId}`;
+                    },
+                    onError: () => {
+                      window.location.href = `/orders/${orderId}`;
+                    }
+                  });
                 },
               }
             );
