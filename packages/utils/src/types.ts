@@ -122,9 +122,14 @@ export interface OrderItem {
   id: string;
   productId: string;
   productName?: string;
+  name?: string;
   price: number;
+  unitPrice?: number;
   quantity: number;
   total?: number;
+  totalPrice?: number;
+  image?: string;
+  product?: Product;
 }
 
 export interface Order {
@@ -136,16 +141,29 @@ export interface Order {
   sellerId?: string;
   sellerName?: string;
   status: OrderStatus;
+  orderStatus?: string;
   items?: OrderItem[];
+  orderItems?: OrderItem[];
   subtotal?: number;
   tax?: number;
   deliveryCharge?: number;
   total?: number;
   amount?: number;
+  totalAmount?: number;
   finalAmount?: number;
   paymentStatus?: string;
+  paymentMethod?: string;
+  paymentReference?: string;
+  shippingAddress?: string | any;
+  address?: string;
+  city?: string;
+  state?: string;
+  pincode?: string;
   createdAt: string;
   updatedAt?: string;
+  cancelReason?: string;
+  buyer?: any;
+  seller?: any;
 }
 
 export interface Payout {
