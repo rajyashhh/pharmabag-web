@@ -19,14 +19,14 @@ export default function MasterCatalogPage() {
   const fileRef = useRef<HTMLInputElement>(null);
   const [showModal, setShowModal] = useState(false);
   const [editing, setEditing] = useState<any>(null);
-  const [form, setForm] = useState({ name: "", manufacturer: "", composition: "", mrp: "", category: "", subCategory: "" });
+  const [form, setForm] = useState({ name: "", manufacturer: "", composition: "", mrp: "", gstPercent: "", category: "", subCategory: "" });
 
   const suggestions: any[] = Array.isArray(suggestionsData) ? suggestionsData : (suggestionsData?.data ?? []);
   const total = suggestionsData?.total ?? suggestions.length;
 
   const openCreate = () => {
     setEditing(null);
-    setForm({ name: "", manufacturer: "", composition: "", mrp: "", category: "", subCategory: "" });
+    setForm({ name: "", manufacturer: "", composition: "", mrp: "", gstPercent: "", category: "", subCategory: "" });
     setShowModal(true);
   };
 
@@ -35,17 +35,27 @@ export default function MasterCatalogPage() {
     setForm({ 
       name: item.name ?? "", 
       manufacturer: item.manufacturer ?? "", 
-      composition: item.composition ?? item.chemicalComposition ?? "", 
+      composition: item.chemicalComposition ?? item.composition ?? "", 
       mrp: String(item.mrp ?? ""), 
-      category: item.category?.name || item.category || "",
-      subCategory: item.subCategory?.name || item.subCategory || "" 
+      gstPercent: String(item.gstPercent ?? ""),
+      category: item.categoryId || item.category?.id || item.category?.name || item.category || "",
+      subCategory: item.subCategoryId || item.subCategory?.id || item.subCategory?.name || item.subCategory || "" 
     });
     setShowModal(true);
   };
 
   const handleSave = async () => {
     try {
-      const payload = { ...form, mrp: form.mrp ? Number(form.mrp) : undefined };
+      const payload = { 
+        name: form.name,
+        manufacturer: form.manufacturer,
+        chemicalComposition: form.composition,
+        mrp: form.mrp ? Number(form.mrp) : undefined,
+        gstPercent: form.gstPercent ? Number(form.gstPercent) : undefined,
+        categoryId: form.category, // Assuming ID is passed from selection in a real scenario
+        subCategoryId: form.subCategory
+      };
+      
       if (editing) {
         await updateSuggestion.mutateAsync({ id: editing.id, payload });
         toast.success("Catalog entry updated");
@@ -54,8 +64,8 @@ export default function MasterCatalogPage() {
         toast.success("Catalog entry created");
       }
       setShowModal(false);
-    } catch {
-      toast.error(editing ? "Failed to update" : "Failed to create");
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message || (editing ? "Failed to update" : "Failed to create"));
     }
   };
 
@@ -219,6 +229,8 @@ export default function MasterCatalogPage() {
             </div>
             <Input label="Manufacturer" placeholder="e.g. Cipla" value={form.manufacturer} onChange={e => setForm(f => ({ ...f, manufacturer: e.target.value }))} />
             <Input label="MRP (₹)" type="number" placeholder="0.00" value={form.mrp} onChange={e => setForm(f => ({ ...f, mrp: e.target.value }))} />
+            <Input label="GST (%)" type="number" placeholder="12" value={form.gstPercent} onChange={e => setForm(f => ({ ...f, gstPercent: e.target.value }))} />
+
             <div className="col-span-2">
               <Textarea label="Chemical Composition" placeholder="e.g. Paracetamol" value={form.composition} onChange={e => setForm(f => ({ ...f, composition: e.target.value }))} />
             </div>
