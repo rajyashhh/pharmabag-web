@@ -105,6 +105,26 @@ export default function ProductDetailPage({ params }: { params: { productId: str
     );
   }
 
+  function formatImageUrl(url: any): string | undefined {
+    if (!url) return undefined;
+    
+    // If it's an object with a url property, use that
+    const path = typeof url === 'string' ? url : url.url || url.path || (Array.isArray(url) ? url[0] : undefined);
+    
+    if (!path || typeof path !== 'string') return undefined;
+    if (path.startsWith('http') || path.startsWith('data:')) return path;
+    
+    // Try to get base URL from env
+    const env = (typeof process !== 'undefined' ? process.env : {}) as any;
+    const baseURL = env.NEXT_PUBLIC_API_BASE_URL || env.NEXT_PUBLIC_API_URL || '';
+    
+    // Remove /api if present at the end of baseURL for image paths
+    const cleanBase = baseURL.replace(/\/api\/?$/, '');
+    
+    const separator = path.startsWith('/') ? '' : '/';
+    return `${cleanBase}${separator}${path}`;
+  }
+
   // Compute pricing from discount details if available
   const backendTypeMap: Record<string, string> = {
     "PTR_DISCOUNT": "ptr_discount",
@@ -216,7 +236,8 @@ export default function ProductDetailPage({ params }: { params: { productId: str
             >
               {(() => {
                 const imgs = product.images || (product as any).image_list || (product as any).imageList || (product as any).product_images || [];
-                const mainImg = (imgs && imgs.length > 0) ? (typeof imgs[0] === 'string' ? imgs[0] : imgs[0]?.url) : null;
+                const rawImg = (imgs && imgs.length > 0) ? (typeof imgs[0] === 'string' ? imgs[0] : imgs[0]?.url) : null;
+                const mainImg = formatImageUrl(rawImg);
                 
                 if (mainImg) {
                   return (

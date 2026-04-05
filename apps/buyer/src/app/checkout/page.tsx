@@ -14,7 +14,7 @@ import {
   ArrowLeft
 } from 'lucide-react';
 import Navbar from '@/components/landing/Navbar';
-import { useCart, useSyncCart } from '@/hooks/useCart';
+import { useCart, useSyncCart, useClearCart } from '@/hooks/useCart';
 import { useCreateOrder } from '@/hooks/useOrders';
 import { useCreatePayment } from '@/hooks/usePayments';
 import { useBuyerProfile, useBuyerCreditDetails } from '@/hooks/useBuyerProfile';
@@ -45,6 +45,7 @@ export default function CheckoutPage() {
   const { toast } = useToast();
   const createOrder = useCreateOrder();
   const createPaymentMut = useCreatePayment();
+  const clearCart = useClearCart();
   const { data: platformConfig } = usePlatformConfig();
   const syncCart = useSyncCart();
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('CASH_ON_DELIVERY');
@@ -102,11 +103,7 @@ export default function CheckoutPage() {
     // Ensure cart is synced before placing order
     syncCart.mutate(undefined, {
       onSuccess: () => {
-        createOrder.mutate({ 
-          ...address, 
-          paymentMethod,
-          paymentStatus: paymentMethod === 'CASH_ON_DELIVERY' ? 'PENDING' : 'PENDING' 
-        }, {
+        createOrder.mutate(address, {
           onSuccess: (data: any) => {
             const orderId = data?.data?.id || data?.id;
             // Create payment record for the order
@@ -114,6 +111,7 @@ export default function CheckoutPage() {
               { orderId, amount: total, method: paymentMethod },
               {
                 onSuccess: () => {
+                  clearCart.mutate();
                   window.location.href = `/orders/${orderId}?success=true`;
                 },
                 onError: (error: any) => {

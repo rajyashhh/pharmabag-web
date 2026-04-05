@@ -8,6 +8,7 @@ import Timeline from '@/components/shared/Timeline';
 import { useToast } from '@/components/shared/Toast';
 import Link from 'next/link';
 import { useOrderById, useCancelOrder } from '@/hooks/useOrders';
+import { useClearCart } from '@/hooks/useCart';
 import AuthGuard from '@/components/shared/AuthGuard';
 
 const STATUS_ORDER = ['PLACED', 'ACCEPTED', 'SHIPPED', 'OUT_FOR_DELIVERY', 'DELIVERED'];
@@ -23,6 +24,26 @@ function normalizeStatus(s: string | undefined): string {
     COMPLETED: 'DELIVERED',
   };
   return map[status] ?? status;
+}
+
+function formatImageUrl(url: any): string | undefined {
+  if (!url) return undefined;
+  
+  // If it's an object with a url property, use that
+  const path = typeof url === 'string' ? url : url.url || url.path || (Array.isArray(url) ? url[0] : undefined);
+  
+  if (!path || typeof path !== 'string') return undefined;
+  if (path.startsWith('http') || path.startsWith('data:')) return path;
+  
+  // Try to get base URL from env
+  const env = (typeof process !== 'undefined' ? process.env : {}) as any;
+  const baseURL = env.NEXT_PUBLIC_API_BASE_URL || env.NEXT_PUBLIC_API_URL || '';
+  
+  // Remove /api if present at the end of baseURL for image paths
+  const cleanBase = baseURL.replace(/\/api\/?$/, '');
+  
+  const separator = path.startsWith('/') ? '' : '/';
+  return `${cleanBase}${separator}${path}`;
 }
 
 function buildTimelineSteps(status: string | undefined) {
@@ -93,13 +114,19 @@ export default function OrderIdPage({ params }: { params: { orderId: string } })
   const totalAmount = order.totalAmount ?? order.total ?? order.amount ?? 0;
   const orderDate = order.createdAt ? new Date(order.createdAt).toLocaleDateString('en-IN', { year: 'numeric', month: 'short', day: 'numeric' }) : '';
   const ship = order.shippingAddress || {};
+  const flattenStr = (val: any) => {
+    if (typeof val === 'string') return val;
+    if (!val) return '';
+    return val.street || val.address || val.name || val.city || val.state || val.pincode || '';
+  };
+  
   const shippingAddress = typeof order.shippingAddress === 'string' 
     ? order.shippingAddress 
     : [
-        ship.address || order.address, 
-        ship.city || order.city, 
-        ship.state || order.state, 
-        ship.pincode || order.pincode
+        flattenStr(ship.address || order.address), 
+        flattenStr(ship.city || order.city), 
+        flattenStr(ship.state || order.state), 
+        flattenStr(ship.pincode || order.pincode)
       ].filter(Boolean).join(', ');
   const isCancellable = !['DELIVERED', 'CANCELLED', 'SHIPPED'].includes(normalizeStatus(status));
 
@@ -167,12 +194,17 @@ export default function OrderIdPage({ params }: { params: { orderId: string } })
                       const itemTotal = item.totalPrice ?? item.total ?? (item.price || item.unitPrice || 0) * (item.quantity || 1);
                       
                       // Find best candidate for product image
-                      const itemImage = 
+                      const rawImage = 
                         item.product?.images?.[0] || 
                         item.product?.imageList?.[0] || 
+                        item.product?.image_list?.[0] || 
+                        item.productData?.images?.[0] || 
+                        item.productData?.image_list?.[0] || 
                         item.image || 
                         item.productImage || 
                         item.product?.image;
+                      
+                      const itemImage = formatImageUrl(rawImage);
 
                       return (
                         <div key={item.id} className="flex items-center justify-between py-4 border-b border-gray-50 last:border-0">
