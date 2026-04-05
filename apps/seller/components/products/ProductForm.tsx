@@ -240,7 +240,7 @@ export function ProductForm({ defaultValues, productId }: { defaultValues?: Part
       })} className="space-y-6">
         {/* Suggestion Search */}
         {!isEditing && (
-          <div className="glass-card rounded-2xl p-6 space-y-4" ref={suggestionRef}>
+          <div className="glass-card rounded-2xl p-6 space-y-4 relative z-50" ref={suggestionRef}>
             <h2 className="font-semibold text-lg text-foreground border-b border-border/50 pb-2">Quick Search (Autocomplete)</h2>
             <div className="relative">
               <Input
@@ -275,7 +275,7 @@ export function ProductForm({ defaultValues, productId }: { defaultValues?: Part
         )}
 
         {/* Basic Info */}
-        <div className={`glass-card rounded-2xl p-6 space-y-4 transition-opacity duration-300 ${!isEditing && !selectedMasterId ? 'opacity-50 pointer-events-none' : ''}`}>
+        <div className={`glass-card rounded-2xl p-6 space-y-4 relative z-10 transition-opacity duration-300 ${!isEditing && !selectedMasterId ? 'opacity-50 pointer-events-none' : ''}`}>
           <h2 className="font-semibold text-lg text-foreground border-b border-border/50 pb-2">Basic Information</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <Input label="Product Name *" error={errors.product_name?.message} {...register("product_name")} disabled={!!selectedMasterId} />
@@ -287,7 +287,7 @@ export function ProductForm({ defaultValues, productId }: { defaultValues?: Part
         </div>
 
         {/* Categories */}
-        <div className={`glass-card rounded-2xl p-6 space-y-4 transition-opacity duration-300 ${!isEditing && !selectedMasterId ? 'opacity-50 pointer-events-none' : ''}`}>
+        <div className={`glass-card rounded-2xl p-6 space-y-4 relative z-10 transition-opacity duration-300 ${!isEditing && !selectedMasterId ? 'opacity-50 pointer-events-none' : ''}`}>
           <h2 className="font-semibold text-lg text-foreground border-b border-border/50 pb-2">Categorization</h2>
           <div className={selectedMasterId ? "pointer-events-none" : ""}>
             <Controller
