@@ -23,8 +23,12 @@ export default function OrdersPage() {
     status: statusFilter === 'ALL' ? undefined : statusFilter,
   });
 
-  const orders = (Array.isArray(data) ? data : data?.data) ?? [];
-  const total = (data as any)?.total ?? (Array.isArray(data) ? data.length : 0);
+  const ordersData = (Array.isArray(data) ? data : data?.data) ?? [];
+  const orders = statusFilter === 'ALL' 
+    ? ordersData 
+    : ordersData.filter((o: any) => (o.orderStatus || o.status || 'PLACED').toUpperCase() === statusFilter.toUpperCase());
+    
+  const total = (data as any)?.total ?? (Array.isArray(data) ? ordersData.length : 0);
 
   return (
     <AuthGuard>
