@@ -177,7 +177,7 @@ export default function Navbar({ onLoginClick, showUserActions = false, onFilter
                       </>
                     )}
 
-                    <button onClick={() => setIsNotificationsOpen(true)} className="relative p-1.5 text-gray-700 hover:text-sky-600 transition-colors hidden lg:block">
+                    <button onClick={() => setIsNotificationsOpen(true)} className="relative p-1.5 text-gray-700 hover:text-sky-600 transition-colors">
                       <Bell className="w-5 h-5" />
                       <IconCountBadge count={unreadNotificationCount} />
                     </button>

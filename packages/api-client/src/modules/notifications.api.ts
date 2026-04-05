@@ -8,7 +8,8 @@ export const NotificationSchema = z.object({
   title: z.string(),
   message: z.string(),
   type: z.enum(['order', 'payment', 'system', 'promotion', 'verification']).optional(),
-  isRead: z.boolean(),
+  isRead: z.boolean().optional(),
+  read: z.boolean().optional(),
   createdAt: z.string(),
 });
 
@@ -29,8 +30,17 @@ export async function getNotifications(params?: {
   page?: number;
   limit?: number;
 }): Promise<NotificationListResponse> {
-  const { data } = await api.get('/notifications', { params });
-  return data;
+  const { data: responseBody } = await api.get('/notifications', { params });
+  
+  // Robust extraction: data can be in responseBody.data or responseBody itself
+  const rawData = responseBody?.data ?? responseBody;
+  const notifications = Array.isArray(rawData) ? rawData : (rawData?.data ?? []);
+  
+  return {
+    data: notifications,
+    total: rawData?.total ?? notifications.length,
+    unreadCount: rawData?.unreadCount ?? notifications.filter((n: any) => !n.isRead).length,
+  };
 }
 
 export async function markAsRead(notificationId: string): Promise<void> {
