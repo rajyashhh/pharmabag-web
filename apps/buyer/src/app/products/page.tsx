@@ -130,8 +130,6 @@ function ProductsPageContent() {
     manufacturer: selectedManufacturer ?? undefined,
     minPrice: priceRange[0] > 0 ? priceRange[0] : undefined,
     maxPrice: priceRange[1] < 10000 ? priceRange[1] : undefined,
-    sortBy,
-    sortOrder,
     city: selectedCity ?? undefined,
   });
 
@@ -152,6 +150,39 @@ function ProductsPageContent() {
     products = products.filter((p: any) => p.discountType === 'PTR_DISCOUNT' || p.discountType === 'PTR_PLUS_SAME_PRODUCT_BONUS' || p.discountType === 'PTR_PLUS_DIFFERENT_PRODUCT_BONUS');
   }
 
+  // Calculate the effective selling price for sorting. 
+  // It should match the pricing logic used in the PremiumProductCard render loop.
+  const getSortablePrice = (p: any) => {
+    // If sellingPrice is already on the object from backend, use it
+    if (p.sellingPrice && p.sellingPrice > 0) return p.sellingPrice;
+    
+    // Fallback to manual discount calculation to ensure sort matches UI
+    const mrp = p.mrp || p.price || 0;
+    const discount = p.discountMeta || p.discountDetails || p.discountFormDetails;
+    
+    if (discount && mrp > 0) {
+      if (discount.discountPercent > 0) {
+        return mrp * (1 - (discount.discountPercent / 100));
+      } else if (discount.specialPrice > 0) {
+        return discount.specialPrice;
+      }
+    }
+    
+    return mrp || p.price || p.ptr || 0;
+  };
+
+  // Mandatory Client-side Sorting for accurate UX
+  if (sortOption === 'price_low_high') {
+    products = [...products].sort((a: any, b: any) => getSortablePrice(a) - getSortablePrice(b));
+  } else if (sortOption === 'price_high_low') {
+    products = [...products].sort((a: any, b: any) => getSortablePrice(b) - getSortablePrice(a));
+  } else if (sortOption === 'newest') {
+    products = [...products].sort((a: any, b: any) => {
+      const timeA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+      const timeB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+      return timeB - timeA;
+    });
+  }
 
   return (
     <main className="min-h-screen bg-[#f2fcf6] relative overflow-hidden">
@@ -185,7 +216,7 @@ function ProductsPageContent() {
               <div className="relative">
                 <select
                   value={sortOption}
-                  onChange={(e) => { setSortOption(e.target.value); setPage(1); }}
+                  onChange={(e) => { setSortOption(e.target.value); }}
                   className="appearance-none w-full bg-gray-50/50 border border-gray-100 rounded-lg p-3 text-xs text-gray-700 font-bold focus:ring-1 focus:ring-emerald-400 outline-none cursor-pointer"
                 >
                   <option value="default">Default</option>
@@ -705,7 +736,7 @@ function ProductsPageContent() {
                 <div className="relative">
                   <select
                     value={sortOption}
-                    onChange={(e) => { setSortOption(e.target.value); setPage(1); }}
+                    onChange={(e) => { setSortOption(e.target.value); }}
                     className="appearance-none w-full bg-gray-50/50 border border-gray-100 rounded-lg p-3 text-xs text-gray-700 font-bold focus:ring-1 focus:ring-emerald-400 outline-none cursor-pointer"
                   >
                     <option value="default">Default</option>
