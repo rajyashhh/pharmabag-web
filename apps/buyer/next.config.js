@@ -11,11 +11,11 @@ const nextConfig = {
       { protocol: 'http', hostname: 'localhost' },
     ],
   },
-  rewrites: async () => ({
-    beforeFiles: [
-      { source: '/api/:path*', destination: `${process.env.NEXT_PUBLIC_API_URL || process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3000/api'}/:path*` },
-    ],
-  }),
+  rewrites: async () => [
+    { source: '/api/:path*', destination: `${process.env.NEXT_PUBLIC_API_URL || process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3000/api'}/:path*` },
+    { source: '/blog', destination: '/blogs' },
+    { source: '/blog/:path*', destination: '/blogs/:path*' },
+  ],
 };
 
 module.exports = nextConfig;

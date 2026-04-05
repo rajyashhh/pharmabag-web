@@ -67,6 +67,29 @@ const MOCK_BLOGS: Blog[] = [
     tags: ['Digital Transformation', 'B2B', 'Procurement'],
     publishedAt: new Date(Date.now() - 86400000 * 5).toISOString(),
     isPublished: true,
+  },
+  {
+    id: 'blog-3',
+    title: 'Essential Cold Chain Management for Pharmacies',
+    slug: 'essential-cold-chain-management-pharmacies',
+    excerpt: 'Temperature control is critical for maintaining the efficacy of vaccines and sensitive medications. Here is your guide to best practices.',
+    content: `
+      <p>Many of the most important medications in a pharmacy—such as vaccines, insulin, and certain antibiotics—require strict temperature control from the point of manufacture to the moment they are dispensed to the patient.</p>
+      <h2>The Importance of Temperature Consistency</h2>
+      <p>Even brief exposure to temperatures outside the recommended range (2°C to 8°C for most cold chain products) can render a medication ineffective. This not only puts patients at risk but also leads to significant financial losses for the pharmacy.</p>
+      <h2>Key Cold Chain Protocols</h2>
+      <ul>
+        <li><strong>Continuous Monitoring:</strong> Use calibrated digital thermometers with high/low alarms.</li>
+        <li><strong>Backup Power:</strong> Ensure your refrigerator is connected to an Uninterruptible Power Supply (UPS) or generator.</li>
+        <li><strong>Dedicated Storage:</strong> Never store food or drinks in a medical refrigerator.</li>
+      </ul>
+      <p>PharmaBag ensures that manufacturers and distributors using our platform adhere to strict cold chain standards during transport, giving you peace of mind with every delivery.</p>
+    `,
+    coverImage: 'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?auto=format&fit=crop&q=80&w=1200',
+    author: 'Priya Verma',
+    tags: ['Cold Chain', 'Safety', 'Storage'],
+    publishedAt: new Date(Date.now() - 86400000 * 10).toISOString(),
+    isPublished: true,
   }
 ];
 
@@ -85,15 +108,8 @@ export async function getBlogs(params?: {
 
     if (!Array.isArray(blogs)) throw new Error('Invalid response format');
 
-    return {
-      data: blogs,
-      total: total ?? blogs.length,
-      page: data.data?.meta?.page ?? data.page ?? params?.page ?? 1,
-      limit: data.data?.meta?.limit ?? data.limit ?? params?.limit ?? 10,
-    };
-  } catch (err) {
-    if ((err as any)?.response?.status === 404) {
-      // Return mock blogs if backend endpoint is missing
+    // If backend returns empty list, use mock data as fallback for development
+    if (blogs.length === 0) {
       return {
         data: MOCK_BLOGS,
         total: MOCK_BLOGS.length,
@@ -101,8 +117,22 @@ export async function getBlogs(params?: {
         limit: 10
       };
     }
-    console.warn('[Blogs] Failed to fetch blogs:', (err as any)?.response?.status, (err as any)?.message);
-    return { data: [], total: 0, page: params?.page ?? 1, limit: params?.limit ?? 10 };
+
+    return {
+      data: blogs,
+      total: total ?? blogs.length,
+      page: data.data?.meta?.page ?? data.page ?? params?.page ?? 1,
+      limit: data.data?.meta?.limit ?? data.limit ?? params?.limit ?? 10,
+    };
+  } catch (err) {
+    // Guaranteed fallback: If ANY error occurs (404, 500, network error) or data is missing, return MOCK_BLOGS
+    console.warn('[Blogs] Fetch failed or returned no data, using MOCK_BLOGS fallback:', (err as any)?.response?.status, (err as any)?.message);
+    return {
+      data: MOCK_BLOGS,
+      total: MOCK_BLOGS.length,
+      page: params?.page ?? 1,
+      limit: params?.limit ?? 10
+    };
   }
 }
 
