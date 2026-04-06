@@ -51,7 +51,7 @@ function OrderTable({ orders, showConfirm = false, updateFn }: { orders: any[]; 
                 
                 return (
                   <>
-                    <td className="px-5 py-4"><span className="font-mono text-xs font-medium text-foreground">{displayId}</span></td>
+                    <td className="px-5 py-4"><span className="font-mono text-xs text-muted-foreground bg-muted/30 px-1.5 py-0.5 rounded">{displayId}</span></td>
                     <td className="px-5 py-4">
                       <div className="text-sm font-medium text-foreground">{displayBuyerName}</div>
                       <div className="text-xs text-muted-foreground">{displayBuyerContact}</div>
@@ -154,7 +154,7 @@ export function InventoryContent() {
               {inventoryItems.map((item,i)=>(
                 <motion.tr key={item.id} initial={{opacity:0,y:6}} animate={{opacity:1,y:0}} transition={{delay:i*0.07}} className="hover:bg-accent/30 transition-colors">
                   <td className="px-5 py-4 text-sm font-medium text-foreground">{item.name}</td>
-                  <td className="px-5 py-4 font-mono text-xs text-muted-foreground">{item.id.slice(0,8)}</td>
+                  <td className="px-5 py-4"><span className="font-mono text-xs text-muted-foreground bg-muted/30 px-1.5 py-0.5 rounded">{item.id.slice(0, 8)}</span></td>
                   <td className="px-5 py-4">
                     <div className="flex items-center gap-2">
                       <span className={`text-sm font-bold ${typeof item.stock === 'number' && item.stock === 0 ? "text-red-500" : typeof item.stock === 'number' && item.stock < 10 ? "text-yellow-600" : "text-green-600"}`}>{item.stock ?? 0}</span>

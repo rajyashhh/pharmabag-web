@@ -32,10 +32,19 @@ export default function AdminOrdersPage() {
   const totalOrders = ordersData?.total ?? allOrders.length;
   const totalPages = Math.max(1, Math.ceil(totalOrders / limit));
 
-  const filtered = allOrders.filter((o: any) =>
-    (filter === "all" || o.orderStatus === filter) &&
-    (!search || (o.id ?? "").toLowerCase().includes(search.toLowerCase()) || (o.buyer?.phone ?? "").includes(search))
-  );
+  const filtered = allOrders.filter((o: any) => {
+    const s = search.toLowerCase();
+    const sellerId = o.items?.[0]?.product?.seller?.id || o.items?.[0]?.seller?.id || o.sellerId || "";
+    const buyerId = o.buyer?.id || o.buyerId || "";
+    return (filter === "all" || o.orderStatus === filter) &&
+      (!search || 
+        (o.id ?? "").toLowerCase().includes(s) || 
+        (o.orderId ?? "").toLowerCase().includes(s) ||
+        (o.buyer?.phone ?? "").includes(search) ||
+        sellerId.toLowerCase().includes(s) ||
+        buyerId.toLowerCase().includes(s)
+      );
+  });
 
   const handleOverride = async (orderId: string, currentStatus: string) => {
     const nextMap: Record<string, string> = {
@@ -105,7 +114,7 @@ export default function AdminOrdersPage() {
                   <motion.tr key={o.id} initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.03 }} className="hover:bg-accent/30 transition-colors">
                     <td className="px-5 py-4 max-w-[120px] break-words"><span className="font-mono text-xs font-medium text-foreground">{(o.orderId || o.id || o._id || "").slice(0, 8)}…</span></td>
                     <td className="px-5 py-4 max-w-[150px] break-words text-sm text-muted-foreground">{o.buyer?.phone || o.address?.phone || "—"}</td>
-                    <td className="px-5 py-4 max-w-[100px] break-words"><span className="font-mono text-xs text-muted-foreground bg-muted/30 px-1.5 py-0.5 rounded">{(o.items?.[0]?.seller?.id || o.sellerId || o.items?.[0]?.sellerId || "—").slice(0, 8)}</span></td>
+                    <td className="px-5 py-4 max-w-[100px] break-words"><span className="font-mono text-xs text-muted-foreground bg-muted/30 px-1.5 py-0.5 rounded">{(o.items?.[0]?.product?.seller?.id || o.items?.[0]?.seller?.id || o.sellerId || "—").slice(0, 8)}</span></td>
                     <td className="px-5 py-4 max-w-[100px] break-words"><span className="font-mono text-xs text-muted-foreground bg-muted/30 px-1.5 py-0.5 rounded">{(o.buyer?.id || o.buyerId || "—").slice(0, 8)}</span></td>
                     <td className="px-5 py-4 text-xs text-muted-foreground">{o.items?.length ?? o._count?.items ?? 0}</td>
                     <td className="px-5 py-4 text-sm font-semibold text-foreground">{formatCurrency(o.totalAmount ?? 0)}</td>

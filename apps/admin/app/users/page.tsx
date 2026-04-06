@@ -281,8 +281,8 @@ export default function UsersPage() {
                             </div>
                           </div>
                         </td>
-                        <td className="px-5 py-4 max-w-[120px]">
-                          <span className="font-mono text-[10px] text-muted-foreground break-all whitespace-normal leading-tight block">{u.id}</span>
+                        <td className="px-5 py-4 max-w-[120px] break-words">
+                          <span className="font-mono text-xs text-muted-foreground bg-muted/30 px-1.5 py-0.5 rounded">{(u.id ?? "—").slice(0, 8)}</span>
                         </td>
                         <td className="px-5 py-4">
                           <Badge variant={u.role === "BUYER" ? "success" : u.role === "SELLER" ? "info" : "orange"}>{u.role}</Badge>
