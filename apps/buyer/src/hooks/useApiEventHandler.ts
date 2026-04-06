@@ -4,6 +4,8 @@ import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { onApiEvent } from '@pharmabag/api-client';
 import { useToast } from '@/components/shared/Toast';
+import { localCart } from '@/lib/local-cart';
+import { useQueryClient } from '@tanstack/react-query';
 
 /**
  * Subscribes to global API events and shows toast notifications / handles redirects.
@@ -12,12 +14,16 @@ import { useToast } from '@/components/shared/Toast';
 export function useApiEventHandler() {
   const { toast } = useToast();
   const router = useRouter();
+  const queryClient = useQueryClient();
 
   useEffect(() => {
     const unsubs = [
       onApiEvent('auth:expired', (detail) => {
         toast(detail?.message || 'Session expired. Please log in again.', 'error');
-        // Clear token and redirect
+        // Clear cart, token and redirect
+        localCart.clear();
+        queryClient.invalidateQueries({ queryKey: ['cart'] });
+        
         if (typeof window !== 'undefined') {
           localStorage.removeItem('pb_access_token');
           localStorage.removeItem('pb_refresh_token');

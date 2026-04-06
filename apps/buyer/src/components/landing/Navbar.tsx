@@ -12,6 +12,8 @@ import NotificationDrawer from '@/components/notifications/NotificationDrawer';
 import SearchBar from '@/components/shared/SearchBar';
 import { useAuth, type Category } from '@pharmabag/api-client';
 import { useCart } from '@/hooks/useCart';
+import { localCart } from '@/lib/local-cart';
+import { useQueryClient } from '@tanstack/react-query';
 import { useCategories } from '@/hooks/useProducts';
 import { useNotifications } from '@/hooks/useNotifications';
 import { useWishlist } from '@/hooks/useWishlist';
@@ -47,6 +49,7 @@ interface NavbarProps {
 
 export default function Navbar({ onLoginClick, showUserActions = false, onFilterClick }: NavbarProps) {
   const { isAuthenticated, user, logout } = useAuth();
+  const queryClient = useQueryClient();
   const { data: cartData } = useCart();
   const { data: categories = [] } = useCategories();
   const { data: notificationsData } = useNotifications();
@@ -100,6 +103,12 @@ export default function Navbar({ onLoginClick, showUserActions = false, onFilter
     categoryTimeoutRef.current = setTimeout(() => {
       setActiveCategory(null);
     }, 150);
+  };
+  
+  const handleLogout = () => {
+    localCart.clear();
+    queryClient.invalidateQueries({ queryKey: ['cart'] });
+    logout();
   };
 
   return (
@@ -248,7 +257,7 @@ export default function Navbar({ onLoginClick, showUserActions = false, onFilter
                         <span>Support</span>
                       </Link>
                       <div className="border-t border-gray-100 my-1"></div>
-                      <button onClick={() => logout()} className="flex items-center gap-3 px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 transition-colors w-full text-left">
+                      <button onClick={handleLogout} className="flex items-center gap-3 px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 transition-colors w-full text-left">
                         <LogOut className="w-4 h-4" />
                         <span>Logout</span>
                       </button>
@@ -322,7 +331,7 @@ export default function Navbar({ onLoginClick, showUserActions = false, onFilter
                     </div>
                   </div>
                   <button
-                    onClick={() => { logout(); setIsMobileMenuOpen(false); }}
+                    onClick={() => { handleLogout(); setIsMobileMenuOpen(false); }}
                     className="flex items-center justify-center gap-2 w-full py-3 bg-red-50 text-red-600 rounded-xl font-bold text-sm hover:bg-red-100 transition-colors border border-red-100/50"
                   >
                     <LogOut className="w-4 h-4" />
