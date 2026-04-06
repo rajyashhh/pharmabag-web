@@ -1,7 +1,7 @@
 "use client";
 import { motion } from "framer-motion";
 import Link from "next/link";
-import { Package, ShoppingBag, TrendingUp, CreditCard, Star, AlertTriangle, Bell, BarChart3, Palmtree } from "lucide-react";
+import { Package, ShoppingBag, TrendingUp, CreditCard, Star, AlertTriangle, Bell, BarChart3, Palmtree, Eye } from "lucide-react";
 import { StatCard, Button, OrderStatusBadge } from "@/components/ui";
 import { formatCurrency, formatDate } from "@pharmabag/utils";
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from "recharts";
@@ -10,12 +10,13 @@ import { useSellerAuth } from "@/store";
 import toast from "react-hot-toast";
 
 export default function SellerDashboard() {
-  const { data: dashboardData, isLoading } = useSellerDashboard();
+  const { data: dashboardDataRaw, isLoading } = useSellerDashboard();
+  const dashboardData = dashboardDataRaw as any;
   const { user } = useSellerAuth();
   const { data: profile } = useSellerProfile();
   const toggleVacation = useToggleVacationMode();
   const isOnVacation = user?.isOnVacation || (profile as any)?.isOnVacation || false;
-  const sellerOrders: any[] = dashboardData?.overview?.orders || [];
+  const sellerOrders: any[] = dashboardData?.overview?.orders || dashboardData?.recentOrders || dashboardData?.orders || [];
   const stats = dashboardData?.stats || {
     totalProducts: 0,
     activeListings: 0,
@@ -128,12 +129,21 @@ export default function SellerDashboard() {
                 </thead>
                 <tbody className="divide-y divide-border/30">
                   {sellerOrders.map(o=>(
-                    <tr key={o.id} className="hover:bg-accent/30 transition-colors">
-                      <td className="px-5 py-4"><span className="font-mono text-xs font-medium text-foreground">{o.orderNumber}</span></td>
-                      <td className="px-5 py-4"><div className="text-sm font-medium text-foreground">{o.buyerName}</div><div className="text-xs text-muted-foreground">{o.buyerBusiness}</div></td>
-                      <td className="px-5 py-4 text-sm font-semibold text-foreground">{formatCurrency(o.finalAmount ?? o.total ?? 0)}</td>
-                      <td className="px-5 py-4"><OrderStatusBadge status={o.status}/></td>
-                      <td className="px-5 py-4"><Link href={`/orders/${o.id}`}><Button variant="ghost" size="sm" className="text-xs h-7">Manage</Button></Link></td>
+                    <tr key={o.orderId || o.id} className="hover:bg-accent/30 transition-colors">
+                      <td className="px-5 py-4"><span className="font-mono text-xs font-medium text-foreground">{(o.orderId || o.id || "").slice(0, 8).toUpperCase() || "—"}</span></td>
+                      <td className="px-5 py-4">
+                        <div className="text-sm font-medium text-foreground">{o.address?.name || o.buyerName || o.buyer?.name || "—"}</div>
+                        <div className="text-xs text-muted-foreground">{o.address?.phone || o.buyerPhone || o.buyer?.phone || ""}</div>
+                      </td>
+                      <td className="px-5 py-4 text-sm font-semibold text-foreground">{formatCurrency(o.sellerTotal ?? o.totalAmount ?? o.total ?? 0)}</td>
+                      <td className="px-5 py-4"><OrderStatusBadge status={o.orderStatus || o.status}/></td>
+                      <td className="px-5 py-4">
+                        <Link href={`/orders/${o.orderId || o.id}`} title="Manage Order">
+                          <Button variant="ghost" size="icon" className="h-8 w-8 text-primary hover:bg-primary/10 transition-colors">
+                            <Eye className="h-4.5 w-4.5" />
+                          </Button>
+                        </Link>
+                      </td>
                     </tr>
                   ))}
                 </tbody>

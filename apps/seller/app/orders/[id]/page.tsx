@@ -62,9 +62,10 @@ export default function OrderDetailPage() {
     );
   }
 
-  const currentStep = getStepIndex(order.status);
-  const isCancelled = order.status === "CANCELLED" || order.status === "cancelled";
-  const items: any[] = order.items ?? order.products ?? [];
+  const mainOrder = order.order || order.data || order;
+  const currentStep = getStepIndex(mainOrder.status);
+  const isCancelled = mainOrder.status === "CANCELLED" || mainOrder.status === "cancelled";
+  const items: any[] = mainOrder.items ?? mainOrder.products ?? [];
 
   const handleAccept = () => {
     acceptOrder.mutate(id, {
@@ -109,17 +110,17 @@ export default function OrderDetailPage() {
       {/* Header */}
       <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-semibold text-foreground">Order #{order.orderNumber || id.slice(0, 8)}</h1>
-          <p className="text-sm text-muted-foreground mt-0.5">Placed {formatDate(order.createdAt)}</p>
+          <h1 className="text-2xl font-semibold text-foreground">Order #{mainOrder.orderNumber || id.slice(0, 8)}</h1>
+          <p className="text-sm text-muted-foreground mt-0.5">Placed {formatDate(mainOrder.createdAt)}</p>
         </div>
         <div className="flex gap-2">
-          {(order.status === "PLACED" || order.status === "pending") && (
+          {(mainOrder.orderStatus === "PLACED" || mainOrder.status === "PLACED" || mainOrder.status === "pending") && (
             <>
               <Button variant="danger" size="sm" onClick={() => setShowRejectModal(true)}>Reject</Button>
               <Button size="sm" loading={acceptOrder.isPending} onClick={handleAccept}>Accept Order</Button>
             </>
           )}
-          {(order.status === "ACCEPTED" || order.status === "confirmed" || order.status === "AWAITING_INVOICE") && (
+          {(mainOrder.orderStatus === "ACCEPTED" || mainOrder.status === "ACCEPTED" || mainOrder.status === "confirmed" || mainOrder.status === "AWAITING_INVOICE") && (
             <>
               <label>
                 <Button size="sm" variant="outline" leftIcon={<Upload className="h-3.5 w-3.5" />} loading={uploadInvoice.isPending} onClick={() => document.getElementById("invoice-upload")?.click()}>
@@ -132,7 +133,7 @@ export default function OrderDetailPage() {
               </Button>
             </>
           )}
-          {(order.status === "WAREHOUSE") && (
+          {(mainOrder.orderStatus === "WAREHOUSE" || mainOrder.status === "WAREHOUSE") && (
             <Button size="sm" leftIcon={<Truck className="h-3.5 w-3.5" />} loading={updateStatus.isPending} onClick={handleMarkAsShipped}>
               Mark as Shipped
             </Button>
@@ -148,15 +149,16 @@ export default function OrderDetailPage() {
             <XCircle className="h-5 w-5 text-red-500" />
             <div>
               <p className="text-sm font-semibold text-red-700 dark:text-red-400">Order Cancelled</p>
-              {order.cancellationReason && <p className="text-xs text-red-600 dark:text-red-500 mt-0.5">Reason: {order.cancellationReason}</p>}
+              {mainOrder.cancellationReason && <p className="text-xs text-red-600 dark:text-red-500 mt-0.5">Reason: {mainOrder.cancellationReason}</p>}
             </div>
           </div>
         ) : (
           <div className="flex items-center justify-between">
             {STATUS_STEPS.map((step, i) => {
               const Icon = step.icon;
-              const done = i <= currentStep;
-              const active = i === currentStep;
+              const status = mainOrder.orderStatus || mainOrder.status;
+              const done = i <= getStepIndex(status);
+              const active = i === getStepIndex(status);
               return (
                 <div key={step.key} className="flex flex-col items-center flex-1">
                   <div className="flex items-center w-full">
@@ -167,7 +169,7 @@ export default function OrderDetailPage() {
                     )}>
                       <Icon className="h-4 w-4" />
                     </div>
-                    {i < STATUS_STEPS.length - 1 && <div className={cn("h-0.5 flex-1", i < currentStep ? "bg-primary" : "bg-border")} />}
+                    {i < STATUS_STEPS.length - 1 && <div className={cn("h-0.5 flex-1", i < getStepIndex(status) ? "bg-primary" : "bg-border")} />}
                   </div>
                   <span className={cn("text-xs mt-2 text-center", done ? "text-foreground font-medium" : "text-muted-foreground")}>{step.label}</span>
                 </div>
@@ -187,18 +189,18 @@ export default function OrderDetailPage() {
             {items.map((item: any, i: number) => (
               <div key={i} className="flex items-center gap-4 p-5">
                 <div className="h-14 w-14 rounded-xl bg-muted flex items-center justify-center flex-shrink-0">
-                  {item.image ? (
-                    <img src={item.image} alt={item.name || item.productName} className="h-14 w-14 rounded-xl object-cover" />
+                  {item.product?.images?.[0]?.url || item.image ? (
+                    <img src={item.product?.images?.[0]?.url || item.image} alt={item.product?.name || item.name || item.productName} className="h-14 w-14 rounded-xl object-cover" />
                   ) : (
                     <Package className="h-6 w-6 text-muted-foreground" />
                   )}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-foreground truncate">{item.name || item.productName}</p>
-                  <p className="text-xs text-muted-foreground">Qty: {item.quantity} × {formatCurrency(item.price || item.unitPrice || 0)}</p>
+                  <p className="text-sm font-medium text-foreground truncate">{item.product?.name || item.name || item.productName}</p>
+                  <p className="text-xs text-muted-foreground">Qty: {item.quantity} × {formatCurrency(item.unitPrice || item.price || 0)}</p>
                   {item.discount && <p className="text-xs text-green-600">Discount: {item.discount}</p>}
                 </div>
-                <p className="text-sm font-semibold text-foreground">{formatCurrency((item.quantity || 1) * (item.price || item.unitPrice || 0))}</p>
+                <p className="text-sm font-semibold text-foreground">{formatCurrency((item.quantity || 1) * (item.unitPrice || item.price || 0))}</p>
               </div>
             ))}
             {items.length === 0 && (
@@ -207,10 +209,10 @@ export default function OrderDetailPage() {
           </div>
           {/* Totals */}
           <div className="p-5 border-t border-border/50 space-y-2">
-            <div className="flex justify-between text-sm"><span className="text-muted-foreground">Subtotal</span><span className="text-foreground">{formatCurrency(order.subtotal ?? order.total ?? 0)}</span></div>
-            {order.gstAmount != null && <div className="flex justify-between text-sm"><span className="text-muted-foreground">GST</span><span className="text-foreground">{formatCurrency(order.gstAmount)}</span></div>}
-            {order.shippingAmount != null && <div className="flex justify-between text-sm"><span className="text-muted-foreground">Shipping</span><span className="text-foreground">{formatCurrency(order.shippingAmount)}</span></div>}
-            <div className="flex justify-between text-base font-semibold pt-2 border-t border-border/30"><span>Total</span><span>{formatCurrency(order.finalAmount ?? order.total ?? 0)}</span></div>
+            <div className="flex justify-between text-sm"><span className="text-muted-foreground">Subtotal</span><span className="text-foreground">{formatCurrency(mainOrder.totalAmount || mainOrder.subtotal ?? mainOrder.total ?? 0)}</span></div>
+            {mainOrder.gstAmount != null && <div className="flex justify-between text-sm"><span className="text-muted-foreground">GST</span><span className="text-foreground">{formatCurrency(mainOrder.gstAmount)}</span></div>}
+            {mainOrder.shippingAmount != null && <div className="flex justify-between text-sm"><span className="text-muted-foreground">Shipping</span><span className="text-foreground">{formatCurrency(mainOrder.shippingAmount)}</span></div>}
+            <div className="flex justify-between text-base font-semibold pt-2 border-t border-border/30"><span>Total</span><span>{formatCurrency(mainOrder.totalAmount || mainOrder.finalAmount ?? mainOrder.total ?? 0)}</span></div>
           </div>
         </motion.div>
 
@@ -220,9 +222,9 @@ export default function OrderDetailPage() {
           <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="glass-card rounded-2xl p-5 space-y-3">
             <h3 className="font-semibold text-sm text-foreground flex items-center gap-2"><User className="h-4 w-4 text-primary" />Buyer</h3>
             <div className="space-y-1">
-              <p className="text-sm font-medium text-foreground">{order.buyerName || order.buyer?.name || "—"}</p>
-              <p className="text-xs text-muted-foreground">{order.buyerBusiness || order.buyer?.businessName || ""}</p>
-              {(order.buyerPhone || order.buyer?.phone) && <p className="text-xs text-muted-foreground">{order.buyerPhone || order.buyer?.phone}</p>}
+              <p className="text-sm font-medium text-foreground">{mainOrder.address?.name || mainOrder.buyerName || mainOrder.buyer?.name || mainOrder.name || "—"}</p>
+              <p className="text-xs text-muted-foreground">{mainOrder.buyerBusiness || mainOrder.buyer?.businessName || ""}</p>
+              {(mainOrder.address?.phone || mainOrder.buyerPhone || mainOrder.buyer?.phone || mainOrder.phone) && <p className="text-xs text-muted-foreground">{mainOrder.address?.phone || mainOrder.buyerPhone || mainOrder.buyer?.phone || mainOrder.phone}</p>}
             </div>
           </motion.div>
 
@@ -230,7 +232,7 @@ export default function OrderDetailPage() {
           <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }} className="glass-card rounded-2xl p-5 space-y-3">
             <h3 className="font-semibold text-sm text-foreground flex items-center gap-2"><MapPin className="h-4 w-4 text-primary" />Delivery Address</h3>
             <p className="text-sm text-muted-foreground leading-relaxed">
-              {order.shippingAddress || order.deliveryAddress || order.buyer?.address || "Not specified"}
+              {mainOrder.address?.address || mainOrder.shippingAddress || mainOrder.deliveryAddress || mainOrder.buyer?.address || "Not specified"}
             </p>
           </motion.div>
 
@@ -240,30 +242,30 @@ export default function OrderDetailPage() {
             <div className="space-y-2">
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">Status</span>
-                <Badge variant={order.paymentStatus === "paid" || order.paymentStatus === "SUCCESS" ? "success" : order.paymentStatus === "pending" || order.paymentStatus === "PENDING" ? "warning" : "error"}>
-                  {order.paymentStatus || "PENDING"}
+                <Badge variant={String(mainOrder.paymentStatus || "PENDING").toUpperCase() === "PAID" || String(mainOrder.paymentStatus).toUpperCase() === "SUCCESS" ? "success" : String(mainOrder.paymentStatus).toUpperCase() === "PENDING" ? "warning" : "error"}>
+                  {mainOrder.paymentStatus || "PENDING"}
                 </Badge>
               </div>
-              {order.paymentMethod && (
+              {mainOrder.paymentMethod && (
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">Method</span>
-                  <span className="text-foreground">{order.paymentMethod}</span>
+                  <span className="text-foreground">{mainOrder.paymentMethod}</span>
                 </div>
               )}
-              {order.paidAmount != null && (
+              {mainOrder.paidAmount != null && (
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">Paid</span>
-                  <span className="text-foreground font-medium">{formatCurrency(order.paidAmount)}</span>
+                  <span className="text-foreground font-medium">{formatCurrency(mainOrder.paidAmount)}</span>
                 </div>
               )}
             </div>
           </motion.div>
 
           {/* Invoice */}
-          {order.invoiceUrl && (
+          {mainOrder.invoiceUrl && (
             <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.35 }} className="glass-card rounded-2xl p-5 space-y-3">
               <h3 className="font-semibold text-sm text-foreground flex items-center gap-2"><FileText className="h-4 w-4 text-primary" />Invoice</h3>
-              <a href={order.invoiceUrl} target="_blank" rel="noopener noreferrer" className="text-sm text-primary underline hover:no-underline">View Invoice</a>
+              <a href={mainOrder.invoiceUrl} target="_blank" rel="noopener noreferrer" className="text-sm text-primary underline hover:no-underline">View Invoice</a>
             </motion.div>
           )}
         </div>

@@ -4,7 +4,7 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import { formatCurrency, formatDate } from "@pharmabag/utils";
 import { OrderStatusBadge, Button, Badge, StatCard } from "@/components/ui";
-import { Package, Warehouse, CreditCard, TrendingUp, AlertTriangle, CheckCircle, Clock } from "lucide-react";
+import { Package, Warehouse, CreditCard, TrendingUp, AlertTriangle, CheckCircle, Clock, Eye } from "lucide-react";
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, LineChart, Line } from "recharts";
 import { 
   useSellerOrders, 
@@ -42,21 +42,39 @@ function OrderTable({ orders, showConfirm = false, updateFn }: { orders: any[]; 
         <thead><tr className="border-b border-border/50 bg-muted/20">{["Order #","Buyer","Items","Amount","Payment","Status","Action"].map(h=><th key={h} scope="col" className="px-5 py-3.5 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">{h}</th>)}</tr></thead>
         <tbody className="divide-y divide-border/30">
           {orders.map((o: any, i: number) => (
-            <motion.tr key={o.id} initial={{opacity:0,y:6}} animate={{opacity:1,y:0}} transition={{delay:i*0.03}} className="hover:bg-accent/30 transition-colors">
-              <td className="px-5 py-4"><span className="font-mono text-xs font-medium">{o.orderNumber || o.id?.slice(0,8)}</span></td>
-              <td className="px-5 py-4"><div className="text-sm font-medium text-foreground">{o.buyerName || "Internal Buyer"}</div><div className="text-xs text-muted-foreground">{o.buyerBusiness || ""}</div></td>
-              <td className="px-5 py-4 text-xs text-muted-foreground">{o.items?.length ?? 0} items</td>
-              <td className="px-5 py-4 text-sm font-semibold text-foreground">{formatCurrency(o.finalAmount ?? o.total ?? 0)}</td>
-              <td className="px-5 py-4"><Badge variant={o.paymentStatus==="paid"||o.paymentStatus==="SUCCESS"?"success":o.paymentStatus==="pending"||o.paymentStatus==="PENDING"?"warning":"error"}>{o.paymentStatus||"PENDING"}</Badge></td>
-              <td className="px-5 py-4"><OrderStatusBadge status={o.status}/></td>
-              <td className="px-5 py-4">
-                <div className="flex gap-1">
-                  <Link href={`/orders/${o.id}`}><Button variant="ghost" size="sm" className="text-xs h-7">View</Button></Link>
-                  {showConfirm && (o.status==="pending"||o.status==="PLACED") && updateFn && (
-                    <Button size="sm" className="text-xs h-7" onClick={()=>updateFn.mutate({orderId:o.id,status:"ACCEPTED"})}>Confirm</Button>
-                  )}
-                </div>
-              </td>
+            <motion.tr key={o.orderId || o.id} initial={{opacity:0,y:6}} animate={{opacity:1,y:0}} transition={{delay:i*0.03}} className="hover:bg-accent/30 transition-colors">
+              {(() => {
+                const order = o.order || o.data || o;
+                const displayId = (order.orderId || order.id || order._id || "").toString().slice(0, 8).toUpperCase() || "—";
+                const displayBuyerName = order.address?.name || order.buyerName || order.buyer?.name || "—";
+                const displayBuyerContact = order.address?.phone || order.buyerPhone || order.buyer?.phone || "";
+                
+                return (
+                  <>
+                    <td className="px-5 py-4"><span className="font-mono text-xs font-medium text-foreground">{displayId}</span></td>
+                    <td className="px-5 py-4">
+                      <div className="text-sm font-medium text-foreground">{displayBuyerName}</div>
+                      <div className="text-xs text-muted-foreground">{displayBuyerContact}</div>
+                    </td>
+                    <td className="px-5 py-4 text-xs text-muted-foreground">{order.items?.length ?? 0} items</td>
+                    <td className="px-5 py-4 text-sm font-semibold text-foreground">{formatCurrency(order.sellerTotal ?? order.totalAmount ?? order.total ?? 0)}</td>
+                    <td className="px-5 py-4"><Badge variant={String(order.paymentStatus || "PENDING").toUpperCase()==="PAID"||String(order.paymentStatus).toUpperCase()==="SUCCESS"?"success":String(order.paymentStatus).toUpperCase()==="PENDING"?"warning":"error"}>{order.paymentStatus||"PENDING"}</Badge></td>
+                    <td className="px-5 py-4"><OrderStatusBadge status={order.orderStatus || order.status}/></td>
+                    <td className="px-5 py-4">
+                      <div className="flex gap-2 items-center">
+                        <Link href={`/orders/${order.orderId || order.id}`} title="View Order">
+                          <Button variant="ghost" size="icon" className="h-8 w-8 text-primary hover:bg-primary/10 transition-colors">
+                            <Eye className="h-4.5 w-4.5" />
+                          </Button>
+                        </Link>
+                        {showConfirm && (order.orderStatus==="PLACED" || order.status==="PLACED") && updateFn && (
+                          <Button size="sm" className="text-xs h-7 px-3" onClick={()=>updateFn.mutate({orderId:order.orderId || order.id,status:"ACCEPTED"})}>Confirm</Button>
+                        )}
+                      </div>
+                    </td>
+                  </>
+                );
+              })()}
             </motion.tr>
           ))}
         </tbody>
@@ -69,7 +87,7 @@ export function OrdersContent() {
   const [tab, setTab] = useState<OrderTab>("all");
   const { data: orders, isLoading } = useSellerOrders();
   const updateOrderStatus = useUpdateSellerOrderStatus();
-  const allOrders: any[] = orders || [];
+  const allOrders: any[] = (Array.isArray(orders) ? orders : (orders as any)?.orders || (orders as any)?.data || []);
 
   const filtered = tab === "all" ? allOrders :
     allOrders.filter((o) => {

@@ -3,7 +3,7 @@ import type { Product, Order, Payout, Suggestion, CategoryItem } from "@pharmaba
 import type { ProductPayload } from "@pharmabag/utils";
 
 export async function getSellerDashboard() {
-  const { data } = await apiClient.get<{ data: { stats: any; overview: any; chartData?: any[] } }>("/sellers/dashboard");
+  const { data } = await apiClient.get<{ data: any }>("/sellers/dashboard");
   return data.data;
 }
 
@@ -87,8 +87,9 @@ export async function deleteSellerProduct(productId: string) {
 }
 
 export async function getSellerOrders() {
-  const { data } = await apiClient.get<{ data: Order[] }>("/orders/seller");
-  return data.data || [];
+  const { data } = await apiClient.get<any>("/orders/seller");
+  const raw = data.data ?? data;
+  return Array.isArray(raw) ? raw : (raw.orders ?? raw.data ?? []);
 }
 
 export async function updateSellerOrderStatus(orderId: string, status: string) {
@@ -119,7 +120,8 @@ export async function toggleVacationMode(isOnVacation: boolean) {
 // ─── Orders (extended) ────────────────────────────────
 export async function getSellerOrderById(orderId: string) {
   const { data } = await apiClient.get<any>(`/orders/${orderId}`);
-  return data.data ?? data.order ?? data;
+  const raw = data.data ?? data;
+  return raw.order || raw.data || raw;
 }
 
 export async function acceptSellerOrder(orderId: string) {
@@ -141,12 +143,14 @@ export async function uploadOrderInvoice(orderId: string, formData: FormData) {
 
 export async function getSellerCustomOrders() {
   const { data } = await apiClient.get<any>("/orders/seller?type=custom");
-  return data.data ?? data;
+  const raw = data.data ?? data;
+  return Array.isArray(raw) ? raw : (raw.orders ?? []);
 }
 
 export async function getSellerCancelledOrders() {
   const { data } = await apiClient.get<any>("/orders/seller?status=CANCELLED");
-  return data.data ?? data;
+  const raw = data.data ?? data;
+  return Array.isArray(raw) ? raw : (raw.orders ?? []);
 }
 
 // ─── Notifications ────────────────────────────────────
