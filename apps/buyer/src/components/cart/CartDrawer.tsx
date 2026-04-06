@@ -127,10 +127,35 @@ export default function CartDrawer({ isOpen, onClose }: { isOpen: boolean; onClo
                             >
                               <Minus className="w-3 h-3" />
                             </button>
-                            <span className="text-sm font-bold text-gray-900 min-w-[20px] text-center">{item.quantity}</span>
+                            <input
+                              type="number"
+                              value={item.quantity}
+                              onChange={(e) => {
+                                const val = parseInt(e.target.value, 10);
+                                if (!isNaN(val)) {
+                                  const stock = item.product?.stock || 0;
+                                  const maxLimit = item.product?.maximumOrderQuantity || stock;
+                                  const max = Math.min(stock, maxLimit);
+                                  const finalQty = Math.max(1, Math.min(val, max));
+                                  if (finalQty !== item.quantity) {
+                                    updateItem.mutate({ itemId: item.id, quantity: finalQty });
+                                  }
+                                }
+                              }}
+                              className="w-10 bg-transparent text-sm font-bold text-gray-900 text-center outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                            />
                             <button
-                              onClick={() => updateItem.mutate({ itemId: item.id, quantity: item.quantity + 1 })}
-                              disabled={updateItem.isPending || syncCart.isPending}
+                              onClick={() => {
+                                const stock = item.product?.stock || 0;
+                                const maxLimit = item.product?.maximumOrderQuantity || stock;
+                                const max = Math.min(stock, maxLimit);
+                                if (item.quantity < max) {
+                                  updateItem.mutate({ itemId: item.id, quantity: item.quantity + 1 });
+                                } else {
+                                  toast(`Only ${max} units available in stock`, 'error');
+                                }
+                              }}
+                              disabled={updateItem.isPending || syncCart.isPending || item.quantity >= Math.min(item.product?.stock || 0, item.product?.maximumOrderQuantity || (item.product?.stock || 0))}
                               className="text-gray-400 hover:text-gray-900 disabled:opacity-30"
                             >
                               <Plus className="w-3 h-3" />

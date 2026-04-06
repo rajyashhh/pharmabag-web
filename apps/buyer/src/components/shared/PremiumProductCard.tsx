@@ -113,8 +113,10 @@ export default function PremiumProductCard({
     e.preventDefault();
     actionClicked.current = true;
     setCount(prev => {
-      const next = prev + 1;
-      notifyCartChange(next);
+      const next = Math.min(prev + 1, stock);
+      if (next !== prev) {
+        notifyCartChange(next);
+      }
       return next;
     });
   };
@@ -215,8 +217,12 @@ export default function PremiumProductCard({
                   onBlur={() => {
                     const parsed = parseInt(editValue, 10);
                     if (!isNaN(parsed) && parsed >= moq) {
-                      setCount(parsed);
-                      notifyCartChange(parsed);
+                      const finalQty = Math.min(parsed, stock);
+                      setCount(finalQty);
+                      notifyCartChange(finalQty);
+                      if (parsed > stock) {
+                        setEditValue(String(finalQty));
+                      }
                     } else if (!isNaN(parsed) && parsed > 0 && parsed < moq) {
                       setCount(moq);
                       notifyCartChange(moq);
@@ -255,7 +261,8 @@ export default function PremiumProductCard({
                 type="button"
                 onPointerDown={(e) => e.stopPropagation()}
                 onClick={increment}
-                className="w-5 h-5 sm:w-6 sm:h-6 rounded flex items-center justify-center text-white hover:bg-white/20 active:scale-90 transition-all"
+                disabled={count >= stock}
+                className="w-5 h-5 sm:w-6 sm:h-6 rounded flex items-center justify-center text-white hover:bg-white/20 active:scale-90 transition-all disabled:opacity-30 disabled:cursor-not-allowed"
               >
                 <Plus className="w-3 h-3 sm:w-3.5 sm:h-3.5" strokeWidth={3} />
               </button>

@@ -238,12 +238,29 @@ export function QuickViewModal({ product, isOpen, onClose }: QuickViewModalProps
                       <input 
                         type="number" 
                         value={orderQty}
-                        onChange={(e) => setOrderQty(Math.max(product.minimumOrderQuantity || 1, Number(e.target.value)))}
-                        className="w-[48px] h-full text-center font-bold text-gray-900 bg-transparent focus:outline-none"
+                        onChange={(e) => {
+                          const val = parseInt(e.target.value, 10);
+                          const min = product.minimumOrderQuantity || 1;
+                          const stock = product.stock || 0;
+                          const maxLimit = (product as any).maximumOrderQuantity || stock;
+                          const max = Math.min(stock, maxLimit);
+                          if (!isNaN(val)) {
+                            setOrderQty(Math.max(min, Math.min(max, val)));
+                          } else {
+                            setOrderQty(min);
+                          }
+                        }}
+                        className="w-[48px] h-full text-center font-bold text-gray-900 bg-transparent focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                       />
                       <button 
-                        onClick={() => setOrderQty(q => Math.min((product as any).maximumOrderQuantity || product.stock || 999, q + 1))}
-                        className="w-[42px] h-full flex items-center justify-center text-gray-500 hover:bg-gray-100 font-medium text-lg transition-colors border-l border-gray-200"
+                        onClick={() => {
+                          const stock = product.stock || 0;
+                          const maxLimit = (product as any).maximumOrderQuantity || stock;
+                          const max = Math.min(stock, maxLimit);
+                          setOrderQty(q => Math.min(max, q + 1));
+                        }}
+                        disabled={orderQty >= Math.min(product.stock || 0, (product as any).maximumOrderQuantity || (product.stock || 0))}
+                        className="w-[42px] h-full flex items-center justify-center text-gray-500 hover:bg-gray-100 font-medium text-lg transition-colors border-l border-gray-200 disabled:opacity-30 disabled:cursor-not-allowed"
                       >
                         +
                       </button>

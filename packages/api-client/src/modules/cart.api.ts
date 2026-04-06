@@ -22,6 +22,8 @@ export const CartItemSchema = z.object({
     manufacturer: z.string().optional(),
     minimumOrderQuantity: z.number().optional(),
     maximumOrderQuantity: z.number().optional(),
+    stock: z.number().optional(),
+    medicineType: z.string().optional(),
     seller: z.object({
       id: z.string().optional(),
       companyName: z.string().optional(),
@@ -69,6 +71,8 @@ function mapBackendCartItem(raw: any): CartItem {
       manufacturer: product.manufacturer,
       minimumOrderQuantity: product.minimumOrderQuantity,
       maximumOrderQuantity: product.maximumOrderQuantity,
+      stock: product.stock,
+      medicineType: product.medicineType,
       seller: product.seller,
     } : undefined,
   };

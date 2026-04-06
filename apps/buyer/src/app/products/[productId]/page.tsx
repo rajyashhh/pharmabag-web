@@ -331,12 +331,32 @@ export default function ProductDetailPage({ params }: { params: { productId: str
                     >
                       <Minus className="w-4 h-4 text-gray-600" />
                     </button>
-                    <span className="px-6 py-3 font-bold text-gray-900 tabular-nums min-w-[60px] text-center">
-                      {quantity}
-                    </span>
+                    <input
+                      type="number"
+                      value={quantity}
+                      onChange={(e) => {
+                        const val = parseInt(e.target.value, 10);
+                        const min = (product as any).minimumOrderQuantity || 1;
+                        const stock = product.stock || 0;
+                        const maxLimit = (product as any).maximumOrderQuantity || stock;
+                        const max = Math.min(stock, maxLimit);
+                        if (!isNaN(val)) {
+                          setQuantity(Math.max(min, Math.min(max, val)));
+                        } else {
+                          setQuantity(min);
+                        }
+                      }}
+                      className="w-16 px-2 py-3 font-bold text-gray-900 tabular-nums text-center bg-transparent outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                    />
                     <button
-                      onClick={() => setQuantity((q) => Math.min(product.stock ?? 99, q + 1))}
-                      className="px-4 py-3 hover:bg-gray-100 transition-colors"
+                      onClick={() => {
+                        const stock = product.stock || 0;
+                        const maxLimit = (product as any).maximumOrderQuantity || stock;
+                        const max = Math.min(stock, maxLimit);
+                        setQuantity((q) => Math.min(max, q + 1));
+                      }}
+                      disabled={quantity >= Math.min(product.stock || 0, (product as any).maximumOrderQuantity || (product.stock || 0))}
+                      className="px-4 py-3 hover:bg-gray-100 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
                     >
                       <Plus className="w-4 h-4 text-gray-600" />
                     </button>
