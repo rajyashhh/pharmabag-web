@@ -11,8 +11,6 @@ const NAV = [
   { icon: LayoutDashboard, label: "Dashboard", href: "/dashboard" },
   { icon: Package, label: "Products", href: "/products" },
   { icon: ClipboardList, label: "Orders", href: "/orders" },
-  { icon: Warehouse, label: "Inventory", href: "/inventory" },
-  { icon: Users, label: "Buyers", href: "/buyers" },
   { icon: BarChart3, label: "Analytics", href: "/analytics" },
   { icon: CreditCard, label: "Payouts", href: "/payouts" },
   { icon: Bell, label: "Notifications", href: "/notifications" },
