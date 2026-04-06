@@ -111,7 +111,7 @@ export default function UserDetailPage() {
             </div>
           </div>
           <div className="flex items-center gap-2">
-            {user.status === "PENDING" && (
+            {(user.status === "PENDING" && (user.buyerProfile?.gstNumber || user.buyerProfile?.panNumber || user.sellerProfile?.gstNumber || user.sellerProfile?.panNumber || user.gstNumber || user.panNumber)) && (
               <>
                 <Button size="sm" variant="primary" onClick={() => handleAction("approve")} leftIcon={<UserCheck className="h-4 w-4" />}>Approve</Button>
                 <Button size="sm" variant="danger" onClick={() => handleAction("reject")} leftIcon={<UserX className="h-4 w-4" />}>Reject</Button>
