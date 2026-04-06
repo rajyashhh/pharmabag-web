@@ -54,7 +54,7 @@ export default function SellerDashboard() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="font-semibold text-2xl text-foreground">Seller Dashboard</h1>
-          <p className="text-sm text-muted-foreground mt-0.5">{user?.businessName || user?.name || "Seller"} · <span className="text-yellow-500">★ {stats.avgRating.toFixed(1)}</span></p>
+          <p className="text-sm text-muted-foreground mt-0.5">{user?.businessName || user?.name || "Seller"}</p>
         </div>
         <div className="flex gap-2">
           {!isOnVacation && (
@@ -164,16 +164,6 @@ export default function SellerDashboard() {
                 </Link>
               ))}
             </div>
-          </motion.div>
-
-          {/* Rating card */}
-          <motion.div initial={{opacity:0,y:16}} animate={{opacity:1,y:0}} transition={{delay:0.3}} className="glass-card rounded-2xl p-5 text-center">
-            <div className="flex justify-center gap-1 mb-2" aria-label={`${stats.avgRating} star rating`}>
-              {Array.from({length:5}).map((_,i)=><Star key={i} className={`h-5 w-5 ${i<Math.floor(stats.avgRating)?"fill-yellow-400 text-yellow-400":"text-muted-foreground/30"}`} aria-hidden/>)}
-            </div>
-            <div className="font-semibold text-3xl text-foreground">{stats.avgRating.toFixed(1)}</div>
-            <div className="text-sm text-muted-foreground mt-1">Seller Rating</div>
-            <div className="text-xs text-muted-foreground mt-0.5">Based on {stats.totalOrders} orders</div>
           </motion.div>
         </div>
       </div>

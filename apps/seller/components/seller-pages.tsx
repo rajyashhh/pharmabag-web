@@ -197,7 +197,6 @@ export function AnalyticsContent() {
         <StatCard title="Total Revenue" value={formatCurrency(stats.totalRevenue ?? 0)} icon={TrendingUp} iconClass="bg-green-50 text-green-600 dark:bg-green-900/20" delay={0} />
         <StatCard title="Total Orders" value={String(stats.totalOrders ?? 0)} icon={Package} iconClass="bg-blue-50 text-blue-600 dark:bg-blue-900/20" delay={0.07} />
         <StatCard title="Active Products" value={String(stats.activeListings ?? 0)} icon={Warehouse} iconClass="bg-purple-50 text-purple-600 dark:bg-purple-900/20" delay={0.14} />
-        <StatCard title="Avg Rating" value={String((stats.avgRating ?? 0).toFixed(1))} icon={CheckCircle} iconClass="bg-yellow-50 text-yellow-600 dark:bg-yellow-900/20" delay={0.21} />
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
