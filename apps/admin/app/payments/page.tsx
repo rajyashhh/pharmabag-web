@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import { motion } from "framer-motion";
+import Link from "next/link";
 import { Search, CheckCircle, XCircle, CreditCard, ExternalLink, Loader2 } from "lucide-react";
 import { AdminLayout } from "@/components/layout/admin-layout";
 import { Button, Input, Badge, Pagination } from "@/components/ui";
@@ -124,7 +125,13 @@ export default function AdminPaymentsPage() {
                       {p.referenceNumber ? <div className="text-xs text-muted-foreground font-mono mt-0.5">Ref: {p.referenceNumber}</div> : <div className="text-xs text-muted-foreground mt-0.5">No reference</div>}
                     </td>
                     <td className="px-5 py-4">
-                      <div className="text-sm font-mono text-muted-foreground truncate w-24" title={p.orderId}>{p.orderId?.substring(0, 8)}...</div>
+                      {p.orderId ? (
+                        <Link href={`/orders/${p.orderId}`} className="text-sm font-mono text-primary hover:underline truncate w-24 block" title={p.orderId}>
+                          {p.orderId.substring(0, 8)}...
+                        </Link>
+                      ) : (
+                        <div className="text-sm font-mono text-muted-foreground">—</div>
+                      )}
                     </td>
                     <td className="px-5 py-4 text-sm font-semibold text-foreground">
                       {formatCurrency(p.amount ?? 0)}

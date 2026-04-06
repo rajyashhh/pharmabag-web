@@ -1,5 +1,6 @@
 "use client";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { Search } from "lucide-react";
 import { AdminLayout } from "@/components/layout/admin-layout";
@@ -20,17 +21,19 @@ const STATUS_FILTERS = [
 ] as const;
 
 export default function AdminOrdersPage() {
+  const router = useRouter();
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState<string>("all");
   const [page, setPage] = useState(1);
-  const limit = 20;
-  const { data: ordersData, isLoading } = useAdminOrders(page, limit);
+  const PAGE_LIMIT = 20;
+
+  const { data: ordersData, isLoading } = useAdminOrders(page, PAGE_LIMIT);
   const updateStatus = useUpdateAdminOrderStatus();
 
   // Backend returns { data: [...], total: ... }
   const allOrders: any[] = Array.isArray(ordersData) ? ordersData : (ordersData?.data ?? []);
   const totalOrders = ordersData?.total ?? allOrders.length;
-  const totalPages = Math.max(1, Math.ceil(totalOrders / limit));
+  const totalPages = Math.max(1, Math.ceil(totalOrders / PAGE_LIMIT));
 
   const filtered = allOrders.filter((o: any) => {
     const s = search.toLowerCase();
@@ -46,7 +49,8 @@ export default function AdminOrdersPage() {
       );
   });
 
-  const handleOverride = async (orderId: string, currentStatus: string) => {
+  const handleOverride = async (e: React.MouseEvent, orderId: string, currentStatus: string) => {
+    e.stopPropagation();
     const nextMap: Record<string, string> = {
       PLACED: "ACCEPTED",
       ACCEPTED: "PAYMENT_RECEIVED",
@@ -111,8 +115,15 @@ export default function AdminOrdersPage() {
                 {filtered.length === 0 ? (
                   <tr><td colSpan={10} className="py-12 text-center text-sm text-muted-foreground">No orders found</td></tr>
                 ) : filtered.map((o: any, i: number) => (
-                  <motion.tr key={o.id} initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.03 }} className="hover:bg-accent/30 transition-colors">
-                    <td className="px-5 py-4 max-w-[120px] break-words"><span className="font-mono text-xs font-medium text-foreground">{(o.orderId || o.id || o._id || "").slice(0, 8)}…</span></td>
+                  <motion.tr 
+                    key={o.id} 
+                    initial={{ opacity: 0, y: 6 }} 
+                    animate={{ opacity: 1, y: 0 }} 
+                    transition={{ delay: i * 0.03 }} 
+                    className="hover:bg-accent/30 transition-colors cursor-pointer group"
+                    onClick={() => router.push(`/orders/${o.id}`)}
+                  >
+                    <td className="px-5 py-4 max-w-[120px] break-words"><span className="font-mono text-xs font-medium text-foreground group-hover:text-primary transition-colors">{(o.orderId || o.id || o._id || "").slice(0, 8)}…</span></td>
                     <td className="px-5 py-4 max-w-[150px] break-words text-sm text-muted-foreground">{o.buyer?.phone || o.address?.phone || "—"}</td>
                     <td className="px-5 py-4 whitespace-nowrap"><span className="font-mono text-xs text-muted-foreground bg-muted/30 px-1.5 py-0.5 rounded">{(o.items?.[0]?.product?.seller?.id || o.items?.[0]?.seller?.id || o.sellerId || "—").slice(0, 8)}</span></td>
                     <td className="px-5 py-4 whitespace-nowrap"><span className="font-mono text-xs text-muted-foreground bg-muted/30 px-1.5 py-0.5 rounded">{(o.buyer?.id || o.buyerId || "—").slice(0, 8)}</span></td>
@@ -122,7 +133,7 @@ export default function AdminOrdersPage() {
                     <td className="px-5 py-4"><Badge variant={o.orderStatus === "DELIVERED" ? "success" : o.orderStatus === "PLACED" ? "warning" : o.orderStatus === "CANCELLED" ? "error" : "info"}>{o.orderStatus ?? "—"}</Badge></td>
                     <td className="px-5 py-4">
                       {["PLACED", "ACCEPTED", "PAYMENT_RECEIVED", "SHIPPED", "OUT_FOR_DELIVERY"].includes(o.orderStatus) && (
-                        <button onClick={() => void handleOverride(o.id, o.orderStatus)} className="text-xs text-primary underline hover:text-primary/80">
+                        <button onClick={(e) => void handleOverride(e, o.id, o.orderStatus)} className="text-xs text-primary underline hover:text-primary/80">
                           → {o.orderStatus === "PLACED" ? "Accept" : o.orderStatus === "ACCEPTED" ? "Mark Paid" : o.orderStatus === "PAYMENT_RECEIVED" ? "Ship" : o.orderStatus === "SHIPPED" ? "Out for Delivery" : "Deliver"}
                         </button>
                       )}

@@ -1,6 +1,7 @@
 "use client";
 import { motion } from "framer-motion";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Users, Package, ShoppingBag, TrendingUp, AlertTriangle, CheckCircle, Clock, Flag, Bell, Search } from "lucide-react";
 import { AdminLayout } from "@/components/layout/admin-layout";
 import { StatCard, Badge, StatusBadge, Button } from "@/components/ui";
@@ -8,6 +9,7 @@ import { formatCurrency, formatCompact } from "@pharmabag/utils";
 import { useAdminDashboard } from "@/hooks/useAdmin";
 
 export default function AdminDashboardPage() {
+  const router = useRouter();
   const { data: d, isLoading } = useAdminDashboard();
 
   if (isLoading) {
@@ -113,8 +115,15 @@ export default function AdminDashboardPage() {
               {recentOrders.length === 0 ? (
                 <tr><td colSpan={6} className="py-12 text-center text-sm text-muted-foreground">No orders yet</td></tr>
               ) : recentOrders.map((o: any, i: number) => (
-                <motion.tr key={o.id} initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.06 }} className="hover:bg-accent/30 transition-colors">
-                  <td className="px-5 py-4"><span className="font-mono text-xs font-medium text-foreground">{o.id?.slice(0, 8)}…</span></td>
+                <motion.tr 
+                  key={o.id} 
+                  initial={{ opacity: 0, y: 6 }} 
+                  animate={{ opacity: 1, y: 0 }} 
+                  transition={{ delay: i * 0.06 }} 
+                  className="hover:bg-accent/30 transition-colors cursor-pointer group"
+                  onClick={() => router.push(`/orders/${o.id}`)}
+                >
+                  <td className="px-5 py-4"><span className="font-mono text-xs font-medium text-foreground group-hover:text-primary transition-colors">{o.id?.slice(0, 8)}…</span></td>
                   <td className="px-5 py-4 text-sm text-muted-foreground">{o.buyer?.phone ?? "—"}</td>
                   <td className="px-5 py-4 text-sm font-semibold text-foreground">{formatCurrency(o.totalAmount ?? 0)}</td>
                   <td className="px-5 py-4"><Badge variant={o.paymentStatus === "PAID" ? "success" : o.paymentStatus === "PENDING" ? "warning" : "error"}>{o.paymentStatus ?? "—"}</Badge></td>
