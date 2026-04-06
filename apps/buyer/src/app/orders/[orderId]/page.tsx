@@ -267,13 +267,15 @@ export default function OrderIdPage({ params }: { params: { orderId: string } })
                 </div>
                 <Timeline steps={steps} />
 
-                <Link
-                  href={`/payments/${order.id}`}
-                  className="w-full mt-8 py-4 bg-lime-300 hover:bg-lime-400 text-gray-900 rounded-2xl font-bold transition-all shadow-lg shadow-lime-200/50 flex items-center justify-center gap-2"
-                >
-                  <FileText className="w-5 h-5" />
-                  View Payment
-                </Link>
+                {normalizeStatus(status) === 'ACCEPTED' && (
+                  <Link
+                    href={`/payments/${order.id}`}
+                    className="w-full mt-8 py-4 bg-lime-300 hover:bg-lime-400 text-gray-900 rounded-2xl font-bold transition-all shadow-lg shadow-lime-200/50 flex items-center justify-center gap-2"
+                  >
+                    <FileText className="w-5 h-5" />
+                    Pay Now
+                  </Link>
+                )}
               </div>
             )}
           </div>

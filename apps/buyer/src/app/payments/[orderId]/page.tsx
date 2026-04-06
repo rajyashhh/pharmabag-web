@@ -9,6 +9,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { usePaymentByOrderId, useUploadPaymentProof } from '@/hooks/usePayments';
 import { useUploadPaymentProofFile } from '@/hooks/useStorage';
+import { useOrderById } from '@/hooks/useOrders';
 import AuthGuard from '@/components/shared/AuthGuard';
 
 export default function PaymentIdPage({ params }: { params: { orderId: string } }) {
@@ -16,11 +17,14 @@ export default function PaymentIdPage({ params }: { params: { orderId: string } 
   const [isSuccess, setIsSuccess] = useState(false);
   const [uploadError, setUploadError] = useState('');
 
-  const { data: payment, isLoading, isError } = usePaymentByOrderId(params.orderId);
+  const { data: payment, isLoading: isPaymentLoading, isError: isPaymentError } = usePaymentByOrderId(params.orderId);
+  const { data: order, isLoading: isOrderLoading, isError: isOrderError } = useOrderById(params.orderId);
   const uploadFileMutation = useUploadPaymentProofFile();
   const uploadProofMutation = useUploadPaymentProof();
   const { toast } = useToast();
 
+  const isError = isPaymentError && isOrderError;
+  const isLoading = isPaymentLoading || isOrderLoading;
   const isUploading = uploadFileMutation.isPending || uploadProofMutation.isPending;
 
   const handleUpload = async () => {
@@ -48,7 +52,7 @@ export default function PaymentIdPage({ params }: { params: { orderId: string } 
     );
   }
 
-  const amount = payment?.amount ?? 0;
+  const amount = payment?.amount || order?.totalAmount || 0;
   const status = payment?.status?.toUpperCase() ?? 'PENDING';
   const hasProof = !!payment?.proofUrl;
 
@@ -86,47 +90,54 @@ export default function PaymentIdPage({ params }: { params: { orderId: string } 
                 </div>
               </div>
 
-              {/* Payment Progress Steps */}
-              <div className="flex items-center gap-0 mb-6 sm:mb-8 md:mb-12">
-                {['Upload Proof', 'Under Review', 'Verified'].map((stepLabel, idx) => {
-                  const stepState = 
-                    ['CONFIRMED', 'COMPLETED', 'VERIFIED'].includes(status) ? 3 :
-                    hasProof || isSuccess ? 2 : 1;
-                  const isDone = idx < stepState;
-                  const isActive = idx === stepState - 1;
-                  return (
-                    <div key={stepLabel} className="flex-1 flex flex-col items-center relative">
-                      {idx > 0 && (
-                        <div className={`absolute left-0 right-1/2 top-4 h-0.5 ${isDone ? 'bg-lime-400' : 'bg-gray-100'}`} />
-                      )}
-                      {idx < 2 && (
-                        <div className={`absolute left-1/2 right-0 top-4 h-0.5 ${idx < stepState - 1 ? 'bg-lime-400' : 'bg-gray-100'}`} />
-                      )}
-                      <div className={`relative z-10 w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold ${
-                        isDone ? 'bg-lime-400 text-gray-900 shadow-lg shadow-lime-200' : isActive ? 'bg-white border-2 border-lime-400 text-lime-600' : 'bg-gray-100 text-gray-400'
-                      }`}>
-                        {isDone ? '✓' : idx + 1}
-                      </div>
-                      <span className={`text-[10px] font-bold mt-2 ${isDone || isActive ? 'text-gray-900' : 'text-gray-400'}`}>{stepLabel}</span>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 md:gap-8 mb-6 sm:mb-8 md:mb-12">
+                <div className="bg-white/40 p-6 rounded-3xl border border-white h-fit">
+                  <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-4">Payment Summary</p>
+                  <div className="space-y-4">
+                    <div>
+                      <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Total Bill Amount</p>
+                      <p className="text-3xl font-black text-gray-900 tracking-tight">₹{amount.toLocaleString('en-IN')}</p>
                     </div>
-                  );
-                })}
-              </div>
+                    <div className="pt-4 border-t border-gray-100 flex items-center justify-between">
+                      <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Status</span>
+                      <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider ${['CONFIRMED', 'COMPLETED', 'VERIFIED'].includes(status) ? 'bg-green-100 text-green-700' : status === 'PENDING' ? 'bg-yellow-100 text-yellow-700' : 'bg-red-100 text-red-700'}`}>
+                        {status}
+                      </span>
+                    </div>
+                  </div>
+                </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6 md:gap-8 mb-6 sm:mb-8 md:mb-12">
-                <div className="bg-white/40 p-6 rounded-3xl border border-white">
-                  <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">Amount</p>
-                  <p className="text-2xl font-bold text-gray-900">₹{amount.toLocaleString('en-IN')}</p>
-                </div>
-                <div className="bg-white/40 p-6 rounded-3xl border border-white">
-                  <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">Status</p>
-                  <p className={`text-2xl font-bold ${['CONFIRMED', 'COMPLETED', 'VERIFIED'].includes(status) ? 'text-green-600' : status === 'PENDING' ? 'text-yellow-600' : 'text-red-600'}`}>
-                    {status}
-                  </p>
-                </div>
-                <div className="bg-white/40 p-6 rounded-3xl border border-white">
-                  <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">Method</p>
-                  <p className="text-2xl font-bold text-gray-900">{payment?.method ?? '—'}</p>
+                <div className="bg-white/40 p-6 md:p-8 rounded-[32px] sm:rounded-[40px] border border-white shadow-sm relative overflow-hidden group">
+                  <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-6 border-b border-gray-100 pb-4">Bank Details for Payment</p>
+                  
+                  <div className="grid grid-cols-1 gap-y-5">
+                    <div className="flex items-center justify-between group/item">
+                       <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Account Name</span>
+                       <span className="text-xs font-black text-gray-900 text-right">The Era Of Marketing</span>
+                    </div>
+                    <div className="flex items-center justify-between group/item">
+                       <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Account Number</span>
+                       <span className="text-xs font-black text-gray-900 tracking-wider font-mono">10126079826</span>
+                    </div>
+                    <div className="flex items-center justify-between group/item">
+                       <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Bank Name</span>
+                       <span className="text-xs font-black text-gray-900 text-right">IDFC FIRST Bank LTD</span>
+                    </div>
+                    <div className="flex items-center justify-between group/item">
+                       <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">IFSC Code</span>
+                       <span className="text-xs font-black text-gray-900 tracking-wider font-mono">IDFB0060102</span>
+                    </div>
+                    <div className="flex items-center justify-between group/item">
+                       <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Swift / BIC</span>
+                       <span className="text-xs font-black text-gray-900 tracking-wider font-mono uppercase">IDFBINBBMUM</span>
+                    </div>
+                    <div className="pt-4 border-t border-gray-100 mt-2">
+                       <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2 block">Bank Address</span>
+                       <p className="text-[10px] font-bold text-gray-500 leading-relaxed italic">
+                        Salt Lake, Sector 1, Kolkata, West Bengal, India, Pincode: 700064.
+                       </p>
+                    </div>
+                  </div>
                 </div>
               </div>
 

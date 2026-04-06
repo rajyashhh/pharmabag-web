@@ -32,24 +32,24 @@ export type CreatePaymentInput = z.infer<typeof CreatePaymentSchema>;
 // ─── API Functions ──────────────────────────────────
 
 export async function createPayment(input: CreatePaymentInput): Promise<Payment> {
-  const { data } = await api.post('/payments', input);
-  return data;
+  const response = await api.post('/payments', input);
+  return response.data.data ?? response.data;
 }
 
 export async function uploadPaymentProof(paymentId: string, proofUrl: string): Promise<Payment> {
-  const { data } = await api.post(`/payments/${paymentId}/proof`, { proofUrl });
-  return data;
+  const response = await api.post(`/payments/${paymentId}/proof`, { proofUrl });
+  return response.data.data ?? response.data;
 }
 
 export async function getPaymentByOrderId(orderId: string): Promise<Payment> {
-  const { data } = await api.get(`/payments/order/${orderId}`);
-  return data;
+  const response = await api.get(`/payments/order/${orderId}`);
+  return response.data.data ?? response.data;
 }
 
 export async function getPaymentHistory(params?: {
   page?: number;
   limit?: number;
 }): Promise<{ data: Payment[]; total: number }> {
-  const { data } = await api.get('/payments', { params });
-  return data;
+  const response = await api.get('/payments', { params });
+  return response.data.data ?? response.data;
 }
