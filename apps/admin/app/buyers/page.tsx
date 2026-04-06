@@ -189,11 +189,11 @@ export default function BuyersPage() {
             <table className="w-full" aria-label="Buyers">
               <thead>
                 <tr className="border-b border-border/50 bg-muted/20">
-                  {["Buyer", "Contact", "Location", "Verification", "Tier", "Actions"].map((h) => (
+                  {["Buyer", "Contact", "User ID", "Location", "Verification", "Tier", "Actions"].map((h) => (
                     <th
                       key={h}
                       scope="col"
-                      className="px-5 py-3.5 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider whitespace-nowrap"
+                      className="px-5 py-3.5 text-center text-xs font-semibold text-muted-foreground uppercase tracking-wider whitespace-nowrap"
                     >
                       {h}
                     </th>
@@ -203,7 +203,7 @@ export default function BuyersPage() {
               <tbody className="divide-y divide-border/30">
                 {filtered.length === 0 ? (
                   <tr>
-                    <td colSpan={6} className="py-12 text-center text-sm text-muted-foreground">
+                    <td colSpan={7} className="py-12 text-center text-sm text-muted-foreground">
                       No buyers found
                     </td>
                   </tr>
@@ -235,6 +235,9 @@ export default function BuyersPage() {
                               <p className="font-mono text-foreground">{buyer.phone}</p>
                               {buyer.email && <p className="text-xs text-muted-foreground">{buyer.email}</p>}
                             </div>
+                          </td>
+                          <td className="px-5 py-4 max-w-[120px]">
+                            <span className="font-mono text-[10px] text-muted-foreground break-all whitespace-normal leading-tight block">{buyer.userId}</span>
                           </td>
                           <td className="px-5 py-4 text-sm">
                             <div className="flex items-center gap-1 text-foreground">
@@ -284,7 +287,7 @@ export default function BuyersPage() {
                         </motion.tr>
                         {isExpanded && (
                           <tr>
-                            <td colSpan={6} className="px-5 bg-muted/10">
+                            <td colSpan={7} className="px-5 bg-muted/10">
                               <div className="py-6 space-y-6">
                                 {/* Buyer Details Grid */}
                                 <div>

@@ -245,14 +245,14 @@ export default function UsersPage() {
             <table className="w-full" aria-label="Users">
               <thead>
                 <tr className="border-b border-border/50 bg-muted/20">
-                  {["Phone", "Role", "Email", "Status", "Created", "Actions"].map(h => (
-                    <th key={h} scope="col" className="px-5 py-3.5 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider whitespace-nowrap">{h}</th>
+                  {["Phone", "Unique ID", "Role", "Email", "Status", "Created", "Actions"].map(h => (
+                    <th key={h} scope="col" className="px-5 py-3.5 text-center text-xs font-semibold text-muted-foreground uppercase tracking-wider whitespace-nowrap">{h}</th>
                   ))}
                 </tr>
               </thead>
               <tbody className="divide-y divide-border/30">
                 {filtered.length === 0 ? (
-                  <tr><td colSpan={6} className="py-12 text-center text-sm text-muted-foreground">No users found</td></tr>
+                  <tr><td colSpan={7} className="py-12 text-center text-sm text-muted-foreground">No users found</td></tr>
                 ) : filtered.map((u: any, i: number) => {
                   const isSeller = u.role === "SELLER";
                   const isExpanded = (isSeller || u.role === "BUYER") && expandedUser === u.id;
@@ -273,6 +273,9 @@ export default function UsersPage() {
                               )}
                             </div>
                           </div>
+                        </td>
+                        <td className="px-5 py-4 max-w-[120px]">
+                          <span className="font-mono text-[10px] text-muted-foreground break-all whitespace-normal leading-tight block">{u.id}</span>
                         </td>
                         <td className="px-5 py-4">
                           <Badge variant={u.role === "BUYER" ? "success" : u.role === "SELLER" ? "info" : "orange"}>{u.role}</Badge>
@@ -351,7 +354,7 @@ export default function UsersPage() {
                       </motion.tr>
                       {isExpanded && (
                         <tr>
-                          <td colSpan={6} className="px-5 bg-muted/10">
+                          <td colSpan={7} className="px-5 bg-muted/10">
                             {u.role === "SELLER" ? <SellerDetails userId={u.id} /> : <BuyerDetails userId={u.id} />}
                           </td>
                         </tr>

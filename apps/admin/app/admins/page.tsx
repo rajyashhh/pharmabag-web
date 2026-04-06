@@ -100,14 +100,14 @@ export default function AdminManagementPage() {
             <table className="w-full">
               <thead>
                 <tr className="border-b border-border/50 bg-muted/20">
-                  {["Admin", "Phone", "Role", "Permissions", "Created", "Actions"].map(h => (
-                    <th key={h} className="px-5 py-3.5 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">{h}</th>
+                  {["Admin", "Phone", "Unique ID", "Role", "Permissions", "Created", "Actions"].map(h => (
+                    <th key={h} className="px-5 py-3.5 text-center text-xs font-semibold text-muted-foreground uppercase tracking-wider">{h}</th>
                   ))}
                 </tr>
               </thead>
               <tbody className="divide-y divide-border/30">
                 {filtered.length === 0 ? (
-                  <tr><td colSpan={6} className="py-12 text-center text-sm text-muted-foreground">No admins found</td></tr>
+                  <tr><td colSpan={7} className="py-12 text-center text-sm text-muted-foreground">No admins found</td></tr>
                 ) : filtered.map((admin: any, i: number) => (
                   <motion.tr key={admin.id} initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.03 }} className="hover:bg-accent/30 transition-colors">
                     <td className="px-5 py-4">
@@ -119,6 +119,9 @@ export default function AdminManagementPage() {
                       </div>
                     </td>
                     <td className="px-5 py-4 text-sm font-mono text-muted-foreground">{admin.phone ?? "—"}</td>
+                    <td className="px-5 py-4 max-w-[120px]">
+                      <span className="font-mono text-[10px] text-muted-foreground break-all whitespace-normal leading-tight block">{admin.id}</span>
+                    </td>
                     <td className="px-5 py-4">
                       <Badge variant={admin.permissions?.includes("x") ? "purple" : "info"}>{admin.permissions?.includes("x") ? "Super Admin" : admin.role ?? "Admin"}</Badge>
                     </td>
