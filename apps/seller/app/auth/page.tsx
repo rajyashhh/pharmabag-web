@@ -62,7 +62,7 @@ export default function SellerAuthPage() {
       const inner = (data as any).data ?? data;
       setUser(inner.user);
       toast.success("Logged in successfully");
-      router.push("/dashboard");
+      router.push("/onboarding");
     } catch (error: any) {
       toast.error("Invalid OTP. Please retry.");
     }
