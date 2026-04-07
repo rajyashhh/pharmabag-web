@@ -69,15 +69,7 @@ function OrderTable({ orders, showConfirm = false, updateFn }: { orders: any[]; 
                             <Eye className="h-4.5 w-4.5" />
                           </Button>
                         </Link>
-                        {showConfirm && (order.orderStatus==="PLACED" || order.status==="PLACED") && updateFn && (
-                          <Button size="sm" className="text-xs h-7 px-3" onClick={()=>updateFn.mutate({orderId:order.orderId || order.id,status:"ACCEPTED"})}>Confirm</Button>
-                        )}
-                        {showConfirm && (order.orderStatus==="ACCEPTED" || order.status==="ACCEPTED" || order.orderStatus==="PAYMENT_RECEIVED" || order.status==="PAYMENT_RECEIVED") && updateFn && (
-                          <Button size="sm" variant="info" className="text-xs h-7 px-3" onClick={()=>updateFn.mutate({orderId:order.orderId || order.id,status:"DISPATCHED_FROM_SELLER"})}>Dispatch</Button>
-                        )}
-                        {showConfirm && ["PLACED", "ACCEPTED"].includes(order.orderStatus || order.status) && updateFn && (
-                          <Button size="sm" variant="danger" className="text-xs h-7 px-3 bg-red-50 text-red-600 border-red-100 hover:bg-red-100" onClick={()=>{ if(confirm("Cancel this order?")) updateFn.mutate({orderId:order.orderId || order.id,status:"CANCELLED"}); }}>Cancel</Button>
-                        )}
+                        {/* Confirm, Dispatch, Cancel buttons hidden as requested */}
                       </div>
                     </td>
                   </>
