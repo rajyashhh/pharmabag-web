@@ -22,10 +22,10 @@ export default function ProfilePage() {
   const startEditing = () => {
     const addr = typeof profile?.address === 'object' ? profile.address : null;
     setForm({
-      name: profile?.name ?? profile?.legalName ?? '',
-      legalName: profile?.legalName ?? '',
-      email: profile?.email ?? '',
-      phone: profile?.phone ?? '',
+      name: (profile?.name ?? profile?.legalName ?? user?.name ?? '') as string,
+      legalName: (profile?.legalName ?? '') as string,
+      email: (profile?.email ?? user?.email ?? '') as string,
+      phone: (profile?.phone ?? user?.phone ?? user?.mobile ?? '') as string,
       gstNumber: profile?.gstNumber ?? '',
       panNumber: profile?.panNumber ?? '',
       drugLicenseNumber: profile?.drugLicenseNumber ?? '',

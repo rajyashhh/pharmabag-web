@@ -65,15 +65,15 @@ export default function CheckoutPage() {
     const profile = (profileData as any)?.data || profileData;
     if (profile) {
       setAddress({
-        name: profile.legalName || profile.name || '',
-        phone: profile.phone || '',
+        name: profile.legalName || profile.name || user?.name || '',
+        phone: profile.phone || user?.phone || user?.mobile || '',
         address: profile.address?.street1 || (typeof profile.address === 'string' ? profile.address : ''),
         city: profile.address?.city || profile.city || '',
         state: profile.address?.state || profile.state || '',
         pincode: profile.address?.pincode || profile.pincode || '',
       });
     }
-  }, [profileData]);
+  }, [profileData, user]);
 
   const cart = (cartData as any)?.data || cartData || { items: [], total: 0 };
   const items = cart.items ?? [];
