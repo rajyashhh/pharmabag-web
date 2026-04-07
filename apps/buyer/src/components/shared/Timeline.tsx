@@ -1,13 +1,14 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { CheckCircle2, Circle, Package, ThumbsUp, Truck, MapPin, PartyPopper, CreditCard } from 'lucide-react';
+import { CheckCircle2, Circle, Package, ThumbsUp, Truck, MapPin, PartyPopper, CreditCard, XCircle } from 'lucide-react';
 
 interface TimelineStep {
   label: string;
   description?: string;
   isCompleted: boolean;
   isActive: boolean;
+  isError?: boolean;
 }
 
 const stepIcons = [Package, ThumbsUp, CreditCard, Truck, MapPin, CheckCircle2];
@@ -62,7 +63,11 @@ export default function Timeline({ steps }: { steps: TimelineStep[] }) {
 
               {/* Icon */}
               <div className="relative z-10 flex-shrink-0">
-                {step.isCompleted ? (
+                {step.isError ? (
+                  <div className="w-9 h-9 bg-red-100 border-2 border-red-400 rounded-xl flex items-center justify-center shadow-lg shadow-red-200">
+                    <XCircle className="w-5 h-5 text-red-600" />
+                  </div>
+                ) : step.isCompleted ? (
                   <motion.div
                     initial={{ scale: 0 }}
                     animate={{ scale: 1 }}
@@ -90,12 +95,12 @@ export default function Timeline({ steps }: { steps: TimelineStep[] }) {
               {/* Content */}
               <div className="flex flex-col justify-center min-h-[36px]">
                 <span className={`text-sm font-bold tracking-wide ${
-                  step.isCompleted ? 'text-gray-900' : step.isActive ? 'text-lime-700' : 'text-gray-300'
+                  step.isError ? 'text-red-600' : step.isCompleted ? 'text-gray-900' : step.isActive ? 'text-lime-700' : 'text-gray-300'
                 }`}>
                   {step.label}
                 </span>
                 {step.description && (
-                  <span className="text-[11px] text-gray-400 mt-0.5 font-medium">{step.description}</span>
+                  <span className={`text-[11px] mt-0.5 font-medium ${step.isError ? 'text-red-400' : 'text-gray-400'}`}>{step.description}</span>
                 )}
                 {step.isActive && (
                   <motion.span

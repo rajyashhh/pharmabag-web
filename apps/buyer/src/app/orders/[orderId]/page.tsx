@@ -51,7 +51,7 @@ function buildTimelineSteps(status: string | undefined) {
   
   if (normalized === "CANCELLED") {
     return [
-      { label: "Order Placed", description: "Initial status", isCompleted: true },
+      { label: "Order Placed", description: "Initial status", isCompleted: true, isActive: false },
       { label: "Cancelled", description: "Order was terminated", isCompleted: true, isActive: true, isError: true }
     ];
   }
