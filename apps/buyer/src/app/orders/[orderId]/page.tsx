@@ -48,6 +48,14 @@ function formatImageUrl(url: any): string | undefined {
 
 function buildTimelineSteps(status: string | undefined) {
   const normalized = normalizeStatus(status);
+  
+  if (normalized === "CANCELLED") {
+    return [
+      { label: "Order Placed", description: "Initial status", isCompleted: true },
+      { label: "Cancelled", description: "Order was terminated", isCompleted: true, isActive: true, isError: true }
+    ];
+  }
+
   const labels = ['Order Placed', 'Confirmed', 'Payment Received', 'Dispatched from Seller', 'Received at Warehouse', 'Shipped', 'Out for Delivery', 'Delivered'];
   const currentIdx = STATUS_ORDER.indexOf(normalized);
   
@@ -112,7 +120,7 @@ export default function OrderIdPage({ params }: { params: { orderId: string } })
 
   const status = order.orderStatus || order.status;
   const badge = getStatusBadge(status);
-  const steps = (status || '').toUpperCase() !== 'CANCELLED' ? buildTimelineSteps(status) : [];
+  const steps = buildTimelineSteps(status);
   const orderItems = order.items ?? [];
   const totalAmount = order.totalAmount ?? order.total ?? order.amount ?? 0;
   const orderDate = order.createdAt ? new Date(order.createdAt).toLocaleDateString('en-IN', { year: 'numeric', month: 'short', day: 'numeric' }) : '';

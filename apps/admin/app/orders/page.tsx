@@ -52,7 +52,7 @@ export default function AdminOrdersPage() {
       );
   });
 
-  const handleOverride = async (e: React.MouseEvent, orderId: string, currentStatus: string) => {
+  const handleOverride = async (e: React.MouseEvent, orderId: string, currentStatus: string, targetStatus?: string) => {
     e.stopPropagation();
     const nextMap: Record<string, string> = {
       PLACED: "ACCEPTED",
@@ -63,7 +63,7 @@ export default function AdminOrdersPage() {
       SHIPPED: "OUT_FOR_DELIVERY",
       OUT_FOR_DELIVERY: "DELIVERED",
     };
-    const next = nextMap[currentStatus];
+    const next = targetStatus || nextMap[currentStatus];
     if (!next) { toast.error("No next status available"); return; }
     try {
       await updateStatus.mutateAsync({ orderId, status: next });
@@ -170,9 +170,21 @@ export default function AdminOrdersPage() {
                     <td className="px-5 py-4"><Badge variant={o.orderStatus === "DELIVERED" ? "success" : o.orderStatus === "PLACED" ? "warning" : o.orderStatus === "CANCELLED" ? "error" : "info"}>{o.orderStatus ?? "—"}</Badge></td>
                     <td className="px-5 py-4">
                       {["PLACED", "ACCEPTED", "PAYMENT_RECEIVED", "DISPATCHED_FROM_SELLER", "RECEIVED_AT_WAREHOUSE", "SHIPPED", "OUT_FOR_DELIVERY"].includes(o.orderStatus) && (
-                        <button onClick={(e) => void handleOverride(e, o.id, o.orderStatus)} className="text-xs text-primary underline hover:text-primary/80">
-                          → {o.orderStatus === "PLACED" ? "Accept" : o.orderStatus === "ACCEPTED" ? "Mark Paid" : o.orderStatus === "PAYMENT_RECEIVED" ? "Dispatch" : o.orderStatus === "DISPATCHED_FROM_SELLER" ? "Recv at Wh" : o.orderStatus === "RECEIVED_AT_WAREHOUSE" ? "Ship" : o.orderStatus === "SHIPPED" ? "Out for Delivery" : "Deliver"}
-                        </button>
+                        <div className="flex flex-col items-start gap-1">
+                          <button onClick={(e) => void handleOverride(e, o.id, o.orderStatus)} className="text-xs text-primary underline hover:text-primary/80">
+                            → {o.orderStatus === "PLACED" ? "Accept" : o.orderStatus === "ACCEPTED" ? "Mark Paid" : o.orderStatus === "PAYMENT_RECEIVED" ? "Dispatch" : o.orderStatus === "DISPATCHED_FROM_SELLER" ? "Recv at Wh" : o.orderStatus === "RECEIVED_AT_WAREHOUSE" ? "Ship" : o.orderStatus === "SHIPPED" ? "Out for Delivery" : "Deliver"}
+                          </button>
+                          <button 
+                            onClick={(e) => {
+                              if (confirm("Are you sure you want to cancel this order?")) {
+                                handleOverride(e, o.id, o.orderStatus, "CANCELLED");
+                              }
+                            }} 
+                            className="text-[10px] text-red-500 hover:text-red-600 underline font-bold"
+                          >
+                            ✕ Cancel
+                          </button>
+                        </div>
                       )}
                     </td>
                     <td className="px-5 py-4 text-xs text-muted-foreground whitespace-nowrap">{o.createdAt ? new Date(o.createdAt).toLocaleDateString("en-IN") : "—"}</td>

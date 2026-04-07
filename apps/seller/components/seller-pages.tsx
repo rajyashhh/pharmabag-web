@@ -75,6 +75,9 @@ function OrderTable({ orders, showConfirm = false, updateFn }: { orders: any[]; 
                         {showConfirm && (order.orderStatus==="ACCEPTED" || order.status==="ACCEPTED" || order.orderStatus==="PAYMENT_RECEIVED" || order.status==="PAYMENT_RECEIVED") && updateFn && (
                           <Button size="sm" variant="info" className="text-xs h-7 px-3" onClick={()=>updateFn.mutate({orderId:order.orderId || order.id,status:"DISPATCHED_FROM_SELLER"})}>Dispatch</Button>
                         )}
+                        {showConfirm && ["PLACED", "ACCEPTED"].includes(order.orderStatus || order.status) && updateFn && (
+                          <Button size="sm" variant="danger" className="text-xs h-7 px-3 bg-red-50 text-red-600 border-red-100 hover:bg-red-100" onClick={()=>{ if(confirm("Cancel this order?")) updateFn.mutate({orderId:order.orderId || order.id,status:"CANCELLED"}); }}>Cancel</Button>
+                        )}
                       </div>
                     </td>
                   </>
