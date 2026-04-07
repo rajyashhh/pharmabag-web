@@ -4,7 +4,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Bell, User, ShoppingBag, LogOut, ClipboardList, CreditCard, HelpCircle, ArrowRight, Bookmark, Menu, X, LifeBuoy, Filter } from 'lucide-react';
+import { Bell, User, ShoppingBag, LogOut, ClipboardList, CreditCard, HelpCircle, ArrowRight, Bookmark, Menu, X, LifeBuoy, Filter, ChevronDown } from 'lucide-react';
 import CategoryMegaMenu from '@/components/landing/CategoryMegaMenu';
 import CartDrawer from '@/components/cart/CartDrawer';
 import WishlistDrawer from '@/components/wishlist/WishlistDrawer';
@@ -63,6 +63,7 @@ export default function Navbar({ onLoginClick, showUserActions = false, onFilter
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [expandedCategoryId, setExpandedCategoryId] = useState<string | null>(null);
   const [isMounted, setIsMounted] = useState(false);
   const categoryTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const profileTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -353,31 +354,61 @@ export default function Navbar({ onLoginClick, showUserActions = false, onFilter
                   >
                     All Products
                   </Link>
-                  {categories.map((category) => (
-                    <div key={category.id} className="flex flex-col gap-1 w-full">
-                      <Link
-                        href={`/products?categoryId=${category.id}`}
-                        onClick={() => setIsMobileMenuOpen(false)}
-                        className="px-3 py-1.5 text-sm font-semibold text-gray-700 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors border border-gray-100"
-                      >
-                        {category.name}
-                      </Link>
-                      {category.subCategories && category.subCategories.length > 0 && (
-                        <div className="flex flex-wrap gap-1 ml-4 mt-1">
-                          {category.subCategories.map((sub) => (
-                            <Link
-                              key={sub.id}
-                              href={`/products?categoryId=${category.id}&subCategoryId=${sub.id}`}
-                              onClick={() => setIsMobileMenuOpen(false)}
-                              className="px-2 py-1 text-[12px] text-gray-500 hover:text-black transition-colors"
+                  {categories.map((category) => {
+                    const isExpanded = expandedCategoryId === category.id;
+                    const hasSub = category.subCategories && category.subCategories.length > 0;
+                    
+                    return (
+                      <div key={category.id} className="flex flex-col w-full mb-1">
+                        <div className="flex items-center gap-1.5 w-full">
+                          <Link
+                            href={`/products?categoryId=${category.id}`}
+                            onClick={() => setIsMobileMenuOpen(false)}
+                            className={`flex-1 px-4 py-3 text-sm font-bold text-gray-800 transition-all border border-gray-100 ${
+                              isExpanded ? 'bg-white rounded-t-xl border-b-0' : 'bg-gray-50/50 rounded-xl'
+                            }`}
+                          >
+                            {category.name}
+                          </Link>
+                          {hasSub && (
+                            <button
+                              onClick={() => setExpandedCategoryId(isExpanded ? null : category.id)}
+                              className={`p-3 transition-all border border-gray-100 flex items-center justify-center ${
+                                isExpanded ? 'bg-white rounded-t-xl border-b-0 rotate-180' : 'bg-gray-50/50 rounded-xl'
+                              }`}
                             >
-                              - {sub.name}
-                            </Link>
-                          ))}
+                              <ChevronDown className={`w-4 h-4 transition-colors ${isExpanded ? 'text-lime-500 font-black' : 'text-gray-400'}`} />
+                            </button>
+                          )}
                         </div>
-                      )}
-                    </div>
-                  ))}
+                        
+                        <AnimatePresence>
+                          {isExpanded && hasSub && (
+                            <motion.div
+                              initial={{ height: 0, opacity: 0 }}
+                              animate={{ height: 'auto', opacity: 1 }}
+                              exit={{ height: 0, opacity: 0 }}
+                              className="overflow-hidden bg-white border-x border-b border-gray-100 rounded-b-xl"
+                            >
+                              <div className="p-2 pt-0 flex flex-col gap-1">
+                                {category.subCategories?.map((sub) => (
+                                  <Link
+                                    key={sub.id}
+                                    href={`/products?categoryId=${category.id}&subCategoryId=${sub.id}`}
+                                    onClick={() => setIsMobileMenuOpen(false)}
+                                    className="px-4 py-2.5 text-sm font-semibold text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition-all flex items-center gap-2 group"
+                                  >
+                                    <div className="w-1.5 h-1.5 bg-gray-200 rounded-full group-hover:bg-lime-400 transition-colors" />
+                                    {sub.name}
+                                  </Link>
+                                ))}
+                              </div>
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
 
