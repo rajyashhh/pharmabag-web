@@ -237,10 +237,18 @@ export default function OrderDetailPage() {
                   <span className="text-sm text-muted-foreground">Amount</span>
                   <span className="text-sm font-semibold text-foreground">{formatCurrency(order.totalAmount ?? 0)}</span>
                 </div>
-                {order.paymentReference && (
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-muted-foreground">Reference</span>
-                    <span className="text-xs font-mono text-foreground">{order.paymentReference}</span>
+                {order.payments?.[0]?.proofUrl && (
+                  <div className="pt-2 border-t border-border/10 mt-2">
+                    <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-1.5 leading-none">Payment Proof</p>
+                    <a 
+                      href={order.payments[0].proofUrl} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="text-xs text-primary underline hover:text-primary/80 flex items-center gap-1.5 font-medium"
+                    >
+                      <FileText className="h-3 w-3" />
+                      View Uploaded Document
+                    </a>
                   </div>
                 )}
               </div>

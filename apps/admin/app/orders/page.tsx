@@ -162,9 +162,15 @@ export default function AdminOrdersPage() {
                         onClick={(e) => handleOpenProof(e, o.payments?.[0]?.proofUrl)}
                         className={cn(o.payments?.[0]?.proofUrl ? "cursor-pointer hover:opacity-80 transition-opacity" : "cursor-default")}
                       >
-                        <Badge variant={o.paymentStatus === "SUCCESS" || o.paymentStatus === "PAID" ? "success" : o.paymentStatus === "PENDING" ? "warning" : "error"}>
-                          {o.paymentStatus === "SUCCESS" ? "PAID" : (o.paymentStatus ?? "—")}
-                        </Badge>
+                        {o.payments?.[0]?.proofUrl ? (
+                          <Badge variant={o.paymentStatus === "SUCCESS" || o.paymentStatus === "PAID" ? "success" : "warning"}>
+                            {o.paymentStatus === "SUCCESS" ? "PAID" : "PROOF UPLOADED"}
+                          </Badge>
+                        ) : (
+                          <Badge variant={o.paymentStatus === "SUCCESS" || o.paymentStatus === "PAID" ? "success" : o.paymentStatus === "PENDING" ? "warning" : "error"}>
+                            {o.paymentStatus === "SUCCESS" ? "PAID" : (o.paymentStatus ?? "—")}
+                          </Badge>
+                        )}
                       </div>
                     </td>
                     <td className="px-5 py-4"><Badge variant={o.orderStatus === "DELIVERED" ? "success" : o.orderStatus === "PLACED" ? "warning" : o.orderStatus === "CANCELLED" ? "error" : "info"}>{o.orderStatus ?? "—"}</Badge></td>

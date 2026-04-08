@@ -173,6 +173,7 @@ export interface Order {
   cancelReason?: string;
   buyer?: any;
   seller?: any;
+  payments?: any[];
 }
 
 export interface Payout {

@@ -44,12 +44,23 @@ export const OrderSchema = z.object({
   shippingAddress: z.union([z.string(), z.any()]).optional(),
   paymentMethod: z.string().optional(),
   paymentReference: z.string().optional(),
+  payments: z.array(z.any()).optional(),
+  buyerId: z.string().optional(),
+  buyerName: z.string().optional(),
+  buyerBusiness: z.string().optional(),
+  sellerId: z.string().optional(),
+  sellerName: z.string().optional(),
+  finalAmount: z.number().optional(),
+  cancelReason: z.string().optional(),
+  buyer: z.any().optional(),
+  seller: z.any().optional(),
   createdAt: z.string(),
   updatedAt: z.string().optional(),
 }).transform((data) => ({
   ...data,
   status: data.status || data.orderStatus, // Map orderStatus to status
   totalAmount: data.totalAmount ?? data.total ?? data.amount,
+  payments: data.payments || [],
 }));
 
 export const OrderListResponseSchema = z.object({

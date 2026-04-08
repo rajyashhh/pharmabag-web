@@ -87,8 +87,9 @@ export function ProductForm({ defaultValues, productId }: { defaultValues?: Part
       if (watchStock < minRequiredMoq) {
         setValue("stock", minRequiredMoq, { shouldDirty: true, shouldValidate: true });
       }
-      if (watchMaxMoq < minRequiredMoq) {
-        setValue("max_order_qty", targetMaxMoq, { shouldDirty: true, shouldValidate: true });
+      // Ensure Max is at least equal to Min
+      if (!watchMaxMoq || watchMaxMoq < watchMinMoq) {
+        setValue("max_order_qty", Math.max(watchMinMoq, targetMaxMoq), { shouldDirty: true, shouldValidate: true });
       }
     }
   }, [watchMrp, watchMinMoq, watchStock, watchMaxMoq, setValue]);
@@ -381,7 +382,13 @@ export function ProductForm({ defaultValues, productId }: { defaultValues?: Part
                 </p>
               )}
             </div>
-            <Input label="Maximum Order Qty *" type="number" error={errors.max_order_qty?.message} {...register("max_order_qty", { valueAsNumber: true })} />
+            <Input 
+              label="Maximum Order Qty *" 
+              type="number" 
+              min={watchMinMoq}
+              error={errors.max_order_qty?.message} 
+              {...register("max_order_qty", { valueAsNumber: true })} 
+            />
             <Controller
               control={control}
               name="gst_percent"

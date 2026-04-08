@@ -231,6 +231,21 @@ export default function OrderDetailPage() {
                   {mainOrder.paymentStatus || "PENDING"}
                 </Badge>
               </div>
+
+              {mainOrder.payments?.[0]?.proofUrl && (
+                <div className="pt-2 border-t border-border/10 mt-2">
+                  <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-1.5 leading-none font-sans">Verification Proof</p>
+                  <a 
+                    href={mainOrder.payments[0].proofUrl} 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="text-xs text-primary underline hover:text-primary/80 flex items-center gap-1.5 font-medium"
+                  >
+                    <FileText className="h-3 w-3" />
+                    View Buyer's Proof
+                  </a>
+                </div>
+              )}
               {mainOrder.paymentMethod && (
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">Method</span>
