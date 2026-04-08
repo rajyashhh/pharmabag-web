@@ -64,7 +64,7 @@ export default function SellerOnboardingPage() {
     if (existingProfile) {
       setFormData(prev => ({
         ...prev,
-        companyName: existingProfile.companyName || existingProfile.businessName || prev.companyName,
+        companyName: (existingProfile.companyName === 'My Store' ? '' : existingProfile.companyName) || (existingProfile.businessName === 'My Store' ? '' : existingProfile.businessName) || prev.companyName,
         gstNumber: existingProfile.gstNumber || prev.gstNumber,
         panNumber: existingProfile.panNumber || prev.panNumber,
         drugLicenseNumber: existingProfile.drugLicenseNumber || prev.drugLicenseNumber,
@@ -191,7 +191,12 @@ export default function SellerOnboardingPage() {
   const profile = existingProfile;
   
   const isPending = effectiveUser?.status === "PENDING" && (
-    effectiveUser.businessName || effectiveUser.companyName || profile?.businessName || profile?.companyName
+    (effectiveUser.businessName && effectiveUser.businessName !== 'My Store') || 
+    (effectiveUser.companyName && effectiveUser.companyName !== 'My Store') || 
+    (profile?.businessName && profile.businessName !== 'My Store') || 
+    (profile?.companyName && profile.companyName !== 'My Store') ||
+    profile?.gstNumber ||
+    profile?.panNumber
   );
   const isRejected = effectiveUser?.status === "REJECTED" || profile?.verificationStatus === "REJECTED";
 

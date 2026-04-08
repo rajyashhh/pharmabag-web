@@ -24,13 +24,14 @@ function getUserStatus(user: any): string {
   // We must differentiate a truly NEW user (needs onboarding) from a submitted PENDING user.
   // A submitted user will have their business details attached.
   if (rawStatus === "PENDING") {
+    const profile = user.sellerProfile || {};
     const hasBusinessDetails = !!(
-      user.businessName || 
-      user.companyName ||
-      user.sellerProfile?.businessName || 
-      user.sellerProfile?.companyName ||
-      user.sellerProfile?.gstNumber || 
-      user.sellerProfile?.panNumber
+      (user.businessName && user.businessName !== 'My Store') || 
+      (user.companyName && user.companyName !== 'My Store') ||
+      (profile.businessName && profile.businessName !== 'My Store') || 
+      (profile.companyName && profile.companyName !== 'My Store') ||
+      profile.gstNumber || 
+      profile.panNumber
     );
     
     // If they have no business details, they haven't completed onboarding yet.
