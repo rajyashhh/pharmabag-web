@@ -52,6 +52,7 @@ export interface SellerProfile {
   city?: string;
   state?: string;
   pincode?: string;
+  isVacation?: boolean;
 }
 
 export interface User {
@@ -68,7 +69,7 @@ export interface User {
   storeName?: string;
   isActive?: boolean;
   isVerified?: boolean;
-  isOnVacation?: boolean;
+  isVacation?: boolean;
   createdAt: string;
   updatedAt?: string;
 }

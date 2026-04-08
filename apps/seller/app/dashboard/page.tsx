@@ -15,7 +15,7 @@ export default function SellerDashboard() {
   const { user } = useSellerAuth();
   const { data: profile } = useSellerProfile();
   const toggleVacation = useToggleVacationMode();
-  const isOnVacation = user?.isOnVacation || (profile as any)?.isOnVacation || false;
+  const isVacation = user?.isVacation || profile?.isVacation || false;
   const sellerOrders: any[] = dashboardData?.overview?.orders || dashboardData?.recentOrders || dashboardData?.orders || [];
   const stats = dashboardData?.stats || {
     totalProducts: 0,
@@ -35,7 +35,7 @@ export default function SellerDashboard() {
   return (
     <div className="max-w-7xl mx-auto space-y-6">
       {/* Vacation Mode Banner */}
-      {isOnVacation && (
+      {isVacation && (
         <motion.div initial={{opacity:0,y:-10}} animate={{opacity:1,y:0}} className="flex items-center justify-between gap-3 p-4 rounded-xl bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800">
           <div className="flex items-center gap-3">
             <Palmtree className="h-5 w-5 text-amber-600 flex-shrink-0" aria-hidden/>
@@ -57,7 +57,7 @@ export default function SellerDashboard() {
           <p className="text-sm text-muted-foreground mt-0.5">{user?.businessName || user?.name || "Seller"}</p>
         </div>
         <div className="flex gap-2">
-          {!isOnVacation && (
+          {!isVacation && (
             <Button size="sm" variant="outline" loading={toggleVacation.isPending}
               onClick={() => { toggleVacation.mutate(true, { onSuccess: () => toast.success("Vacation mode activated! Your store is now hidden from buyers."), onError: () => toast.error("Failed to update vacation mode") }); }}
               leftIcon={<Palmtree className="h-3.5 w-3.5"/>}>

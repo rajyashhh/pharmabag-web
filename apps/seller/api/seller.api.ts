@@ -112,8 +112,8 @@ export async function requestSellerPayout() {
   return data.data ?? data;
 }
 
-export async function toggleVacationMode(isOnVacation: boolean) {
-  const { data } = await apiClient.patch<any>("/sellers/profile", { isOnVacation });
+export async function toggleVacationMode(isVacation: boolean) {
+  const { data } = await apiClient.patch<any>("/sellers/profile", { isVacation });
   return data.data ?? data.profile ?? data;
 }
 

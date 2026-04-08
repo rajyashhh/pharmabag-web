@@ -49,7 +49,7 @@ export function SellerSidebar() {
           );
         })}
       </nav>
-      {user?.isOnVacation && (
+      {user?.isVacation && (
         <div className="px-2 pb-1">
           <div className={cn("flex items-center gap-2 rounded-xl bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 transition-all", open ? "px-3 py-2" : "justify-center py-2")}>
             <Palmtree className="h-4 w-4 text-amber-600 flex-shrink-0" aria-hidden/>
