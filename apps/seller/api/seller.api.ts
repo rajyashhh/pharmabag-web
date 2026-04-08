@@ -17,11 +17,12 @@ export async function updateSellerProfile(payload: Partial<any>) {
   return data.data ?? data.profile ?? data;
 }
 
-export async function getSellerProducts() {
-  const { data } = await apiClient.get<{ data: { products: Product[] } }>("/products/seller/own");
-  const products = data.data?.products ?? [];
-  // Normalize category field: if it's an object, extract the name; if it's already a string, keep it
-  return products.map(p => {
+export async function getSellerProducts(params: { page?: number; limit?: number; search?: string } = {}) {
+  const qs = new URLSearchParams();
+  Object.entries(params).forEach(([k, v]) => { if (v) qs.set(k, String(v)); });
+  const { data } = await apiClient.get<any>(`/products/seller/own?${qs}`);
+  
+  const products = (data.data?.products ?? data.products ?? []).map((p: any) => {
     let categoryName: string | undefined = p.category as any;
     if (typeof p.category === 'object' && p.category) {
       categoryName = (p.category as any).name || (p.category as any).id || 'Unknown';
@@ -31,6 +32,8 @@ export async function getSellerProducts() {
       category: categoryName,
     };
   });
+
+  return { ...data, data: products }; // Return standardized paginated object
 }
 
 export async function createSellerProduct(input: ProductPayload | Record<string, any>) {

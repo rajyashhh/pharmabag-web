@@ -80,7 +80,7 @@ export function useUpdateSellerProfile() {
   });
 }
 
-export function useSellerProducts() { return useQuery({ queryKey: ["seller", "products"], queryFn: getSellerProducts, staleTime: 60_000, retry: 1 }); }
+export function useSellerProducts(params: { page?: number; limit?: number; search?: string; status?: string } = {}) { return useQuery({ queryKey: ["seller", "products", params], queryFn: () => getSellerProducts(params), staleTime: 60_000, retry: 1 }); }
 
 export function useCreateSellerProduct() { const qc = useQueryClient(); return useMutation({ mutationFn: createSellerProduct, onSuccess: () => void qc.invalidateQueries({ queryKey: ["seller", "products"] }) }); }
 
