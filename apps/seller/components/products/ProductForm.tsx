@@ -34,7 +34,7 @@ export function ProductForm({ defaultValues, productId }: { defaultValues?: Part
   const suggestionRef = useRef<HTMLDivElement>(null);
   const { data: suggestions = [] } = useSuggestionSearch(searchQuery, "master");
 
-  const { register, control, handleSubmit, setValue, formState: { errors, isSubmitting, isDirty }, watch } = useForm<FormValues>({
+  const { register, control, handleSubmit, setValue, getValues, formState: { errors, isSubmitting, isDirty }, watch } = useForm<FormValues>({
     resolver: zodResolver(productFormSchema) as any,
     defaultValues: defaultValues || {
       product_name: "",
@@ -58,6 +58,19 @@ export function ProductForm({ defaultValues, productId }: { defaultValues?: Part
 
   const watchMrp = watch("product_price");
   const watchGst = watch("gst_percent");
+
+  // Real-time synchronization of MOQ, Stock, and Max Qty based on MRP
+  useEffect(() => {
+    if (watchMrp && watchMrp > 0) {
+      const minRequiredMoq = Math.ceil(20000 / watchMrp);
+      const targetMaxMoq = minRequiredMoq * 5;
+
+      // Force update all fields to sync with the new MRP
+      setValue("min_order_qty", minRequiredMoq, { shouldDirty: true });
+      setValue("stock", minRequiredMoq, { shouldDirty: true });
+      setValue("max_order_qty", targetMaxMoq, { shouldDirty: true });
+    }
+  }, [watchMrp, setValue]);
 
   // Close suggestions on outside click
   useEffect(() => {
@@ -316,12 +329,25 @@ export function ProductForm({ defaultValues, productId }: { defaultValues?: Part
         <div className={`glass-card rounded-2xl p-6 space-y-4 transition-opacity duration-300 ${!isEditing && !selectedMasterId ? 'opacity-50 pointer-events-none' : ''}`}>
           <h2 className="font-semibold text-lg text-foreground border-b border-border/50 pb-2">Pricing & Stock</h2>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <Input label="MRP (₹) *" type="number" step="0.01" error={errors.product_price?.message} {...register("product_price", { valueAsNumber: true })} />
+            <Input 
+              label="MRP (₹) *" 
+              type="number" 
+              step="0.01" 
+              error={errors.product_price?.message} 
+              {...register("product_price", { valueAsNumber: true })} 
+            />
             <Input label="Current Stock *" type="number" error={errors.stock?.message} {...register("stock", { valueAsNumber: true })} />
             <Input label="Expiry Date *" type="date" error={errors.expire_date?.message} {...register("expire_date")} />
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2">
-            <Input label="Minimum Order Qty *" type="number" error={errors.min_order_qty?.message} {...register("min_order_qty", { valueAsNumber: true })} />
+            <div className="space-y-1">
+              <Input label="Minimum Order Qty *" type="number" error={errors.min_order_qty?.message} {...register("min_order_qty", { valueAsNumber: true })} />
+              {watchMrp > 0 && (
+                <p className="text-[10px] text-muted-foreground px-1">
+                  Min. {Math.ceil(20000 / watchMrp)} units (₹20k min)
+                </p>
+              )}
+            </div>
             <Input label="Maximum Order Qty *" type="number" error={errors.max_order_qty?.message} {...register("max_order_qty", { valueAsNumber: true })} />
             <Controller
               control={control}
@@ -333,7 +359,6 @@ export function ProductForm({ defaultValues, productId }: { defaultValues?: Part
                   value={String(field.value)}
                   onChange={(e) => field.onChange(Number(e.target.value))}
                   error={errors.gst_percent?.message}
-                  disabled={!!selectedMasterId}
                 />
               )}
             />

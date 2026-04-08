@@ -154,6 +154,13 @@ export const productFormSchema = z.object({
 }, {
   message: 'Special price is required',
   path: ['discount_form_details', 'specialPrice'],
-});
+}).refine((data) => {
+  // Enforce ₹20,000 minimum order value rule: MRP * MOQ >= 20,000
+  const minRequiredMoq = Math.ceil(20000 / data.product_price);
+  return data.min_order_qty >= minRequiredMoq;
+}, (data) => ({
+  message: `Minimum order quantity must be at least ${Math.ceil(20000 / data.product_price)} to meet the ₹20,000 requirement.`,
+  path: ['min_order_qty'],
+}));
 
 export type ProductFormValues = z.infer<typeof productFormSchema>;
