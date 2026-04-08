@@ -10,7 +10,7 @@ export async function getAdminDashboard() {
 // ─── Users ───────────────────────────────────────────
 export async function getAdminUsers(page = 1, limit = 50) {
   const { data } = await apiClient.get<any>(`/admin/users?page=${page}&limit=${limit}`);
-  return data;
+  return data.data;
 }
 
 export async function getPendingUsers() {
@@ -46,7 +46,7 @@ export async function unblockUser(userId: string) {
 // ─── Products ────────────────────────────────────────
 export async function getAdminProducts(page = 1, limit = 50) {
   const { data } = await apiClient.get<any>(`/admin/products?page=${page}&limit=${limit}`);
-  return data;
+  return data.data;
 }
 
 export async function getProductById(productId: string) {
@@ -82,7 +82,7 @@ export async function rejectProduct(productId: string, reason?: string) {
 // ─── Orders ──────────────────────────────────────────
 export async function getAdminOrders(page = 1, limit = 50) {
   const { data } = await apiClient.get<any>(`/admin/orders?page=${page}&limit=${limit}`);
-  return data;
+  return data.data;
 }
 
 export async function getOrderById(orderId: string) {
@@ -193,7 +193,7 @@ export async function getBuyers(params: { page?: number; limit?: number; status?
   if (params.status) qs.set("status", params.status);
   if (params.search) qs.set("search", params.search);
   const { data } = await apiClient.get<any>(`/admin/users/buyers?${qs}`);
-  return data;
+  return data.data;
 }
 
 export async function getBuyersList(page = 1, limit = 20) {
@@ -208,7 +208,7 @@ export async function getSellers(params: { page?: number; limit?: number; status
   if (params.status) qs.set("status", params.status);
   if (params.search) qs.set("search", params.search);
   const { data } = await apiClient.get<any>(`/admin/users/sellers?${qs}`);
-  return data;
+  return data.data;
 }
 
 export async function updateUser(userId: string, payload: Record<string, any>) {
@@ -241,7 +241,7 @@ export async function getAdminProductsFiltered(params: { page?: number; limit?: 
   const qs = new URLSearchParams();
   Object.entries(params).forEach(([k, v]) => { if (v) qs.set(k, String(v)); });
   const { data } = await apiClient.get<any>(`/admin/products?${qs}`);
-  return data;
+  return data.data;
 }
 
 export async function createProduct(payload: Record<string, any>) {
@@ -259,7 +259,7 @@ export async function getAdminOrdersFiltered(params: { page?: number; limit?: nu
   const qs = new URLSearchParams();
   Object.entries(params).forEach(([k, v]) => { if (v) qs.set(k, String(v)); });
   const { data } = await apiClient.get<any>(`/admin/orders?${qs}`);
-  return data;
+  return data.data;
 }
 
 export async function cancelOrder(orderId: string, reason?: string) {
