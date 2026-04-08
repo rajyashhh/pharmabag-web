@@ -1,3 +1,4 @@
+"use client";
 import { useMemo, useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Plus, Search, Edit, Trash2, Eye } from "lucide-react";

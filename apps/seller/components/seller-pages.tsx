@@ -141,7 +141,8 @@ export function OrdersContent() {
 
 export function InventoryContent() {
   const { data: products, isLoading } = useSellerProducts();
-  const inventoryItems = products || [];
+  const productsData = products as any;
+  const inventoryItems = productsData?.data ?? [];
 
   if (isLoading) return <div className="p-6 text-center text-muted-foreground">Loading inventory...</div>;
 
@@ -153,7 +154,7 @@ export function InventoryContent() {
           <table className="w-full" aria-label="Inventory">
             <thead><tr className="border-b border-border/50 bg-muted/20">{["Product","SKU","Current Stock","Min Order Qty","Status"].map(h=><th key={h} scope="col" className="px-5 py-3.5 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider whitespace-nowrap">{h}</th>)}</tr></thead>
             <tbody className="divide-y divide-border/30">
-              {inventoryItems.map((item,i)=>(
+              {inventoryItems.map((item: any, i: number)=>(
                 <motion.tr key={item.id} initial={{opacity:0,y:6}} animate={{opacity:1,y:0}} transition={{delay:i*0.07}} className="hover:bg-accent/30 transition-colors">
                   <td className="px-5 py-4 text-sm font-medium text-foreground">{item.name}</td>
                   <td className="px-5 py-4"><span className="font-mono text-xs text-muted-foreground bg-muted/30 px-1.5 py-0.5 rounded">{item.id.slice(0, 8)}</span></td>
@@ -249,7 +250,8 @@ export function PayoutsContent() {
   const { data: summary, isLoading: loadingSummary } = useSellerSettlementSummary();
   const requestPayout = useRequestPayout();
   
-  const payoutHistory: any[] = payouts || [];
+  const payoutsData = payouts as any;
+  const payoutHistory: any[] = Array.isArray(payoutsData) ? payoutsData : (payoutsData?.data ?? payoutsData?.settlements ?? []);
   const stats = summary || { balance: 0, paid: 0, pending: 0 };
 
   if (loadingPayouts || loadingSummary) return <div className="p-6 text-center text-muted-foreground">Loading payouts...</div>;
@@ -271,7 +273,7 @@ export function PayoutsContent() {
           <table className="w-full" aria-label="Payout history">
             <thead><tr className="border-b border-border/50">{["Date","Amount","Reference","Status"].map(h=><th key={h} scope="col" className="px-5 py-3.5 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">{h}</th>)}</tr></thead>
             <tbody className="divide-y divide-border/30">
-              {payoutHistory.map((p,i)=>(
+              {payoutHistory.map((p: any, i: number)=>(
                 <motion.tr key={p.id} initial={{opacity:0,y:6}} animate={{opacity:1,y:0}} transition={{delay:i*0.07}} className="hover:bg-accent/30 transition-colors">
                   <td className="px-5 py-4 text-sm text-muted-foreground">{formatDate(p.paidAt || p.createdAt)}</td>
                   <td className="px-5 py-4 text-sm font-semibold text-foreground">{formatCurrency(p.amount)}</td>
