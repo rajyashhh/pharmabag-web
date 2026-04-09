@@ -69,29 +69,20 @@ export function ProductForm({ defaultValues, productId }: { defaultValues?: Part
     const minRequiredMoq = Math.ceil(20000 / watchMrp);
     const targetMaxMoq = minRequiredMoq * 5;
 
-    // Detect if MRP itself has changed (Manual price update)
+    // Only auto-sync Min Order Qty when MRP changes
     const isPriceChanged = watchMrp !== lastMrpRef.current;
 
     if (isPriceChanged) {
-      // If price changed, we force re-sync everything to the new baseline
+      // Sync only the minimum order requirement
       setValue("min_order_qty", minRequiredMoq, { shouldDirty: true, shouldValidate: true });
-      setValue("stock", minRequiredMoq, { shouldDirty: true, shouldValidate: true });
-      setValue("max_order_qty", targetMaxMoq, { shouldDirty: true, shouldValidate: true });
       lastMrpRef.current = watchMrp;
     } else {
-      // If price is the same but values changed (Manual edit of MOQ/Stock), enforce the minimum
+      // Enforce minimum MOQ for manual edits
       if (watchMinMoq < minRequiredMoq) {
         setValue("min_order_qty", minRequiredMoq, { shouldDirty: true, shouldValidate: true });
       }
-      if (watchStock < minRequiredMoq) {
-        setValue("stock", minRequiredMoq, { shouldDirty: true, shouldValidate: true });
-      }
-      // Ensure Max is at least equal to Min
-      if (!watchMaxMoq || watchMaxMoq < watchMinMoq) {
-        setValue("max_order_qty", Math.max(watchMinMoq, targetMaxMoq), { shouldDirty: true, shouldValidate: true });
-      }
     }
-  }, [watchMrp, watchMinMoq, watchStock, watchMaxMoq, setValue]);
+  }, [watchMrp, watchMinMoq, setValue]);
 
   // Close suggestions on outside click
   useEffect(() => {
@@ -364,7 +355,7 @@ export function ProductForm({ defaultValues, productId }: { defaultValues?: Part
               error={errors.stock?.message} 
               {...register("stock", { valueAsNumber: true })} 
             />
-            <Input label="Expiry Date *" type="date" error={errors.expire_date?.message} {...register("expire_date")} />
+            <Input label="Expiry Date *" type="month" error={errors.expire_date?.message} {...register("expire_date")} />
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2">
             <div className="space-y-1">

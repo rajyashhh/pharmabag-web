@@ -102,8 +102,19 @@ export const productFormSchema = z.object({
   stock: z.number().int().min(0, 'Stock cannot be negative'),
   min_order_qty: z.number().int().min(1, 'Minimum 1 required'),
   max_order_qty: z.number().int().min(1, 'Minimum 1 required'),
-  expire_date: z.string().refine((val) => new Date(val) > new Date(), {
-    message: 'Expiry date must be in the future',
+  expire_date: z.string().refine((val) => {
+    if (!val) return false;
+    // Set selected date to the 1st of the month
+    const parts = val.split('-');
+    const date = new Date(Number(parts[0]), Number(parts[1]) - 1, 1);
+    
+    // Set comparison date to the 1st of the current month
+    const now = new Date();
+    const currentMonthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+    
+    return date >= currentMonthStart;
+  }, {
+    message: 'Expiry date must be current month or later',
   }),
   gst_percent: z.number().refine((val) => validGstValues.includes(val), {
     message: `GST must be one of: ${VALID_GST_PERCENTAGES.join(', ')}%`,
@@ -114,6 +125,9 @@ export const productFormSchema = z.object({
 }).refine((data) => data.min_order_qty <= data.max_order_qty, {
   message: 'Max order qty must be >= min order qty',
   path: ['max_order_qty'],
+}).refine((data) => data.stock >= data.min_order_qty, {
+  message: 'Current stock must be at least equal to minimum order quantity',
+  path: ['stock'],
 }).refine((data) => {
   const d = data.discount_form_details;
   // Types that require discount percent
