@@ -55,12 +55,12 @@ export default function CartDrawer({ isOpen, onClose }: { isOpen: boolean; onClo
 
   const gstRate = (config?.gst_rate ?? 12) / 100;
   const items = cart?.items ?? [];
-  const subtotal = items.reduce((acc, item: any) => {
+  const subtotal = Math.round(items.reduce((acc, item: any) => {
     const price = item.product?.price ?? item.price ?? 0;
     return acc + price * item.quantity;
-  }, 0);
+  }, 0));
   const gst = Math.round(subtotal * gstRate);
-  const total = subtotal + gst;
+  const total = Math.round(subtotal + gst);
 
   return (
     <AnimatePresence>
@@ -191,7 +191,7 @@ export default function CartDrawer({ isOpen, onClose }: { isOpen: boolean; onClo
                               <Plus className="w-3 h-3" />
                             </button>
                           </div>
-                          <p className="font-bold text-gray-900 tracking-tight">₹{(itemPrice * item.quantity).toLocaleString('en-IN')}</p>
+                          <p className="font-bold text-gray-900 tracking-tight">₹{Math.round(itemPrice * item.quantity).toLocaleString('en-IN')}</p>
                         </div>
                       </div>
                     </motion.div>
@@ -207,10 +207,6 @@ export default function CartDrawer({ isOpen, onClose }: { isOpen: boolean; onClo
                   <div className="flex justify-between text-sm font-medium text-gray-500">
                     <span>Subtotal</span>
                     <span>₹{subtotal.toLocaleString('en-IN')}</span>
-                  </div>
-                  <div className="flex justify-between text-sm font-medium text-gray-500">
-                    <span>GST ({config?.gst_rate ?? 12}%)</span>
-                    <span>₹{gst.toLocaleString('en-IN')}</span>
                   </div>
                   <div className="flex justify-between text-xl font-bold text-gray-900 pt-2 border-t border-gray-100">
                     <span>Total</span>

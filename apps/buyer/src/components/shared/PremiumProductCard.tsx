@@ -352,9 +352,9 @@ export default function PremiumProductCard({
 
           {/* Values Row */}
           <div className="flex justify-between items-center w-full min-w-0 gap-1">
-            <span className="text-[11px] xs:text-[12px] sm:text-[14px] font-medium text-gray-800 truncate flex-1 text-left">₹{mrp || price}</span>
+            <span className="text-[11px] xs:text-[12px] sm:text-[14px] font-medium text-gray-800 truncate flex-1 text-left">₹{Math.round(Number(mrp || price))}</span>
             <span className="text-[11px] xs:text-[12px] sm:text-[14px] text-transparent text-center flex-1 select-none pointer-events-none">-</span>
-            <span className="text-[11px] xs:text-[12px] sm:text-[14px] font-medium text-gray-800 truncate flex-1 text-right">₹{ptr || price}</span>
+            <span className="text-[11px] xs:text-[12px] sm:text-[14px] font-medium text-gray-800 truncate flex-1 text-right">₹{Math.round(Number(ptr || price))}</span>
           </div>
 
         </div>
