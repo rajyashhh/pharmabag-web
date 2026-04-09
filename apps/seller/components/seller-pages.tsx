@@ -153,7 +153,7 @@ export function InventoryContent() {
       <div className="glass-card rounded-2xl overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full" aria-label="Inventory">
-            <thead><tr className="border-b border-border/50 bg-muted/20">{["Product","SKU","Current Stock","Min Order Qty","Status"].map(h=><th key={h} scope="col" className="px-5 py-3.5 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider whitespace-nowrap">{h}</th>)}</tr></thead>
+            <thead><tr className="border-b border-border/50 bg-muted/20">{["Product","SKU","Current Stock","Min Order Qty","GST","Status"].map(h=><th key={h} scope="col" className="px-5 py-3.5 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider whitespace-nowrap">{h}</th>)}</tr></thead>
             <tbody className="divide-y divide-border/30">
               {inventoryItems.map((item: any, i: number) => (
                 <InventoryRow key={item.id} item={item} index={i} />
@@ -222,6 +222,7 @@ function InventoryRow({ item, index }: { item: any, index: number }) {
         </div>
       </td>
       <td className="px-5 py-4 text-sm text-muted-foreground">{item.minimumOrderQuantity ?? 1}</td>
+      <td className="px-5 py-4 text-sm text-muted-foreground">{item.gstPercent ?? item.gst ?? 0}%</td>
       <td className="px-5 py-4">
         <Badge variant={item.isActive ? "success" : "error"}>
           {item.isActive ? "Active" : "Disabled"}

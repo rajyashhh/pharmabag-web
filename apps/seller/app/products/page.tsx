@@ -78,14 +78,14 @@ export default function ProductsPage() {
                 <table className="w-full" aria-label="Products">
                   <thead>
                     <tr className="border-b border-border/50 bg-muted/20">
-                      {["Product","Category","Price","Stock","Status","Actions"].map(h=>(
+                      {["Product","Category","Price","Stock","GST","Status","Actions"].map(h=>(
                         <th key={h} scope="col" className="px-5 py-3.5 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">{h}</th>
                       ))}
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-border/30">
                     {products.length===0 ? (
-                      <tr><td colSpan={6} className="py-12 text-center text-sm text-muted-foreground">No products found</td></tr>
+                      <tr><td colSpan={7} className="py-12 text-center text-sm text-muted-foreground">No products found</td></tr>
                     ) : products.map((p: any, i: number)=>(
                       <motion.tr key={p.id} initial={{opacity:0,y:6}} animate={{opacity:1,y:0}} transition={{delay:i*0.05}} className="hover:bg-accent/30 transition-colors">
                         <td className="px-5 py-4">
@@ -111,6 +111,7 @@ export default function ProductsPage() {
                             {p.stock} units
                           </span>
                         </td>
+                        <td className="px-5 py-4 text-sm font-medium text-muted-foreground">{p.gstPercent ?? p.gst ?? 0}%</td>
                         <td className="px-5 py-4"><ApprovalBadge status={p.approvalStatus ?? "PENDING"}/></td>
                         <td className="px-5 py-4">
                           <div className="flex items-center gap-1">
