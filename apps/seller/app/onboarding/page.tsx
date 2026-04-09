@@ -37,6 +37,7 @@ export default function SellerOnboardingPage() {
   const verifyPanGst = useVerifyPanGst();
   const uploadKyc = useUploadDrugLicense();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const fileInputRef2 = useRef<HTMLInputElement>(null);
 
 
   const [formData, setFormData] = useState({
@@ -45,6 +46,8 @@ export default function SellerOnboardingPage() {
     panNumber: "",
     drugLicenseNumber: "",
     drugLicenseUrl: "",
+    drugLicenseNumber2: "",
+    drugLicenseUrl2: "",
     address: "",
     city: "",
     state: "",
@@ -57,7 +60,9 @@ export default function SellerOnboardingPage() {
   const [panVerified, setPanVerified] = useState(false);
   const [verificationResult, setVerificationResult] = useState<any>(null);
   const [uploading, setUploading] = useState(false);
+  const [uploading2, setUploading2] = useState(false);
   const [uploadedFileName, setUploadedFileName] = useState("");
+  const [uploadedFileName2, setUploadedFileName2] = useState("");
 
   // Sync existing data if any (for resuming)
   useEffect(() => {
@@ -69,6 +74,8 @@ export default function SellerOnboardingPage() {
         panNumber: existingProfile.panNumber || prev.panNumber,
         drugLicenseNumber: existingProfile.drugLicenseNumber || prev.drugLicenseNumber,
         drugLicenseUrl: existingProfile.drugLicenseUrl || prev.drugLicenseUrl,
+        drugLicenseNumber2: existingProfile.drugLicenseNumber2 || prev.drugLicenseNumber2,
+        drugLicenseUrl2: existingProfile.drugLicenseUrl2 || prev.drugLicenseUrl2,
         address: existingProfile.address || prev.address,
         city: existingProfile.city || prev.city,
         state: existingProfile.state || prev.state,
@@ -120,7 +127,7 @@ export default function SellerOnboardingPage() {
     );
   };
 
-  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>, field: "drugLicenseUrl" | "drugLicenseUrl2") => {
     const file = e.target.files?.[0];
     if (!file) return;
     if (file.size > 5 * 1024 * 1024) {
@@ -131,15 +138,22 @@ export default function SellerOnboardingPage() {
     const kycFormData = new FormData();
     kycFormData.append("file", file);
     
-    setUploading(true);
+    const isField1 = field === "drugLicenseUrl";
+    if (isField1) setUploading(true);
+    else setUploading2(true);
+
     uploadKyc.mutate(kycFormData, {
       onSuccess: (res: any) => {
-        updateField("drugLicenseUrl", res.url ?? res);
-        setUploadedFileName(file.name);
+        updateField(field, res.url ?? res);
+        if (isField1) setUploadedFileName(file.name);
+        else setUploadedFileName2(file.name);
         toast.success("Document uploaded successfully");
       },
       onError: () => toast.error("Upload failed"),
-      onSettled: () => setUploading(false),
+      onSettled: () => {
+        if (isField1) setUploading(false);
+        else setUploading2(false);
+      },
     });
   };
 
@@ -150,7 +164,11 @@ export default function SellerOnboardingPage() {
     if (!formData.gstNumber.trim()) e.gstNumber = "GST number is required";
     if (!gstVerified) e.gstNumber = "Please verify your GST number";
     
-    if (!formData.drugLicenseNumber.trim()) e.drugLicenseNumber = "Drug license is required";
+    if (!formData.drugLicenseNumber.trim()) e.drugLicenseNumber = "Drug license 1 is required";
+    if (!formData.drugLicenseNumber2.trim()) e.drugLicenseNumber2 = "Drug license 2 is required";
+    if (!formData.drugLicenseUrl) e.drugLicenseUrl = "Please upload license 1 document";
+    if (!formData.drugLicenseUrl2) e.drugLicenseUrl2 = "Please upload license 2 document";
+    
     if (!formData.address.trim()) e.address = "Address is required";
     if (!formData.city.trim()) e.city = "City is required";
     if (!formData.state) e.state = "State is required";
@@ -171,6 +189,8 @@ export default function SellerOnboardingPage() {
       companyName: formData.companyName,
       drugLicenseNumber: formData.drugLicenseNumber.toUpperCase(),
       drugLicenseUrl: formData.drugLicenseUrl,
+      drugLicenseNumber2: formData.drugLicenseNumber2 ? formData.drugLicenseNumber2.toUpperCase() : undefined,
+      drugLicenseUrl2: formData.drugLicenseUrl2 || undefined,
       address: formData.address,
       city: formData.city,
       state: formData.state,
@@ -317,20 +337,40 @@ export default function SellerOnboardingPage() {
                    <div className="p-2 bg-indigo-50 rounded-lg"><FileText className="w-5 h-5 text-indigo-600" /></div>
                    <h2 className="text-xl font-bold text-slate-900">Drug License</h2>
                 </div>
-                <Input label="Drug License Number" value={formData.drugLicenseNumber} onChange={(e) => updateField("drugLicenseNumber", e.target.value.toUpperCase())} placeholder="e.g. DL-MH-2024-005678" className="h-14 rounded-2xl uppercase" error={errors.drugLicenseNumber} />
+                <div className="grid grid-cols-2 gap-4">
+                  <Input label="License Number 1 (Form 20B)" value={formData.drugLicenseNumber} onChange={(e) => updateField("drugLicenseNumber", e.target.value.toUpperCase())} placeholder="e.g. DL-MH-12345" className="h-14 rounded-2xl uppercase" error={errors.drugLicenseNumber} />
+                  <Input label="License Number 2 (Form 21B)" value={formData.drugLicenseNumber2} onChange={(e) => updateField("drugLicenseNumber2", e.target.value.toUpperCase())} placeholder="e.g. DL-MH-12346" className="h-14 rounded-2xl uppercase" error={errors.drugLicenseNumber2} />
+                </div>
                 
-                <div>
-                  <label className="block text-sm font-bold text-slate-700 mb-2">Upload License Document (Optional)</label>
-                  <input ref={fileInputRef} type="file" accept=".pdf,.jpg,.jpeg,.png" onChange={handleFileUpload} className="hidden" />
-                  <button onClick={() => fileInputRef.current?.click()} disabled={uploading} className="w-full flex flex-col items-center justify-center p-8 border-2 border-dashed border-slate-200 rounded-[24px] hover:border-primary/50 hover:bg-slate-50 transition-all text-slate-500 group">
-                    {uploading ? (
-                      <><Loader2 className="w-8 h-8 animate-spin mb-2 text-primary" /> <span className="font-bold">Uploading...</span></>
-                    ) : uploadedFileName ? (
-                      <><CheckCircle2 className="w-8 h-8 text-emerald-500 mb-2" /> <span className="font-bold text-slate-900">{uploadedFileName}</span></>
-                    ) : (
-                      <><Upload className="w-8 h-8 mb-2 group-hover:text-primary transition-colors" /> <span className="font-bold group-hover:text-slate-900">Click to upload document</span> <span className="text-xs mt-1">PDF, JPG, PNG up to 5MB</span></>
-                    )}
-                  </button>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-bold text-slate-700 mb-2">Upload License 1</label>
+                    <input ref={fileInputRef} type="file" accept=".pdf,.jpg,.jpeg,.png" onChange={(e) => handleFileUpload(e, "drugLicenseUrl")} className="hidden" />
+                    <button onClick={() => fileInputRef.current?.click()} disabled={uploading} className={`w-full flex flex-col items-center justify-center p-6 border-2 border-dashed ${errors.drugLicenseUrl ? 'border-red-400 bg-red-50' : 'border-slate-200'} rounded-[24px] hover:border-primary/50 hover:bg-slate-50 transition-all text-slate-500 group`}>
+                      {uploading ? (
+                        <><Loader2 className="w-6 h-6 animate-spin mb-1 text-primary" /> <span className="font-bold text-xs">Uploading...</span></>
+                      ) : uploadedFileName ? (
+                        <><CheckCircle2 className="w-6 h-6 text-emerald-500 mb-1" /> <span className="font-bold text-xs text-slate-900 line-clamp-1">{uploadedFileName}</span></>
+                      ) : (
+                        <><Upload className="w-6 h-6 mb-1 group-hover:text-primary transition-colors" /> <span className="font-bold text-xs group-hover:text-slate-900 text-center">Click to upload 1</span></>
+                      )}
+                    </button>
+                    {errors.drugLicenseUrl && <p className="text-[10px] text-red-500 mt-1 font-bold">{errors.drugLicenseUrl}</p>}
+                  </div>
+                  <div>
+                    <label className="block text-sm font-bold text-slate-700 mb-2">Upload License 2</label>
+                    <input ref={fileInputRef2} type="file" accept=".pdf,.jpg,.jpeg,.png" onChange={(e) => handleFileUpload(e, "drugLicenseUrl2")} className="hidden" />
+                    <button onClick={() => fileInputRef2.current?.click()} disabled={uploading2} className={`w-full flex flex-col items-center justify-center p-6 border-2 border-dashed ${errors.drugLicenseUrl2 ? 'border-red-400 bg-red-50' : 'border-slate-200'} rounded-[24px] hover:border-primary/50 hover:bg-slate-50 transition-all text-slate-500 group`}>
+                      {uploading2 ? (
+                        <><Loader2 className="w-6 h-6 animate-spin mb-1 text-primary" /> <span className="font-bold text-xs">Uploading...</span></>
+                      ) : uploadedFileName2 ? (
+                        <><CheckCircle2 className="w-6 h-6 text-emerald-500 mb-1" /> <span className="font-bold text-xs text-slate-900 line-clamp-1">{uploadedFileName2}</span></>
+                      ) : (
+                        <><Upload className="w-6 h-6 mb-1 group-hover:text-primary transition-colors" /> <span className="font-bold text-xs group-hover:text-slate-900 text-center">Click to upload 2</span></>
+                      )}
+                    </button>
+                    {errors.drugLicenseUrl2 && <p className="text-[10px] text-red-500 mt-1 font-bold">{errors.drugLicenseUrl2}</p>}
+                  </div>
                 </div>
               </div>
 

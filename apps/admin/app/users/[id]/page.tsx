@@ -148,21 +148,43 @@ export default function UserDetailPage() {
                 <InfoRow icon={Building2} label="Company" value={sp.companyName ?? sp.businessName ?? "—"} />
                 <InfoRow icon={FileText} label="GST Number" value={sp.gstNumber ?? "—"} mono />
                 <InfoRow icon={FileText} label="PAN Number" value={sp.panNumber ?? "—"} mono />
-                <InfoRow icon={FileText} label="Drug License" value={sp.drugLicenseNumber ?? "—"} mono />
+                <InfoRow icon={FileText} label="Drug License 1" value={sp.drugLicenseNumber ?? "—"} mono />
+                <InfoRow icon={FileText} label="Drug License 2" value={sp.drugLicenseNumber2 ?? "—"} mono />
+                
                 {sp.drugLicenseUrl && (
-                  <div className="space-y-1 sm:col-span-2">
+                  <div className="space-y-1">
                     <div className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground uppercase">
-                      <Image className="h-3 w-3" />Drug License Document
+                      <Image className="h-3 w-3" />License 1 Document
                     </div>
                     <div className="mt-2">
                       {/\.(jpe?g|png|webp)$/i.test(sp.drugLicenseUrl) ? (
                         <a href={getFullUrl(sp.drugLicenseUrl)} target="_blank" rel="noopener noreferrer" className="block">
-                          <img src={getFullUrl(sp.drugLicenseUrl)} alt="Drug License" className="max-w-xs max-h-48 rounded-xl border border-border object-contain" />
+                          <img src={getFullUrl(sp.drugLicenseUrl)} alt="Drug License 1" className="max-w-xs max-h-48 rounded-xl border border-border object-contain" />
                         </a>
                       ) : (
                         <a href={getFullUrl(sp.drugLicenseUrl)} target="_blank" rel="noopener noreferrer"
                           className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-border bg-accent/30 text-sm font-medium text-foreground hover:bg-accent transition-colors">
-                          <FileText className="h-4 w-4" />View Drug License Document<ExternalLink className="h-3.5 w-3.5 text-muted-foreground" />
+                          <FileText className="h-4 w-4" />View License 1<ExternalLink className="h-3.5 w-3.5 text-muted-foreground" />
+                        </a>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {sp.drugLicenseUrl2 && (
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground uppercase">
+                      <Image className="h-3 w-3" />License 2 Document
+                    </div>
+                    <div className="mt-2">
+                      {/\.(jpe?g|png|webp)$/i.test(sp.drugLicenseUrl2) ? (
+                        <a href={getFullUrl(sp.drugLicenseUrl2)} target="_blank" rel="noopener noreferrer" className="block">
+                          <img src={getFullUrl(sp.drugLicenseUrl2)} alt="Drug License 2" className="max-w-xs max-h-48 rounded-xl border border-border object-contain" />
+                        </a>
+                      ) : (
+                        <a href={getFullUrl(sp.drugLicenseUrl2)} target="_blank" rel="noopener noreferrer"
+                          className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-border bg-accent/30 text-sm font-medium text-foreground hover:bg-accent transition-colors">
+                          <FileText className="h-4 w-4" />View License 2<ExternalLink className="h-3.5 w-3.5 text-muted-foreground" />
                         </a>
                       )}
                     </div>
@@ -177,21 +199,43 @@ export default function UserDetailPage() {
                 <InfoRow icon={Building2} label="Legal / Business Name" value={bp?.legalName ?? user.businessName ?? user.name ?? "—"} />
                 <InfoRow icon={FileText} label="GST Number" value={bp?.gstNumber ?? user.gstNumber ?? "—"} mono />
                 <InfoRow icon={FileText} label="PAN Number" value={bp?.panNumber ?? user.panNumber ?? "—"} mono />
-                <InfoRow icon={FileText} label="Drug License No." value={bp?.drugLicenseNumber ?? user.drugLicenseNumber ?? "—"} mono />
+                <InfoRow icon={FileText} label="Drug License 1" value={bp?.drugLicenseNumber ?? user.drugLicenseNumber ?? "—"} mono />
+                <InfoRow icon={FileText} label="Drug License 2" value={bp?.drugLicenseNumber2 ?? user.drugLicenseNumber2 ?? "—"} mono />
+                
                 {(bp?.drugLicenseUrl ?? user.drugLicenseUrl) && (
-                  <div className="space-y-1 sm:col-span-2">
+                  <div className="space-y-1">
                     <div className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground uppercase">
-                      <Image className="h-3 w-3" />Drug License Document
+                      <Image className="h-3 w-3" />License 1 Document
                     </div>
                     <div className="mt-2">
                       {/\.(jpe?g|png|webp)$/i.test(bp?.drugLicenseUrl ?? user.drugLicenseUrl ?? '') ? (
                         <a href={getFullUrl(bp?.drugLicenseUrl ?? user.drugLicenseUrl ?? "")} target="_blank" rel="noopener noreferrer" className="block">
-                          <img src={getFullUrl(bp?.drugLicenseUrl ?? user.drugLicenseUrl ?? "")} alt="Drug License" className="max-w-xs max-h-48 rounded-xl border border-border object-contain" />
+                          <img src={getFullUrl(bp?.drugLicenseUrl ?? user.drugLicenseUrl ?? "")} alt="Drug License 1" className="max-w-xs max-h-48 rounded-xl border border-border object-contain" />
                         </a>
                       ) : (
                         <a href={getFullUrl(bp?.drugLicenseUrl ?? user.drugLicenseUrl ?? "")} target="_blank" rel="noopener noreferrer"
                           className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-border bg-accent/30 text-sm font-medium text-foreground hover:bg-accent transition-colors">
-                          <FileText className="h-4 w-4" />View Drug License Document<ExternalLink className="h-3.5 w-3.5 text-muted-foreground" />
+                          <FileText className="h-4 w-4" />View License 1<ExternalLink className="h-3.5 w-3.5 text-muted-foreground" />
+                        </a>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {(bp?.drugLicenseUrl2 ?? user.drugLicenseUrl2) && (
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground uppercase">
+                      <Image className="h-3 w-3" />License 2 Document
+                    </div>
+                    <div className="mt-2">
+                      {/\.(jpe?g|png|webp)$/i.test(bp?.drugLicenseUrl2 ?? user.drugLicenseUrl2 ?? '') ? (
+                        <a href={getFullUrl(bp?.drugLicenseUrl2 ?? user.drugLicenseUrl2 ?? "")} target="_blank" rel="noopener noreferrer" className="block">
+                          <img src={getFullUrl(bp?.drugLicenseUrl2 ?? user.drugLicenseUrl2 ?? "")} alt="Drug License 2" className="max-w-xs max-h-48 rounded-xl border border-border object-contain" />
+                        </a>
+                      ) : (
+                        <a href={getFullUrl(bp?.drugLicenseUrl2 ?? user.drugLicenseUrl2 ?? "")} target="_blank" rel="noopener noreferrer"
+                          className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-border bg-accent/30 text-sm font-medium text-foreground hover:bg-accent transition-colors">
+                          <FileText className="h-4 w-4" />View License 2<ExternalLink className="h-3.5 w-3.5 text-muted-foreground" />
                         </a>
                       )}
                     </div>
