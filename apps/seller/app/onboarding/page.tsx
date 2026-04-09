@@ -303,8 +303,8 @@ export default function SellerOnboardingPage() {
                   <div className="flex-1">
                     <Input label="GST Number" value={formData.gstNumber} onChange={(e) => { updateField("gstNumber", e.target.value.toUpperCase()); setGstVerified(false); }} placeholder="e.g. 27AABCU9603R1ZM" maxLength={15} required className="uppercase h-14 rounded-2xl" error={errors.gstNumber} />
                   </div>
-                  <Button type="button" variant="secondary" onClick={() => handleVerify("GST")} disabled={verifyPanGst.isPending || gstVerified} className="h-14 px-6 rounded-2xl font-bold mb-0">
-                    {gstVerified ? <CheckCircle2 className="h-5 w-5 text-green-500" /> : verifyPanGst.isPending ? <Loader2 className="h-5 w-5 animate-spin" /> : "Verify GST"}
+                  <Button type="button" variant="primary" onClick={() => handleVerify("GST")} disabled={verifyPanGst.isPending || gstVerified} className="h-14 px-6 rounded-2xl font-bold mb-0 shadow-lg shadow-primary/10">
+                    {gstVerified ? <CheckCircle2 className="h-5 w-5 text-white" /> : verifyPanGst.isPending ? <Loader2 className="h-5 w-5 animate-spin" /> : "Verify GST"}
                   </Button>
                 </div>
               </div>
@@ -315,8 +315,8 @@ export default function SellerOnboardingPage() {
                   <div className="flex-1">
                     <Input label="PAN Number" value={formData.panNumber} onChange={(e) => { updateField("panNumber", e.target.value.toUpperCase()); setPanVerified(false); }} placeholder="e.g. ABCDE1234F" maxLength={10} required className="uppercase h-14 rounded-2xl" error={errors.panNumber} />
                   </div>
-                  <Button type="button" variant="secondary" onClick={() => handleVerify("PAN")} disabled={verifyPanGst.isPending || panVerified} className="h-14 px-6 rounded-2xl font-bold mb-0">
-                    {panVerified ? <CheckCircle2 className="h-5 w-5 text-green-500" /> : verifyPanGst.isPending ? <Loader2 className="h-5 w-5 animate-spin" /> : "Verify PAN"}
+                  <Button type="button" variant="primary" onClick={() => handleVerify("PAN")} disabled={verifyPanGst.isPending || panVerified} className="h-14 px-6 rounded-2xl font-bold mb-0 shadow-lg shadow-primary/10">
+                    {panVerified ? <CheckCircle2 className="h-5 w-5 text-white" /> : verifyPanGst.isPending ? <Loader2 className="h-5 w-5 animate-spin" /> : "Verify PAN"}
                   </Button>
                 </div>
               </div>
