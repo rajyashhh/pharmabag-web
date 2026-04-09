@@ -98,7 +98,7 @@ export async function updateAdminOrderStatus(orderId: string, status: string) {
 // ─── Payments ────────────────────────────────────────
 export async function getPayments(page = 1, limit = 50) {
   const { data } = await apiClient.get<any>(`/admin/payments?page=${page}&limit=${limit}`);
-  return data;
+  return data.data;
 }
 
 export async function confirmPayment(paymentId: string) {
@@ -114,7 +114,7 @@ export async function rejectPayment(paymentId: string) {
 // ─── Settlements ─────────────────────────────────────
 export async function getSettlements(page = 1, limit = 50) {
   const { data } = await apiClient.get<any>(`/admin/settlements?page=${page}&limit=${limit}`);
-  return data;
+  return data.data;
 }
 
 export async function markSettlementPaid(settlementId: string, payoutReference: string) {
