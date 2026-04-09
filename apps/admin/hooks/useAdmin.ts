@@ -17,7 +17,7 @@ import {
   getReferralCodes, createReferralCode, deleteReferralCode,
   broadcastNotification, getNotificationHistory, getMyBroadcastHistory, sendUserNotification,
   getPlatformSettings, updatePlatformSettings,
-  getRevenueChart, getOrdersChart, getTopProducts, getTopSellers,
+  getRevenueChart, getOrdersChart, getTopProducts, getTopSellers, getPresignedUrl,
 } from "@/api/admin.api";
 import { useAdminAuth } from "@/store";
 
@@ -443,3 +443,13 @@ export function useRevenueChart(period?: string) { return useQuery({ queryKey: [
 export function useOrdersChart(period?: string) { return useQuery({ queryKey: ["admin", "analytics", "orders", period], queryFn: () => getOrdersChart({ period }), staleTime: 120_000, retry: 1 }); }
 export function useTopProducts(limit?: number) { return useQuery({ queryKey: ["admin", "analytics", "top-products", limit], queryFn: () => getTopProducts({ limit }), staleTime: 120_000, retry: 1 }); }
 export function useTopSellers(limit?: number) { return useQuery({ queryKey: ["admin", "analytics", "top-sellers", limit], queryFn: () => getTopSellers({ limit }), staleTime: 120_000, retry: 1 }); }
+
+// ─── Storage ──────────────────────────────────────────
+export function usePresignedUrl(key: string | null | undefined) {
+  return useQuery({
+    queryKey: ["admin", "presigned-url", key],
+    queryFn: () => getPresignedUrl(key!),
+    enabled: !!key && !key.startsWith("http") && !key.startsWith("data:"),
+    staleTime: 300_000, // 5 minutes
+  });
+}

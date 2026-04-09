@@ -449,3 +449,8 @@ export async function getTopSellers(params: { limit?: number } = {}) {
   const { data } = await apiClient.get<{ data: any }>(`/admin/analytics/top-sellers${qs}`);
   return data.data;
 }
+// ─── Storage ──────────────────────────────────────────
+export async function getPresignedUrl(key: string) {
+  const { data } = await apiClient.post<{ data: { url: string } }>("/storage/view", { key });
+  return data.data.url;
+}

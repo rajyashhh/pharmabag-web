@@ -144,7 +144,8 @@ export default function SellerOnboardingPage() {
 
     uploadKyc.mutate(kycFormData, {
       onSuccess: (res: any) => {
-        updateField(field, res.url ?? res);
+        const urlOrKey = res.url || res.key || (typeof res === 'string' ? res : '');
+        updateField(field, urlOrKey);
         if (isField1) setUploadedFileName(file.name);
         else setUploadedFileName2(file.name);
         toast.success("Document uploaded successfully");

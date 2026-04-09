@@ -7,7 +7,7 @@ import { Button, Input, Badge, Pagination } from "@/components/ui";
 import { cn } from "@/lib/utils";
 import toast from "react-hot-toast";
 import Link from "next/link";
-import { useAdminUsers, useAdminSellers, useAffirmUserStatus, useUserById, useUpdateGstPanStatus, useDeleteUser } from "@/hooks/useAdmin";
+import { useAdminUsers, useAdminSellers, useAffirmUserStatus, useUserById, useUpdateGstPanStatus, useDeleteUser, usePresignedUrl } from "@/hooks/useAdmin";
 
 type RoleFilter = "all" | "BUYER" | "SELLER" | "ADMIN";
 type StatusFilter = "all" | "APPROVED" | "PENDING" | "BLOCKED" | "VACATION";
@@ -18,6 +18,47 @@ const getFullUrl = (url: string) => {
   const base = (process.env.NEXT_PUBLIC_API_BASE_URL ?? "").replace(/\/api$/, "");
   return `${base}${url.startsWith("/") ? "" : "/"}${url}`;
 };
+
+function SecureDocViewer({ url, label }: { url: string; label: string }) {
+  const { data: presignedUrl, isLoading } = usePresignedUrl(url);
+  const displayUrl = presignedUrl || getFullUrl(url);
+  const isImage = /\.(jpe?g|png|webp)$/i.test(url);
+
+  if (isLoading) return <div className="h-20 w-32 bg-muted/50 animate-pulse rounded-lg" />;
+
+  return (
+    <div className="space-y-1">
+      <div className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground uppercase">
+        <FileText className="h-3 w-3" /> {label}
+      </div>
+      {isImage ? (
+        <a href={displayUrl} target="_blank" rel="noopener noreferrer" className="block w-fit">
+          <img
+            src={displayUrl}
+            alt={label}
+            className="max-w-[200px] max-h-32 rounded-lg border border-border object-contain hover:border-primary/50 transition-colors"
+            onError={(e) => {
+              // Fallback if presigned URL fails or is expired
+              console.error("Image load failed", displayUrl);
+            }}
+          />
+        </a>
+      ) : (
+        <a href={displayUrl} target="_blank" rel="noopener noreferrer"
+           className="inline-flex items-center gap-1.5 text-sm text-primary font-bold hover:underline">
+          View {label} <ExternalLink className="h-3 w-3" />
+        </a>
+      )}
+      <div className="mt-1">
+        <a href={displayUrl} target="_blank" rel="noopener noreferrer"
+           className="text-[10px] text-muted-foreground hover:text-primary transition-colors flex items-center gap-1 break-all font-mono">
+          S3: {url}
+        </a>
+      </div>
+    </div>
+  );
+}
+
 
 function BuyerDetails({ userId }: { userId: string }) {
   const { data: user, isLoading } = useUserById(userId);
@@ -52,57 +93,8 @@ function BuyerDetails({ userId }: { userId: string }) {
         {/* License Documents Row */}
         <div className="lg:col-span-3">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-8 pt-4 border-t border-border/50">
-            {bp.drugLicenseUrl && (() => {
-              const url = typeof bp.drugLicenseUrl === 'object' ? bp.drugLicenseUrl.url : bp.drugLicenseUrl;
-              return (
-                <div className="space-y-1">
-                  <div className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground uppercase"><FileText className="h-3 w-3" />License 1 Document</div>
-                  {/\.(jpe?g|png|webp)$/i.test(url) ? (
-                    <div className="space-y-2">
-                      <a href={getFullUrl(url)} target="_blank" rel="noopener noreferrer" className="block w-fit">
-                        <img src={getFullUrl(url)} alt="Drug License 1" className="max-w-[200px] max-h-32 rounded-lg border border-border object-contain hover:border-primary/50 transition-colors" />
-                      </a>
-                    </div>
-                  ) : (
-                    <a href={getFullUrl(url)} target="_blank" rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1.5 text-sm text-primary font-bold hover:underline">
-                      View Document 1 <ExternalLink className="h-3 w-3" />
-                    </a>
-                  )}
-                  <div className="mt-1">
-                    <a href={getFullUrl(url)} target="_blank" rel="noopener noreferrer" className="text-[10px] text-muted-foreground hover:text-primary transition-colors flex items-center gap-1 break-all font-mono">
-                      S3: {url}
-                    </a>
-                  </div>
-                </div>
-              );
-            })()}
-
-            {bp.drugLicenseUrl2 && (() => {
-              const url2 = typeof bp.drugLicenseUrl2 === 'object' ? bp.drugLicenseUrl2.url : bp.drugLicenseUrl2;
-              return (
-                <div className="space-y-1">
-                  <div className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground uppercase"><FileText className="h-3 w-3" />License 2 Document</div>
-                  {/\.(jpe?g|png|webp)$/i.test(url2) ? (
-                    <div className="space-y-2">
-                      <a href={getFullUrl(url2)} target="_blank" rel="noopener noreferrer" className="block w-fit">
-                        <img src={getFullUrl(url2)} alt="Drug License 2" className="max-w-[200px] max-h-32 rounded-lg border border-border object-contain hover:border-primary/50 transition-colors" />
-                      </a>
-                    </div>
-                  ) : (
-                    <a href={getFullUrl(url2)} target="_blank" rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1.5 text-sm text-primary font-bold hover:underline">
-                      View Document 2 <ExternalLink className="h-3 w-3" />
-                    </a>
-                  )}
-                  <div className="mt-1">
-                    <a href={getFullUrl(url2)} target="_blank" rel="noopener noreferrer" className="text-[10px] text-muted-foreground hover:text-primary transition-colors flex items-center gap-1 break-all font-mono">
-                      S3: {url2}
-                    </a>
-                  </div>
-                </div>
-              );
-            })()}
+            {bp.drugLicenseUrl && <SecureDocViewer url={typeof bp.drugLicenseUrl === 'object' ? bp.drugLicenseUrl.url : bp.drugLicenseUrl} label="License 1 (20B)" />}
+            {bp.drugLicenseUrl2 && <SecureDocViewer url={typeof bp.drugLicenseUrl2 === 'object' ? bp.drugLicenseUrl2.url : bp.drugLicenseUrl2} label="License 2 (21B)" />}
           </div>
         </div>
         <div className="space-y-1 sm:col-span-2">
@@ -169,57 +161,8 @@ function SellerDetails({ userId }: { userId: string }) {
         {/* License Documents Row */}
         <div className="lg:col-span-3">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-8 pt-4 border-t border-border/50">
-            {sp.drugLicenseUrl && (() => {
-              const url = typeof sp.drugLicenseUrl === 'object' ? sp.drugLicenseUrl.url : sp.drugLicenseUrl;
-              return (
-                <div className="space-y-1">
-                  <div className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground uppercase"><FileText className="h-3 w-3" />License 1 Document</div>
-                  {/\.(jpe?g|png|webp)$/i.test(url) ? (
-                    <div className="space-y-2">
-                      <a href={getFullUrl(url)} target="_blank" rel="noopener noreferrer" className="block w-fit">
-                        <img src={getFullUrl(url)} alt="Drug License 1" className="max-w-[200px] max-h-32 rounded-lg border border-border object-contain hover:border-primary/50 transition-colors" />
-                      </a>
-                    </div>
-                  ) : (
-                    <a href={getFullUrl(url)} target="_blank" rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1.5 text-sm text-primary font-bold hover:underline">
-                      View Document 1 <ExternalLink className="h-3 w-3" />
-                    </a>
-                  )}
-                  <div className="mt-1">
-                    <a href={getFullUrl(url)} target="_blank" rel="noopener noreferrer" className="text-[10px] text-muted-foreground hover:text-primary transition-colors flex items-center gap-1 break-all font-mono">
-                      S3: {url}
-                    </a>
-                  </div>
-                </div>
-              );
-            })()}
-
-            {sp.drugLicenseUrl2 && (() => {
-              const url2 = typeof sp.drugLicenseUrl2 === 'object' ? sp.drugLicenseUrl2.url : sp.drugLicenseUrl2;
-              return (
-                <div className="space-y-1">
-                  <div className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground uppercase"><FileText className="h-3 w-3" />License 2 Document</div>
-                  {/\.(jpe?g|png|webp)$/i.test(url2) ? (
-                    <div className="space-y-2">
-                      <a href={getFullUrl(url2)} target="_blank" rel="noopener noreferrer" className="block w-fit">
-                        <img src={getFullUrl(url2)} alt="Drug License 2" className="max-w-[200px] max-h-32 rounded-lg border border-border object-contain hover:border-primary/50 transition-colors" />
-                      </a>
-                    </div>
-                  ) : (
-                    <a href={getFullUrl(url2)} target="_blank" rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1.5 text-sm text-primary font-bold hover:underline">
-                      View Document 2 <ExternalLink className="h-3 w-3" />
-                    </a>
-                  )}
-                  <div className="mt-1">
-                    <a href={getFullUrl(url2)} target="_blank" rel="noopener noreferrer" className="text-[10px] text-muted-foreground hover:text-primary transition-colors flex items-center gap-1 break-all font-mono">
-                      S3: {url2}
-                    </a>
-                  </div>
-                </div>
-              );
-            })()}
+            {sp.drugLicenseUrl && <SecureDocViewer url={typeof sp.drugLicenseUrl === 'object' ? sp.drugLicenseUrl.url : sp.drugLicenseUrl} label="License 1 (20B)" />}
+            {sp.drugLicenseUrl2 && <SecureDocViewer url={typeof sp.drugLicenseUrl2 === 'object' ? sp.drugLicenseUrl2.url : sp.drugLicenseUrl2} label="License 2 (21B)" />}
           </div>
         </div>
 
