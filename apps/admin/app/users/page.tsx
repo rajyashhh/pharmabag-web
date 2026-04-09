@@ -19,7 +19,7 @@ const getFullUrl = (url: string) => {
   return `${base}${url.startsWith("/") ? "" : "/"}${url}`;
 };
 
-function SecureDocViewer({ url, label }: { url: string; label: string }) {
+function SecureDocViewer({ url, label, number }: { url: string; label: string; number?: string }) {
   const { data: presignedUrl, isLoading } = usePresignedUrl(url);
   const displayUrl = presignedUrl || getFullUrl(url);
   const isImage = /\.(jpe?g|png|webp)$/i.test(url);
@@ -27,9 +27,12 @@ function SecureDocViewer({ url, label }: { url: string; label: string }) {
   if (isLoading) return <div className="h-20 w-32 bg-muted/50 animate-pulse rounded-lg" />;
 
   return (
-    <div className="space-y-1">
-      <div className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground uppercase">
-        <FileText className="h-3 w-3" /> {label}
+    <div className="space-y-2">
+      <div className="space-y-1">
+        <div className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground uppercase">
+          <FileText className="h-3 w-3" /> {label}
+        </div>
+        {number && <p className="text-sm font-mono text-foreground">{number}</p>}
       </div>
       {isImage ? (
         <a href={displayUrl} target="_blank" rel="noopener noreferrer" className="block w-fit">
@@ -38,7 +41,6 @@ function SecureDocViewer({ url, label }: { url: string; label: string }) {
             alt={label}
             className="max-w-[200px] max-h-32 rounded-lg border border-border object-contain hover:border-primary/50 transition-colors"
             onError={(e) => {
-              // Fallback if presigned URL fails or is expired
               console.error("Image load failed", displayUrl);
             }}
           />
@@ -49,12 +51,6 @@ function SecureDocViewer({ url, label }: { url: string; label: string }) {
           View {label} <ExternalLink className="h-3 w-3" />
         </a>
       )}
-      <div className="mt-1">
-        <a href={displayUrl} target="_blank" rel="noopener noreferrer"
-           className="text-[10px] text-muted-foreground hover:text-primary transition-colors flex items-center gap-1 break-all font-mono">
-          S3: {url}
-        </a>
-      </div>
     </div>
   );
 }
@@ -80,23 +76,21 @@ function BuyerDetails({ userId }: { userId: string }) {
           <div className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground uppercase"><FileText className="h-3 w-3" />PAN Number</div>
           <p className="text-sm font-mono text-foreground">{bp.panNumber || "—"}</p>
         </div>
-        <div className="space-y-1">
-          <div className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground uppercase"><FileText className="h-3 w-3" />Drug License 1 (20B)</div>
-          <p className="text-sm font-mono text-foreground">{bp.drugLicenseNumber || "—"}</p>
-        </div>
-        <div className="space-y-1">
-          <div className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground uppercase"><FileText className="h-3 w-3" />Drug License 2 (21B)</div>
-          <p className="text-sm font-mono text-foreground">{bp.drugLicenseNumber2 || "—"}</p>
-        </div>
-        <div /> {/* Spacer for alignment */}
 
-        {/* License Documents Row */}
-        <div className="lg:col-span-3">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-8 pt-4 border-t border-border/50">
-            {bp.drugLicenseUrl && <SecureDocViewer url={typeof bp.drugLicenseUrl === 'object' ? bp.drugLicenseUrl.url : bp.drugLicenseUrl} label="License 1 (20B)" />}
-            {bp.drugLicenseUrl2 && <SecureDocViewer url={typeof bp.drugLicenseUrl2 === 'object' ? bp.drugLicenseUrl2.url : bp.drugLicenseUrl2} label="License 2 (21B)" />}
-          </div>
-        </div>
+        {bp.drugLicenseUrl && (
+          <SecureDocViewer 
+            url={typeof bp.drugLicenseUrl === 'object' ? bp.drugLicenseUrl.url : bp.drugLicenseUrl} 
+            label="License 1 (20B)" 
+            number={bp.drugLicenseNumber} 
+          />
+        )}
+        {bp.drugLicenseUrl2 && (
+          <SecureDocViewer 
+            url={typeof bp.drugLicenseUrl2 === 'object' ? bp.drugLicenseUrl2.url : bp.drugLicenseUrl2} 
+            label="License 2 (21B)" 
+            number={bp.drugLicenseNumber2} 
+          />
+        )}
         <div className="space-y-1 sm:col-span-2">
           <div className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground uppercase"><MapPin className="h-3 w-3" />Address</div>
           <p className="text-sm text-foreground">{
@@ -148,23 +142,21 @@ function SellerDetails({ userId }: { userId: string }) {
           <div className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground uppercase"><FileText className="h-3 w-3" />PAN Number</div>
           <p className="text-sm font-mono text-foreground">{sp.panNumber || "—"}</p>
         </div>
-        <div className="space-y-1">
-          <div className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground uppercase"><FileText className="h-3 w-3" />Drug License 1 (20B)</div>
-          <p className="text-sm font-mono text-foreground">{sp.drugLicenseNumber || "—"}</p>
-        </div>
-        <div className="space-y-1">
-          <div className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground uppercase"><FileText className="h-3 w-3" />Drug License 2 (21B)</div>
-          <p className="text-sm font-mono text-foreground">{sp.drugLicenseNumber2 || "—"}</p>
-        </div>
-        <div /> {/* Spacer */}
 
-        {/* License Documents Row */}
-        <div className="lg:col-span-3">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-8 pt-4 border-t border-border/50">
-            {sp.drugLicenseUrl && <SecureDocViewer url={typeof sp.drugLicenseUrl === 'object' ? sp.drugLicenseUrl.url : sp.drugLicenseUrl} label="License 1 (20B)" />}
-            {sp.drugLicenseUrl2 && <SecureDocViewer url={typeof sp.drugLicenseUrl2 === 'object' ? sp.drugLicenseUrl2.url : sp.drugLicenseUrl2} label="License 2 (21B)" />}
-          </div>
-        </div>
+        {sp.drugLicenseUrl && (
+          <SecureDocViewer 
+            url={typeof sp.drugLicenseUrl === 'object' ? sp.drugLicenseUrl.url : sp.drugLicenseUrl} 
+            label="License 1 (20B)" 
+            number={sp.drugLicenseNumber} 
+          />
+        )}
+        {sp.drugLicenseUrl2 && (
+          <SecureDocViewer 
+            url={typeof sp.drugLicenseUrl2 === 'object' ? sp.drugLicenseUrl2.url : sp.drugLicenseUrl2} 
+            label="License 2 (21B)" 
+            number={sp.drugLicenseNumber2} 
+          />
+        )}
 
         <div className="space-y-1 sm:col-span-2">
           <div className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground uppercase">
