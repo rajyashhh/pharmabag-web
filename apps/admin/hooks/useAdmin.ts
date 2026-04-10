@@ -45,7 +45,19 @@ export function useVerifyAdminOtp() {
 
 // ─── Data Hooks ──────────────────────────────────────
 
-export function useAdminMe() { return useQuery({ queryKey: ["admin", "me"], queryFn: getCurrentUser, enabled: false, staleTime: 60_000, retry: 1 }); }
+export function useAdminMe() {
+  const { setUser } = useAdminAuth();
+  return useQuery({
+    queryKey: ["admin", "me"],
+    queryFn: async () => {
+      const data = await getCurrentUser();
+      const user = (data as any).data ?? data;
+      if (user) setUser(user);
+      return user;
+    },
+    staleTime: 60_000,
+  });
+}
 
 export function useAdminDashboard() { return useQuery({ queryKey: ["admin", "dashboard"], queryFn: getAdminDashboard, staleTime: 60_000, retry: 1 }); }
 

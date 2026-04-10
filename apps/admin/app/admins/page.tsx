@@ -166,27 +166,44 @@ export default function AdminManagementPage() {
           <Input label="Phone" value={form.phone} onChange={e => setForm(f => ({ ...f, phone: e.target.value }))} placeholder="10-digit phone" disabled={!!editingAdmin} />
           <Input label="Department" value={form.department} onChange={e => setForm(f => ({ ...f, department: e.target.value }))} placeholder="e.g. Sales, Operations, Technical" />
           <div>
-            <label className="text-sm font-medium text-foreground mb-2 block">Permissions</label>
-            <div className="grid grid-cols-2 gap-2">
-              {Object.entries(PERMISSION_LABELS).map(([code, label]) => (
-                <label key={code} className="flex items-center gap-2 text-sm cursor-pointer">
-                  <input type="checkbox" checked={form.permissions.includes(code)}
-                    onChange={e => {
-                      if (code === "x") {
-                        setForm(f => ({ ...f, permissions: e.target.checked ? "x" : "" }));
-                      } else {
-                        setForm(f => ({
-                          ...f,
-                          permissions: e.target.checked
-                            ? f.permissions.replace("x", "") + code
-                            : f.permissions.replace(code, ""),
-                        }));
-                      }
-                    }}
-                    className="rounded border-border text-primary focus:ring-primary" />
-                  <span className="text-muted-foreground">{label}</span>
+            <label className="text-sm font-medium text-foreground mb-2 block">System Permissions</label>
+            <div className="space-y-3">
+              <div className={cn(
+                "p-3 rounded-xl transition-all border",
+                form.permissions.includes("x") 
+                  ? "bg-purple-50 dark:bg-purple-900/20 border-purple-200 dark:border-purple-900/40" 
+                  : "bg-muted/30 border-transparent hover:border-border"
+              )}>
+                <label className="flex items-center gap-3 cursor-pointer">
+                  <input type="checkbox" checked={form.permissions.includes("x")}
+                    onChange={e => setForm(f => ({ ...f, permissions: e.target.checked ? "x" : "" }))}
+                    className="h-4 w-4 rounded border-purple-300 text-purple-600 focus:ring-purple-500" />
+                  <div>
+                    <div className="text-sm font-semibold text-foreground">Super Admin (Full Access)</div>
+                    <p className="text-[10px] text-muted-foreground leading-tight mt-0.5">Grants unrestricted access to all dashboard modules and administrative settings.</p>
+                  </div>
                 </label>
-              ))}
+              </div>
+
+              {!form.permissions.includes("x") && (
+                <div className="grid grid-cols-2 gap-3 pt-1">
+                  {Object.entries(PERMISSION_LABELS).filter(([c]) => c !== "x").map(([code, label]) => (
+                    <label key={code} className="flex items-center gap-2 text-sm cursor-pointer hover:bg-muted/50 p-1.5 rounded-lg transition-colors">
+                      <input type="checkbox" checked={form.permissions.includes(code)}
+                        onChange={e => {
+                          setForm(f => ({
+                            ...f,
+                            permissions: e.target.checked
+                              ? f.permissions + code
+                              : f.permissions.replace(code, ""),
+                          }));
+                        }}
+                        className="rounded border-border text-primary focus:ring-primary h-3.5 w-3.5" />
+                      <span className="text-muted-foreground text-xs">{label}</span>
+                    </label>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
           <div className="flex justify-end gap-3 pt-2">

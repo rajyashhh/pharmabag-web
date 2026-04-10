@@ -136,14 +136,14 @@ export function Modal({ open, onClose, title, children, maxWidth = "max-w-lg" }:
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="absolute inset-0 bg-background/80 backdrop-blur-sm" onClick={onClose} />
           <motion.div initial={{ opacity: 0, scale: 0.95, y: 10 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95, y: 10 }}
-            className={cn("relative w-full bg-card/60 glass-card rounded-2xl shadow-xl overflow-hidden border border-border", maxWidth)}>
+            className={cn("relative w-full bg-card/60 glass-card rounded-2xl shadow-xl overflow-hidden border border-border max-h-[90vh] flex flex-col", maxWidth)}>
             {title && (
-              <div className="flex items-center justify-between p-6 border-b border-border/50">
+              <div className="flex items-center justify-between p-6 border-b border-border/50 flex-shrink-0">
                 <h2 className="text-lg font-semibold text-foreground">{title}</h2>
                 <button onClick={onClose} className="h-8 w-8 rounded-lg flex items-center justify-center text-muted-foreground hover:bg-accent transition-colors"><X className="h-4 w-4" /></button>
               </div>
             )}
-            <div className="p-6">{children}</div>
+            <div className="p-6 overflow-y-auto flex-1">{children}</div>
           </motion.div>
         </div>
       )}
