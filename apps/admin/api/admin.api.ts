@@ -9,7 +9,7 @@ export async function getAdminDashboard() {
 
 // ─── Users ───────────────────────────────────────────
 export async function getAdminUsers(page = 1, limit = 50) {
-  const { data } = await apiClient.get<{ data: any }>(`/admin/users?page=${page}&limit=${limit}`);
+  const { data } = await apiClient.get<any>(`/admin/users?page=${page}&limit=${limit}`);
   return data.data;
 }
 
@@ -45,7 +45,7 @@ export async function unblockUser(userId: string) {
 
 // ─── Products ────────────────────────────────────────
 export async function getAdminProducts(page = 1, limit = 50) {
-  const { data } = await apiClient.get<{ data: any }>(`/admin/products?page=${page}&limit=${limit}`);
+  const { data } = await apiClient.get<any>(`/admin/products?page=${page}&limit=${limit}`);
   return data.data;
 }
 
@@ -81,7 +81,7 @@ export async function rejectProduct(productId: string, reason?: string) {
 
 // ─── Orders ──────────────────────────────────────────
 export async function getAdminOrders(page = 1, limit = 50) {
-  const { data } = await apiClient.get<{ data: any }>(`/admin/orders?page=${page}&limit=${limit}`);
+  const { data } = await apiClient.get<any>(`/admin/orders?page=${page}&limit=${limit}`);
   return data.data;
 }
 
@@ -97,7 +97,7 @@ export async function updateAdminOrderStatus(orderId: string, status: string) {
 
 // ─── Payments ────────────────────────────────────────
 export async function getPayments(page = 1, limit = 50) {
-  const { data } = await apiClient.get<{ data: any }>(`/admin/payments?page=${page}&limit=${limit}`);
+  const { data } = await apiClient.get<any>(`/admin/payments?page=${page}&limit=${limit}`);
   return data.data;
 }
 
@@ -113,7 +113,7 @@ export async function rejectPayment(paymentId: string) {
 
 // ─── Settlements ─────────────────────────────────────
 export async function getSettlements(page = 1, limit = 50) {
-  const { data } = await apiClient.get<{ data: any }>(`/admin/settlements?page=${page}&limit=${limit}`);
+  const { data } = await apiClient.get<any>(`/admin/settlements?page=${page}&limit=${limit}`);
   return data.data;
 }
 
@@ -124,7 +124,7 @@ export async function markSettlementPaid(settlementId: string, payoutReference: 
 
 // ─── Tickets ─────────────────────────────────────────
 export async function getTickets(page = 1, limit = 50) {
-  const { data } = await apiClient.get<{ data: any }>(`/admin/tickets?page=${page}&limit=${limit}`);
+  const { data } = await apiClient.get<any>(`/admin/tickets?page=${page}&limit=${limit}`);
   return data.data;
 }
 
@@ -192,13 +192,13 @@ export async function getBuyers(params: { page?: number; limit?: number; status?
   if (params.limit) qs.set("limit", String(params.limit));
   if (params.status) qs.set("status", params.status);
   if (params.search) qs.set("search", params.search);
-  const { data } = await apiClient.get<{ data: any }>(`/admin/users/buyers?${qs}`);
+  const { data } = await apiClient.get<any>(`/admin/users/buyers?${qs}`);
   return data.data;
 }
 
 export async function getBuyersList(page = 1, limit = 20) {
-  const { data } = await apiClient.get<{ data: any }>(`/buyers/all?page=${page}&limit=${limit}`);
-  return data.data;
+  const { data } = await apiClient.get<any>(`/buyers/all?page=${page}&limit=${limit}`);
+  return data;
 }
 
 export async function getSellers(params: { page?: number; limit?: number; status?: string; search?: string } = {}) {
@@ -207,7 +207,7 @@ export async function getSellers(params: { page?: number; limit?: number; status
   if (params.limit) qs.set("limit", String(params.limit));
   if (params.status) qs.set("status", params.status);
   if (params.search) qs.set("search", params.search);
-  const { data } = await apiClient.get<{ data: any }>(`/admin/users/sellers?${qs}`);
+  const { data } = await apiClient.get<any>(`/admin/users/sellers?${qs}`);
   return data.data;
 }
 
@@ -240,7 +240,7 @@ export async function updateGstPanStatus(
 export async function getAdminProductsFiltered(params: { page?: number; limit?: number; status?: string; search?: string; categoryId?: string; sellerId?: string } = {}) {
   const qs = new URLSearchParams();
   Object.entries(params).forEach(([k, v]) => { if (v) qs.set(k, String(v)); });
-  const { data } = await apiClient.get<{ data: any }>(`/admin/products?${qs}`);
+  const { data } = await apiClient.get<any>(`/admin/products?${qs}`);
   return data.data;
 }
 
@@ -258,7 +258,7 @@ export async function updateProduct(productId: string, payload: Record<string, a
 export async function getAdminOrdersFiltered(params: { page?: number; limit?: number; status?: string; search?: string; dateFrom?: string; dateTo?: string } = {}) {
   const qs = new URLSearchParams();
   Object.entries(params).forEach(([k, v]) => { if (v) qs.set(k, String(v)); });
-  const { data } = await apiClient.get<{ data: any }>(`/admin/orders?${qs}`);
+  const { data } = await apiClient.get<any>(`/admin/orders?${qs}`);
   return data.data;
 }
 
@@ -277,7 +277,7 @@ export async function getSellerSettlements(sellerId: string, params: { page?: nu
   const qs = new URLSearchParams();
   if (params.page) qs.set("page", String(params.page));
   if (params.limit) qs.set("limit", String(params.limit));
-  const { data } = await apiClient.get<{ data: any }>(`/admin/settlements/seller/${sellerId}?${qs}`);
+  const { data } = await apiClient.get<any>(`/admin/settlements/seller/${sellerId}?${qs}`);
   return data.data;
 }
 
@@ -288,7 +288,7 @@ export async function createSettlement(payload: { sellerId: string; orderIds: st
 
 // ─── Admin Management ────────────────────────────────
 export async function getAdmins() {
-  const { data } = await apiClient.get<{ data: any }>("/admin/admins");
+  const { data } = await apiClient.get<any>("/admin/admins");
   return data.data;
 }
 
@@ -311,8 +311,8 @@ export async function deleteAdmin(adminId: string) {
 export async function getSuggestions(params: { page?: number; limit?: number; search?: string } = {}) {
   const qs = new URLSearchParams();
   Object.entries(params).forEach(([k, v]) => { if (v) qs.set(k, String(v)); });
-  const { data } = await apiClient.get<{ data: any }>(`/admin/suggestions?${qs}`);
-  return data.data;
+  const { data } = await apiClient.get<any>(`/admin/suggestions?${qs}`);
+  return data;
 }
 
 export async function createSuggestion(payload: Record<string, any>) {
@@ -369,7 +369,7 @@ export async function getReferralCodes(params: { page?: number; limit?: number }
   const qs = new URLSearchParams();
   if (params.page) qs.set("page", String(params.page));
   if (params.limit) qs.set("limit", String(params.limit));
-  const { data } = await apiClient.get<{ data: any }>(`/admin/referrals?${qs}`);
+  const { data } = await apiClient.get<any>(`/admin/referrals?${qs}`);
   return data.data;
 }
 
@@ -448,4 +448,9 @@ export async function getTopSellers(params: { limit?: number } = {}) {
   const qs = params.limit ? `?limit=${params.limit}` : "";
   const { data } = await apiClient.get<{ data: any }>(`/admin/analytics/top-sellers${qs}`);
   return data.data;
+}
+// ─── Storage ──────────────────────────────────────────
+export async function getPresignedUrl(key: string) {
+  const { data } = await apiClient.post<{ data: { url: string } }>("/storage/view", { key });
+  return data.data.url;
 }

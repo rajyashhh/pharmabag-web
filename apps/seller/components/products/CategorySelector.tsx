@@ -14,6 +14,7 @@ interface Props {
 
 export function CategorySelector({ selectedCategoryIds, onChangeCategories, selectedSubcategoryIds, onChangeSubcategories, error }: Props) {
   const { data: categories, isLoading } = useCategories();
+  const [showAllSubcats, setShowAllSubcats] = useState(false);
 
   // Safe default: assuming data is array of { id: string, name: string, subcategories?: ... }
   const safeCategories = Array.isArray(categories)
@@ -44,6 +45,7 @@ export function CategorySelector({ selectedCategoryIds, onChangeCategories, sele
     return <div className="p-4 text-sm text-muted-foreground border rounded-xl bg-orange-50/50 dark:bg-orange-900/10 border-orange-200">No categories found. Please configure them in Admin portal.</div>;
   }
 
+
   // Find subcategories belonging to selected categories
   const availableSubcats = safeCategories
     .filter((c: any) => selectedCategoryIds.includes(c.id))
@@ -65,6 +67,10 @@ export function CategorySelector({ selectedCategoryIds, onChangeCategories, sele
       }).filter((sc: any) => sc && sc.id && sc.name) : [];
     });
 
+  const subcatsToDisplay = showAllSubcats 
+    ? availableSubcats 
+    : availableSubcats.filter((sc: any) => selectedSubcategoryIds.includes(sc.id));
+
   return (
     <div className="space-y-4">
       <div className="space-y-2">
@@ -76,7 +82,7 @@ export function CategorySelector({ selectedCategoryIds, onChangeCategories, sele
               <button
                 key={c.id}
                 type="button"
-                onClick={() => toggleCategory(c.id)}
+                onClick={() => { toggleCategory(c.id); setShowAllSubcats(true); }}
                 className={cn(
                   "px-3 py-1.5 rounded-full text-sm font-medium border transition-colors flex items-center gap-1.5",
                   isSelected ? "bg-primary text-primary-foreground border-primary" : "bg-background text-muted-foreground border-border hover:bg-accent hover:text-foreground"
@@ -92,19 +98,36 @@ export function CategorySelector({ selectedCategoryIds, onChangeCategories, sele
       </div>
 
       {availableSubcats.length > 0 && (
-        <div className="space-y-2 pt-2 border-t border-border/50">
-          <label className="block text-sm font-medium text-foreground">Subcategories</label>
-          <div className="flex flex-wrap gap-2">
-            {availableSubcats.map((sc: any) => {
-              const isSelected = selectedSubcategoryIds.includes(sc.id);
+        <div className="space-y-3 pt-3 border-t border-border/50">
+          <div className="flex items-center justify-between">
+             <div className="flex items-center gap-2">
+               <label className="block text-sm font-medium text-foreground">Subcategories</label>
+               <span className="text-[10px] bg-muted px-1.5 py-0.5 rounded text-muted-foreground font-mono">
+                 {selectedSubcategoryIds.length}/{availableSubcats.length}
+               </span>
+             </div>
+             <button 
+               type="button" 
+               onClick={() => setShowAllSubcats(!showAllSubcats)} 
+               className="text-[11px] font-bold text-primary hover:underline transition-all uppercase tracking-wider bg-primary/5 px-2 py-1 rounded"
+             >
+               {showAllSubcats ? "Hide Extra" : `Show All (${availableSubcats.length})`}
+             </button>
+          </div>
+          <div className="flex flex-wrap gap-2 transition-all duration-300">
+            {subcatsToDisplay.map((sc: any) => {
+              const subId = String(sc?.id || "");
+              const isSelected = selectedSubcategoryIds.map(String).includes(subId);
               return (
                 <button
-                  key={sc.id}
+                  key={subId}
                   type="button"
-                  onClick={() => toggleSubcategory(sc.id)}
+                  onClick={() => toggleSubcategory(subId)}
                   className={cn(
-                    "px-3 py-1.5 rounded-full text-xs font-medium border transition-colors flex items-center gap-1.5",
-                    isSelected ? "bg-secondary text-secondary-foreground border-secondary" : "bg-background text-muted-foreground border-border hover:bg-accent hover:text-foreground"
+                    "px-3 py-1.5 rounded-full text-xs font-medium border transition-all flex items-center gap-1.5",
+                    isSelected 
+                      ? "bg-secondary text-secondary-foreground border-secondary shadow-sm scale-[1.02]" 
+                      : "bg-background text-muted-foreground border-border hover:bg-accent hover:text-foreground opacity-80 hover:opacity-100"
                   )}
                 >
                   {isSelected && <Check className="h-3 w-3" />}
@@ -112,7 +135,21 @@ export function CategorySelector({ selectedCategoryIds, onChangeCategories, sele
                 </button>
               );
             })}
+            {!showAllSubcats && availableSubcats.length > subcatsToDisplay.length && (
+              <button
+                type="button"
+                onClick={() => setShowAllSubcats(true)}
+                className="px-3 py-1.5 rounded-full text-xs font-bold border border-dashed border-primary/30 text-primary hover:bg-primary/5 transition-all"
+              >
+                + {availableSubcats.length - subcatsToDisplay.length} more...
+              </button>
+            )}
           </div>
+          {!showAllSubcats && subcatsToDisplay.length === 0 && (
+            <p className="text-[11px] text-muted-foreground italic pl-1">
+              Select subcategories to show them here, or click <strong>Show All</strong> to browse.
+            </p>
+          )}
         </div>
       )}
     </div>

@@ -24,13 +24,14 @@ function getUserStatus(user: any): string {
   // We must differentiate a truly NEW user (needs onboarding) from a submitted PENDING user.
   // A submitted user will have their business details attached.
   if (rawStatus === "PENDING") {
+    const profile = user.sellerProfile || {};
     const hasBusinessDetails = !!(
-      user.businessName || 
-      user.companyName ||
-      user.sellerProfile?.businessName || 
-      user.sellerProfile?.companyName ||
-      user.sellerProfile?.gstNumber || 
-      user.sellerProfile?.panNumber
+      (user.businessName && user.businessName !== 'My Store') || 
+      (user.companyName && user.companyName !== 'My Store') ||
+      (profile.businessName && profile.businessName !== 'My Store') || 
+      (profile.companyName && profile.companyName !== 'My Store') ||
+      profile.gstNumber || 
+      profile.panNumber
     );
     
     // If they have no business details, they haven't completed onboarding yet.
@@ -118,67 +119,45 @@ export function SellerGuard({ children }: { children: React.ReactNode }) {
 
   // On /onboarding page
   if (pathname === "/onboarding") {
-    if (currentStatus !== "NEW") {
+    // If they are already approved, they shouldn't be here.
+    if (currentStatus === "APPROVED") {
       router.replace("/dashboard");
       return null;
     }
+    // NEW, PENDING, REJECTED — allow them to stay on onboarding
     return <>{children}</>;
   }
 
-  switch (currentStatus) {
-    case "NEW":
-      router.replace("/onboarding");
-      return null;
-
-    case "PENDING":
-      return (
-        <div className="flex min-h-screen items-center justify-center bg-background p-6">
-          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="max-w-md w-full glass-card rounded-2xl p-8 text-center space-y-4">
-            <div className="mx-auto h-16 w-16 bg-yellow-50 dark:bg-yellow-900/20 text-yellow-600 rounded-full flex items-center justify-center mb-6">
-              <Store className="h-8 w-8" />
-            </div>
-            <h1 className="text-2xl font-bold text-foreground">Application Under Review</h1>
-            <p className="text-muted-foreground text-sm leading-relaxed">
-              Your seller profile is currently being reviewed. We will notify you once your account is verified.
-            </p>
-            <div className="pt-4">
-              <button onClick={() => useSellerAuth.getState().logout()} className="text-sm font-medium text-primary hover:underline">
-                Sign Out
-              </button>
-            </div>
-          </motion.div>
-        </div>
-      );
-
-    case "REJECTED":
-      return (
-        <div className="flex min-h-screen items-center justify-center bg-background p-6">
-          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="max-w-md w-full glass-card rounded-2xl p-8 text-center space-y-4 border-red-200 dark:border-red-900/30">
-            <div className="mx-auto h-16 w-16 bg-red-50 dark:bg-red-900/20 text-red-600 rounded-full flex items-center justify-center mb-6">
-              <ShieldAlert className="h-8 w-8" />
-            </div>
-            <h1 className="text-2xl font-bold text-foreground">Application Rejected</h1>
-            <p className="text-muted-foreground text-sm leading-relaxed">
-              We could not verify your business details. Please contact support to resolve this.
-            </p>
-            <div className="pt-4">
-              <button onClick={() => useSellerAuth.getState().logout()} className="text-sm font-medium text-red-600 hover:underline">
-                Sign Out
-              </button>
-            </div>
-          </motion.div>
-        </div>
-      );
-
-    case "APPROVED":
-    default:
-      // APPROVED or any other status → full dashboard
-      return (
-        <SidebarProvider>
-          <DashboardLayout pathname={pathname}>{children}</DashboardLayout>
-        </SidebarProvider>
-      );
+  // Terminal states (blocked) — show terminal screen
+  if (currentStatus === "BLOCKED") {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-background p-6">
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="max-w-md w-full glass-card rounded-2xl p-8 text-center space-y-4">
+          <div className="mx-auto h-16 w-16 bg-red-50 text-red-600 rounded-full flex items-center justify-center mb-6">
+            <ShieldAlert className="h-8 w-8" />
+          </div>
+          <h1 className="text-2xl font-bold text-foreground">Account Blocked</h1>
+          <p className="text-muted-foreground text-sm">Your account has been restricted. Please contact administrator.</p>
+          <div className="pt-4">
+            <button onClick={() => useSellerAuth.getState().logout()} className="text-sm font-medium text-primary hover:underline">Sign Out</button>
+          </div>
+        </motion.div>
+      </div>
+    );
   }
+
+  // Not on /onboarding -> check if they should be redirected there
+  if (currentStatus === "NEW" || currentStatus === "PENDING" || currentStatus === "REJECTED") {
+    router.push("/onboarding");
+    return null;
+  }
+
+  // APPROVED or any other status → full dashboard
+  return (
+    <SidebarProvider>
+      <DashboardLayout pathname={pathname}>{children}</DashboardLayout>
+    </SidebarProvider>
+  );
 }
 
 function DashboardLayout({ children, pathname }: { children: React.ReactNode; pathname: string }) {

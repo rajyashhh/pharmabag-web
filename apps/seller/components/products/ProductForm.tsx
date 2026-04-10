@@ -1,6 +1,6 @@
 "use client";
 import React, { useEffect, useState, useCallback, useRef } from "react";
-import { useForm, Controller, useFieldArray } from "react-hook-form";
+import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Plus, Trash2, ArrowLeft, Search } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -34,7 +34,7 @@ export function ProductForm({ defaultValues, productId }: { defaultValues?: Part
   const suggestionRef = useRef<HTMLDivElement>(null);
   const { data: suggestions = [] } = useSuggestionSearch(searchQuery, "master");
 
-  const { register, control, handleSubmit, setValue, formState: { errors, isSubmitting, isDirty }, watch } = useForm<FormValues>({
+  const { register, control, handleSubmit, setValue, getValues, formState: { errors, isSubmitting, isDirty }, watch } = useForm<FormValues>({
     resolver: zodResolver(productFormSchema) as any,
     defaultValues: defaultValues || {
       product_name: "",
@@ -54,10 +54,35 @@ export function ProductForm({ defaultValues, productId }: { defaultValues?: Part
     },
   });
 
-  const { fields: extraFields, append: appendExtra, remove: removeExtra } = useFieldArray({ control, name: "custom_extra_fields" });
 
   const watchMrp = watch("product_price");
   const watchGst = watch("gst_percent");
+  const watchMinMoq = watch("min_order_qty");
+  const watchStock = watch("stock");
+  const watchMaxMoq = watch("max_order_qty");
+  const lastMrpRef = useRef<number>(0);
+
+  // Real-time synchronization and enforcement of ₹20,000 minimum rule
+  useEffect(() => {
+    if (!watchMrp || watchMrp <= 0) return;
+
+    const minRequiredMoq = Math.ceil(20000 / watchMrp);
+    const targetMaxMoq = minRequiredMoq * 5;
+
+    // Only auto-sync Min Order Qty when MRP changes
+    const isPriceChanged = watchMrp !== lastMrpRef.current;
+
+    if (isPriceChanged) {
+      // Sync only the minimum order requirement
+      setValue("min_order_qty", minRequiredMoq, { shouldDirty: true, shouldValidate: true });
+      lastMrpRef.current = watchMrp;
+    } else {
+      // Enforce minimum MOQ for manual edits
+      if (watchMinMoq < minRequiredMoq) {
+        setValue("min_order_qty", minRequiredMoq, { shouldDirty: true, shouldValidate: true });
+      }
+    }
+  }, [watchMrp, watchMinMoq, setValue]);
 
   // Close suggestions on outside click
   useEffect(() => {
@@ -275,7 +300,7 @@ export function ProductForm({ defaultValues, productId }: { defaultValues?: Part
         )}
 
         {/* Basic Info */}
-        <div className={`glass-card rounded-2xl p-6 space-y-4 relative z-10 transition-opacity duration-300 ${!isEditing && !selectedMasterId ? 'opacity-50 pointer-events-none' : ''}`}>
+        <div className="glass-card rounded-2xl p-6 space-y-4 relative z-10 transition-opacity duration-300">
           <h2 className="font-semibold text-lg text-foreground border-b border-border/50 pb-2">Basic Information</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <Input label="Product Name *" error={errors.product_name?.message} {...register("product_name")} disabled={!!selectedMasterId} />
@@ -287,9 +312,9 @@ export function ProductForm({ defaultValues, productId }: { defaultValues?: Part
         </div>
 
         {/* Categories */}
-        <div className={`glass-card rounded-2xl p-6 space-y-4 relative z-10 transition-opacity duration-300 ${!isEditing && !selectedMasterId ? 'opacity-50 pointer-events-none' : ''}`}>
+        <div className="glass-card rounded-2xl p-6 space-y-4 relative z-10 transition-opacity duration-300">
           <h2 className="font-semibold text-lg text-foreground border-b border-border/50 pb-2">Categorization</h2>
-          <div className={selectedMasterId ? "pointer-events-none" : ""}>
+          <div>
             <Controller
               control={control}
               name="categories"
@@ -313,16 +338,47 @@ export function ProductForm({ defaultValues, productId }: { defaultValues?: Part
         </div>
 
         {/* Pricing & Stock */}
-        <div className={`glass-card rounded-2xl p-6 space-y-4 transition-opacity duration-300 ${!isEditing && !selectedMasterId ? 'opacity-50 pointer-events-none' : ''}`}>
+        <div className="glass-card rounded-2xl p-6 space-y-4 transition-opacity duration-300">
           <h2 className="font-semibold text-lg text-foreground border-b border-border/50 pb-2">Pricing & Stock</h2>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <Input label="MRP (₹) *" type="number" step="0.01" error={errors.product_price?.message} {...register("product_price", { valueAsNumber: true })} />
-            <Input label="Current Stock *" type="number" error={errors.stock?.message} {...register("stock", { valueAsNumber: true })} />
-            <Input label="Expiry Date *" type="date" error={errors.expire_date?.message} {...register("expire_date")} />
+            <Input 
+              label="MRP (₹) *" 
+              type="number" 
+              step="0.01" 
+              error={errors.product_price?.message} 
+              {...register("product_price", { valueAsNumber: true })} 
+            />
+            <Input 
+              label="Current Stock *" 
+              type="number" 
+              min={watchMrp > 0 ? Math.ceil(20000 / watchMrp) : 1}
+              error={errors.stock?.message} 
+              {...register("stock", { valueAsNumber: true })} 
+            />
+            <Input label="Expiry Date *" type="month" error={errors.expire_date?.message} {...register("expire_date")} />
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2">
-            <Input label="Minimum Order Qty *" type="number" error={errors.min_order_qty?.message} {...register("min_order_qty", { valueAsNumber: true })} />
-            <Input label="Maximum Order Qty *" type="number" error={errors.max_order_qty?.message} {...register("max_order_qty", { valueAsNumber: true })} />
+            <div className="space-y-1">
+              <Input 
+                label="Minimum Order Qty *" 
+                type="number" 
+                min={watchMrp > 0 ? Math.ceil(20000 / watchMrp) : 1}
+                error={errors.min_order_qty?.message} 
+                {...register("min_order_qty", { valueAsNumber: true })} 
+              />
+              {watchMrp > 0 && (
+                <p className="text-[10px] text-muted-foreground px-1">
+                  Min. {Math.ceil(20000 / watchMrp)} units (₹20k min)
+                </p>
+              )}
+            </div>
+            <Input 
+              label="Maximum Order Qty *" 
+              type="number" 
+              min={watchMinMoq}
+              error={errors.max_order_qty?.message} 
+              {...register("max_order_qty", { valueAsNumber: true })} 
+            />
             <Controller
               control={control}
               name="gst_percent"
@@ -333,7 +389,6 @@ export function ProductForm({ defaultValues, productId }: { defaultValues?: Part
                   value={String(field.value)}
                   onChange={(e) => field.onChange(Number(e.target.value))}
                   error={errors.gst_percent?.message}
-                  disabled={!!selectedMasterId}
                 />
               )}
             />
@@ -341,7 +396,7 @@ export function ProductForm({ defaultValues, productId }: { defaultValues?: Part
         </div>
 
         {/* Discounts & Pricing Engine */}
-        <div className={`glass-card rounded-2xl p-6 space-y-4 transition-opacity duration-300 ${!isEditing && !selectedMasterId ? 'opacity-50 pointer-events-none' : ''}`}>
+        <div className="glass-card rounded-2xl p-6 space-y-4 transition-opacity duration-300">
           <h2 className="font-semibold text-lg text-foreground border-b border-border/50 pb-2">Discount & Bonuses</h2>
           <Controller
             control={control}
@@ -359,9 +414,9 @@ export function ProductForm({ defaultValues, productId }: { defaultValues?: Part
         </div>
 
         {/* Images */}
-        <div className={`glass-card rounded-2xl p-6 space-y-4 transition-opacity duration-300 ${!isEditing && !selectedMasterId ? 'opacity-50 pointer-events-none' : ''}`}>
+        <div className="glass-card rounded-2xl p-6 space-y-4 transition-opacity duration-300">
           <h2 className="font-semibold text-lg text-foreground border-b border-border/50 pb-2">Product Images</h2>
-          <div className={selectedMasterId ? "pointer-events-none opacity-80" : ""}>
+          <div>
             <Controller
               control={control}
               name="image_list"
@@ -372,26 +427,6 @@ export function ProductForm({ defaultValues, productId }: { defaultValues?: Part
           </div>
         </div>
 
-        {/* Extra Fields */}
-        <div className="glass-card rounded-2xl p-6 space-y-4">
-          <div className="flex items-center justify-between border-b border-border/50 pb-2">
-            <h2 className="font-semibold text-lg text-foreground">Extra Fields (Optional)</h2>
-            <Button type="button" variant="outline" size="sm" onClick={() => appendExtra({ key: "", value: "" })} leftIcon={<Plus className="h-4 w-4" />}>Add Field</Button>
-          </div>
-          {extraFields.length === 0 ? (
-            <p className="text-sm text-muted-foreground">No extra fields defined. Use this for additional specifications.</p>
-          ) : (
-            <div className="space-y-3">
-              {extraFields.map((field: any, index: number) => (
-                <div key={field.id} className="flex items-start gap-3">
-                  <div className="flex-1"><Input placeholder="Key (e.g. Storage)" error={errors.custom_extra_fields?.[index]?.key?.message} {...register(`custom_extra_fields.${index}.key` as const)} /></div>
-                  <div className="flex-1"><Input placeholder="Value (e.g. Store below 25°C)" error={errors.custom_extra_fields?.[index]?.value?.message} {...register(`custom_extra_fields.${index}.value` as const)} /></div>
-                  <Button type="button" variant="ghost" size="icon" onClick={() => removeExtra(index)} className="text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20"><Trash2 className="h-4 w-4" /></Button>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
 
         {/* Submit */}
         <div className="flex justify-end gap-3 sticky bottom-6 z-10 p-4 bg-background/80 backdrop-blur-xl border border-border rounded-2xl shadow-lg">

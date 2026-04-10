@@ -114,29 +114,14 @@ export default function OrderDetailPage() {
           <p className="text-sm text-muted-foreground mt-0.5">Placed {formatDate(mainOrder.createdAt)}</p>
         </div>
         <div className="flex gap-2">
-          {(mainOrder.orderStatus === "PLACED" || mainOrder.status === "PLACED" || mainOrder.status === "pending") && (
-            <>
-              <Button variant="danger" size="sm" onClick={() => setShowRejectModal(true)}>Reject</Button>
-              <Button size="sm" loading={acceptOrder.isPending} onClick={handleAccept}>Accept Order</Button>
-            </>
-          )}
+          {/* Order Action Buttons hidden as requested */}
           {(mainOrder.orderStatus === "ACCEPTED" || mainOrder.status === "ACCEPTED" || mainOrder.status === "confirmed" || mainOrder.status === "AWAITING_INVOICE") && (
-            <>
-              <label>
-                <Button size="sm" variant="outline" leftIcon={<Upload className="h-3.5 w-3.5" />} loading={uploadInvoice.isPending} onClick={() => document.getElementById("invoice-upload")?.click()}>
-                  Upload Invoice
-                </Button>
-                <input id="invoice-upload" type="file" accept=".pdf,.jpg,.jpeg,.png" className="hidden" onChange={handleInvoiceUpload} />
-              </label>
-              <Button size="sm" leftIcon={<Truck className="h-3.5 w-3.5" />} loading={updateStatus.isPending} onClick={handleMarkAsShipped}>
-                Mark as Shipped
+            <label>
+              <Button size="sm" variant="outline" leftIcon={<Upload className="h-3.5 w-3.5" />} loading={uploadInvoice.isPending} onClick={() => document.getElementById("invoice-upload")?.click()}>
+                Upload Invoice
               </Button>
-            </>
-          )}
-          {(mainOrder.orderStatus === "WAREHOUSE" || mainOrder.status === "WAREHOUSE") && (
-            <Button size="sm" leftIcon={<Truck className="h-3.5 w-3.5" />} loading={updateStatus.isPending} onClick={handleMarkAsShipped}>
-              Mark as Shipped
-            </Button>
+              <input id="invoice-upload" type="file" accept=".pdf,.jpg,.jpeg,.png" className="hidden" onChange={handleInvoiceUpload} />
+            </label>
           )}
         </div>
       </motion.div>
@@ -246,6 +231,21 @@ export default function OrderDetailPage() {
                   {mainOrder.paymentStatus || "PENDING"}
                 </Badge>
               </div>
+
+              {mainOrder.payments?.[0]?.proofUrl && (
+                <div className="pt-2 border-t border-border/10 mt-2">
+                  <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-1.5 leading-none font-sans">Verification Proof</p>
+                  <a 
+                    href={mainOrder.payments[0].proofUrl} 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="text-xs text-primary underline hover:text-primary/80 flex items-center gap-1.5 font-medium"
+                  >
+                    <FileText className="h-3 w-3" />
+                    View Buyer's Proof
+                  </a>
+                </div>
+              )}
               {mainOrder.paymentMethod && (
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">Method</span>

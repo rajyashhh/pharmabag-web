@@ -60,8 +60,9 @@ export function useSellerProfile(enabled: boolean = true) {
     retry: 1,
     select: (data: any) => {
       // Sync vacation state from profile to store so sidebar/guard stay in sync
-      if (data && typeof data.isOnVacation === "boolean" && user && user.isOnVacation !== data.isOnVacation) {
-        setUser({ ...user, isOnVacation: data.isOnVacation } as any);
+      const vState = data?.isVacation ?? data?.isOnVacation;
+      if (typeof vState === "boolean" && user && user.isVacation !== vState) {
+        setUser({ ...user, isVacation: vState } as any);
       }
       return data;
     },
@@ -79,7 +80,7 @@ export function useUpdateSellerProfile() {
   });
 }
 
-export function useSellerProducts() { return useQuery({ queryKey: ["seller", "products"], queryFn: getSellerProducts, staleTime: 60_000, retry: 1 }); }
+export function useSellerProducts(params: { page?: number; limit?: number; search?: string; status?: string } = {}) { return useQuery({ queryKey: ["seller", "products", params], queryFn: () => getSellerProducts(params), staleTime: 60_000, retry: 1 }); }
 
 export function useCreateSellerProduct() { const qc = useQueryClient(); return useMutation({ mutationFn: createSellerProduct, onSuccess: () => void qc.invalidateQueries({ queryKey: ["seller", "products"] }) }); }
 
@@ -123,20 +124,20 @@ export function useToggleVacationMode() {
   const qc = useQueryClient();
   const { user, setUser } = useSellerAuth();
   return useMutation({
-    mutationFn: (isOnVacation: boolean) => toggleVacationMode(isOnVacation),
-    onSuccess: (updatedProfile, isOnVacation) => {
+    mutationFn: (isVacation: boolean) => toggleVacationMode(isVacation),
+    onSuccess: (updatedProfile, isVacation) => {
       // Update Zustand store immediately
-      if (user) setUser({ ...user, isOnVacation } as any);
+      if (user) setUser({ ...user, isVacation } as any);
       // Optimistically update the profile cache to prevent stale re-fetch from reverting state
       qc.setQueryData(["seller", "profile"], (old: any) => ({
         ...(old || {}),
         ...(updatedProfile || {}),
-        isOnVacation,
+        isVacation,
       }));
       // Also update the /auth/me cache so the SellerGuard doesn't overwrite store on refocus
       qc.setQueryData(["seller", "me"], (old: any) => {
         if (!old) return old;
-        return { ...old, isOnVacation };
+        return { ...old, isVacation };
       });
       // Invalidate to eventually refetch fresh data from server
       void qc.invalidateQueries({ queryKey: ["seller", "profile"] });

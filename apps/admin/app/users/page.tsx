@@ -7,7 +7,7 @@ import { Button, Input, Badge, Pagination } from "@/components/ui";
 import { cn } from "@/lib/utils";
 import toast from "react-hot-toast";
 import Link from "next/link";
-import { useAdminUsers, useAdminSellers, useAffirmUserStatus, useUserById, useUpdateGstPanStatus, useDeleteUser } from "@/hooks/useAdmin";
+import { useAdminUsers, useAdminSellers, useAffirmUserStatus, useUserById, useUpdateGstPanStatus, useDeleteUser, usePresignedUrl } from "@/hooks/useAdmin";
 
 type RoleFilter = "all" | "BUYER" | "SELLER" | "ADMIN";
 type StatusFilter = "all" | "APPROVED" | "PENDING" | "BLOCKED" | "VACATION";
@@ -19,6 +19,43 @@ const getFullUrl = (url: string) => {
   return `${base}${url.startsWith("/") ? "" : "/"}${url}`;
 };
 
+function SecureDocViewer({ url, label, number }: { url: string; label: string; number?: string }) {
+  const { data: presignedUrl, isLoading } = usePresignedUrl(url);
+  const displayUrl = presignedUrl || getFullUrl(url);
+  const isImage = /\.(jpe?g|png|webp)$/i.test(url);
+
+  if (isLoading) return <div className="h-20 w-32 bg-muted/50 animate-pulse rounded-lg" />;
+
+  return (
+    <div className="space-y-2">
+      <div className="space-y-1">
+        <div className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground uppercase">
+          <FileText className="h-3 w-3" /> {label}
+        </div>
+        {number && <p className="text-sm font-mono text-foreground">{number}</p>}
+      </div>
+      {isImage ? (
+        <a href={displayUrl} target="_blank" rel="noopener noreferrer" className="block w-fit">
+          <img
+            src={displayUrl}
+            alt={label}
+            className="max-w-[200px] max-h-32 rounded-lg border border-border object-contain hover:border-primary/50 transition-colors"
+            onError={(e) => {
+              console.error("Image load failed", displayUrl);
+            }}
+          />
+        </a>
+      ) : (
+        <a href={displayUrl} target="_blank" rel="noopener noreferrer"
+           className="inline-flex items-center gap-1.5 text-sm text-primary font-bold hover:underline">
+          View {label} <ExternalLink className="h-3 w-3" />
+        </a>
+      )}
+    </div>
+  );
+}
+
+
 function BuyerDetails({ userId }: { userId: string }) {
   const { data: user, isLoading } = useUserById(userId);
   if (isLoading) return <div className="py-4 text-center text-sm text-muted-foreground">Loading buyer details…</div>;
@@ -26,7 +63,7 @@ function BuyerDetails({ userId }: { userId: string }) {
   if (!bp) return <div className="py-4 text-center text-sm text-muted-foreground">No buyer profile submitted yet</div>;
   return (
     <div className="py-4 space-y-4">
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         <div className="space-y-1">
           <div className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground uppercase"><Building2 className="h-3 w-3" />Legal Name</div>
           <p className="text-sm font-medium text-foreground">{bp.legalName || bp.name || "—"}</p>
@@ -39,32 +76,28 @@ function BuyerDetails({ userId }: { userId: string }) {
           <div className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground uppercase"><FileText className="h-3 w-3" />PAN Number</div>
           <p className="text-sm font-mono text-foreground">{bp.panNumber || "—"}</p>
         </div>
-        <div className="space-y-1">
-          <div className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground uppercase"><FileText className="h-3 w-3" />Drug License</div>
-          <p className="text-sm font-mono text-foreground">{bp.drugLicenseNumber || "—"}</p>
-        </div>
+
         {bp.drugLicenseUrl && (
-          <div className="space-y-1 lg:col-span-2">
-            <div className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground uppercase"><FileText className="h-3 w-3" />Drug License Document</div>
-            {/\.(jpe?g|png|webp)$/i.test(bp.drugLicenseUrl) ? (
-              <a href={getFullUrl(bp.drugLicenseUrl)} target="_blank" rel="noopener noreferrer">
-                <img src={getFullUrl(bp.drugLicenseUrl)} alt="Drug License" className="max-w-[200px] max-h-32 rounded-lg border border-border object-contain" />
-              </a>
-            ) : (
-              <a href={getFullUrl(bp.drugLicenseUrl)} target="_blank" rel="noopener noreferrer"
-                className="inline-flex items-center gap-1.5 text-sm text-primary hover:underline">
-                View Document <ExternalLink className="h-3 w-3" />
-              </a>
-            )}
-          </div>
+          <SecureDocViewer 
+            url={typeof bp.drugLicenseUrl === 'object' ? bp.drugLicenseUrl.url : bp.drugLicenseUrl} 
+            label="License 1 (20B)" 
+            number={bp.drugLicenseNumber} 
+          />
+        )}
+        {bp.drugLicenseUrl2 && (
+          <SecureDocViewer 
+            url={typeof bp.drugLicenseUrl2 === 'object' ? bp.drugLicenseUrl2.url : bp.drugLicenseUrl2} 
+            label="License 2 (21B)" 
+            number={bp.drugLicenseNumber2} 
+          />
         )}
         <div className="space-y-1 sm:col-span-2">
           <div className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground uppercase"><MapPin className="h-3 w-3" />Address</div>
           <p className="text-sm text-foreground">{
             bp.address
               ? (typeof bp.address === 'object'
-                  ? [bp.address.street1, bp.address.city, bp.address.state, bp.address.pincode].filter(Boolean).join(", ")
-                  : [bp.address, bp.city, bp.state, bp.pincode].filter(Boolean).join(", "))
+                ? [bp.address.street1, bp.address.city, bp.address.state, bp.address.pincode].filter(Boolean).join(", ")
+                : [bp.address, bp.city, bp.state, bp.pincode].filter(Boolean).join(", "))
               : "—"
           }</p>
         </div>
@@ -95,48 +128,53 @@ function SellerDetails({ userId }: { userId: string }) {
   const sp = user?.sellerProfile;
   if (!sp) return <div className="py-4 text-center text-sm text-muted-foreground">No seller profile submitted yet</div>;
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 py-4">
-      <div className="space-y-1">
-        <div className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground uppercase"><Building2 className="h-3 w-3" />Business</div>
-        <p className="text-sm font-medium text-foreground">{sp.companyName || sp.businessName || "—"}</p>
-      </div>
-      <div className="space-y-1">
-        <div className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground uppercase"><FileText className="h-3 w-3" />GST Number</div>
-        <p className="text-sm font-mono text-foreground">{sp.gstNumber || "—"}</p>
-      </div>
-      <div className="space-y-1">
-        <div className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground uppercase"><FileText className="h-3 w-3" />PAN Number</div>
-        <p className="text-sm font-mono text-foreground">{sp.panNumber || "—"}</p>
-      </div>
-      <div className="space-y-1">
-        <div className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground uppercase"><FileText className="h-3 w-3" />Drug License</div>
-        <p className="text-sm font-mono text-foreground">{sp.drugLicenseNumber || "—"}</p>
-      </div>
-      {sp.drugLicenseUrl && (
-        <div className="space-y-1 lg:col-span-3">
-          <div className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground uppercase"><FileText className="h-3 w-3" />Drug License Document</div>
-          {/\.(jpe?g|png|webp)$/i.test(sp.drugLicenseUrl) ? (
-            <a href={getFullUrl(sp.drugLicenseUrl)} target="_blank" rel="noopener noreferrer">
-              <img src={getFullUrl(sp.drugLicenseUrl)} alt="Drug License" className="max-w-[200px] max-h-32 rounded-lg border border-border object-contain" />
-            </a>
-          ) : (
-            <a href={getFullUrl(sp.drugLicenseUrl)} target="_blank" rel="noopener noreferrer"
-              className="inline-flex items-center gap-1.5 text-sm text-primary hover:underline">
-              View Document <ExternalLink className="h-3 w-3" />
-            </a>
-          )}
-        </div>
-      )}
-      <div className="space-y-1 sm:col-span-2">
-        <div className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground uppercase"><MapPin className="h-3 w-3" />Address</div>
-        <p className="text-sm text-foreground">{[sp.address, sp.city, sp.state, sp.pincode].filter(Boolean).join(", ") || "—"}</p>
-      </div>
-      {sp.verificationStatus && (
+    <div className="py-4 space-y-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         <div className="space-y-1">
-          <div className="text-xs font-semibold text-muted-foreground uppercase">Verification</div>
-          <Badge variant={sp.verificationStatus === "APPROVED" ? "success" : sp.verificationStatus === "PENDING" ? "warning" : "error"}>{sp.verificationStatus}</Badge>
+          <div className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground uppercase"><Building2 className="h-3 w-3" />Business</div>
+          <p className="text-sm font-medium text-foreground">{sp.companyName || sp.businessName || "—"}</p>
         </div>
-      )}
+        <div className="space-y-1">
+          <div className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground uppercase"><FileText className="h-3 w-3" />GST Number</div>
+          <p className="text-sm font-mono text-foreground">{sp.gstNumber || "—"}</p>
+        </div>
+        <div className="space-y-1">
+          <div className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground uppercase"><FileText className="h-3 w-3" />PAN Number</div>
+          <p className="text-sm font-mono text-foreground">{sp.panNumber || "—"}</p>
+        </div>
+
+        {sp.drugLicenseUrl && (
+          <SecureDocViewer 
+            url={typeof sp.drugLicenseUrl === 'object' ? sp.drugLicenseUrl.url : sp.drugLicenseUrl} 
+            label="License 1 (20B)" 
+            number={sp.drugLicenseNumber} 
+          />
+        )}
+        {sp.drugLicenseUrl2 && (
+          <SecureDocViewer 
+            url={typeof sp.drugLicenseUrl2 === 'object' ? sp.drugLicenseUrl2.url : sp.drugLicenseUrl2} 
+            label="License 2 (21B)" 
+            number={sp.drugLicenseNumber2} 
+          />
+        )}
+
+        <div className="space-y-1 sm:col-span-2">
+          <div className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground uppercase">
+            <MapPin className="h-3 w-3" /> Address
+          </div>
+          <p className="text-sm text-foreground">
+            {[sp.address, sp.city, sp.state, sp.pincode].filter(Boolean).join(", ") || "—"}
+          </p>
+        </div>
+        {sp.verificationStatus && (
+          <div className="space-y-1">
+            <div className="text-xs font-semibold text-muted-foreground uppercase">Verification</div>
+            <Badge variant={sp.verificationStatus === "APPROVED" ? "success" : sp.verificationStatus === "PENDING" ? "warning" : "error"}>
+              {sp.verificationStatus}
+            </Badge>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
@@ -202,7 +240,7 @@ export default function UsersPage() {
       toast.error(`Failed to ${action} user ${phone}`);
     }
   };
-  
+
   const handleDeleteUser = async (id: string, phone: string) => {
     if (!window.confirm(`Are you sure you want to permanently delete user ${phone}? This action cannot be undone.`)) return;
     try {
@@ -327,7 +365,7 @@ export default function UsersPage() {
                                   {isExpanded ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
                                 </button>
                               )}
-                              
+
                               {(u.status === "PENDING" && (u.buyerProfile?.gstNumber || u.buyerProfile?.panNumber || u.sellerProfile?.gstNumber || u.sellerProfile?.panNumber || u.gstNumber || u.panNumber)) && (
                                 <>
                                   <button onClick={(e) => { e.stopPropagation(); void handleAction(u.id, u.phone, "approve"); }} aria-label="Approve" title="Approve"
@@ -345,22 +383,22 @@ export default function UsersPage() {
                             {/* Legacy IDFY Actions */}
                             {u.role === 'BUYER' && u.gstPanResponse && (
                               <div className="flex flex-wrap gap-1 mt-1">
-                                <button 
+                                <button
                                   onClick={(e) => { e.stopPropagation(); updateGstStatus.mutate({ userId: u.id, role: 'BUYER', data: { verified: true, creditTier: 'PREPAID' } }); }}
                                   className="px-2 py-1 text-[10px] font-bold bg-blue-50 text-blue-600 border border-blue-100 rounded hover:bg-blue-100 transition-colors">
                                   Prepaid
                                 </button>
-                                <button 
+                                <button
                                   onClick={(e) => { e.stopPropagation(); updateGstStatus.mutate({ userId: u.id, role: 'BUYER', data: { verified: true, creditTier: 'EMI' } }); }}
                                   className="px-2 py-1 text-[10px] font-bold bg-purple-50 text-purple-600 border border-purple-100 rounded hover:bg-purple-100 transition-colors">
                                   EMI
                                 </button>
-                                <button 
+                                <button
                                   onClick={(e) => { e.stopPropagation(); updateGstStatus.mutate({ userId: u.id, role: 'BUYER', data: { verified: true, creditTier: 'FULLCREDIT' } }); }}
                                   className="px-2 py-1 text-[10px] font-bold bg-emerald-50 text-emerald-600 border border-emerald-100 rounded hover:bg-emerald-100 transition-colors">
                                   Full
                                 </button>
-                                <button 
+                                <button
                                   onClick={(e) => { e.stopPropagation(); updateGstStatus.mutate({ userId: u.id, role: 'BUYER', data: { verified: false } }); }}
                                   className="px-2 py-1 text-[10px] font-bold bg-red-50 text-red-600 border border-red-100 rounded hover:bg-red-100 transition-colors">
                                   Reject

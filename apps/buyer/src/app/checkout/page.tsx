@@ -65,25 +65,25 @@ export default function CheckoutPage() {
     const profile = (profileData as any)?.data || profileData;
     if (profile) {
       setAddress({
-        name: profile.legalName || profile.name || '',
-        phone: profile.phone || '',
+        name: profile.legalName || profile.name || user?.name || '',
+        phone: profile.phone || user?.phone || user?.mobile || '',
         address: profile.address?.street1 || (typeof profile.address === 'string' ? profile.address : ''),
         city: profile.address?.city || profile.city || '',
         state: profile.address?.state || profile.state || '',
         pincode: profile.address?.pincode || profile.pincode || '',
       });
     }
-  }, [profileData]);
+  }, [profileData, user]);
 
   const cart = (cartData as any)?.data || cartData || { items: [], total: 0 };
   const items = cart.items ?? [];
-  const subtotal = cart.total ?? 0;
+  const subtotal = Math.round(cart.total ?? 0);
   const shippingThreshold = platformConfig?.shipping_threshold ?? 5000;
   const shippingFee = platformConfig?.shipping_fee ?? 250;
   const gstRate = (platformConfig?.gst_rate ?? 12) / 100;
   const shipping = subtotal > shippingThreshold ? 0 : shippingFee;
-  const gst = subtotal * gstRate;
-  const total = subtotal + shipping + gst;
+  const gst = Math.round(subtotal * gstRate);
+  const total = Math.round(subtotal + shipping + gst);
 
   const handlePlaceOrder = () => {
     if (!address.name || !address.phone || !address.address || !address.city || !address.state || !address.pincode) {

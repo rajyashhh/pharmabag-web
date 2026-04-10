@@ -8,7 +8,18 @@ import { Button, Input, Badge, Pagination } from "@/components/ui";
 import { formatCurrency, formatDate } from "@pharmabag/utils";
 import { cn } from "@/lib/utils";
 import toast from "react-hot-toast";
-import { usePayments, useConfirmPayment, useRejectPayment } from "@/hooks/useAdmin";
+import { usePayments, useConfirmPayment, useRejectPayment, usePresignedUrl } from "@/hooks/useAdmin";
+
+function SecureLink({ url, className, children, title }: { url: string; className?: string; children: React.ReactNode; title?: string }) {
+  const { data: presignedUrl } = usePresignedUrl(url);
+  const displayUrl = presignedUrl || (url.startsWith("http") ? url : "");
+  if (!displayUrl) return null;
+  return (
+    <a href={displayUrl} target="_blank" rel="noopener noreferrer" title={title} className={className}>
+      {children}
+    </a>
+  );
+}
 
 export default function AdminPaymentsPage() {
   const [search, setSearch] = useState("");
@@ -144,10 +155,10 @@ export default function AdminPaymentsPage() {
                     <td className="px-5 py-4">
                       <div className="flex flex-wrap items-center justify-end gap-1.5">
                         {p.proofUrl && (
-                          <a href={p.proofUrl} target="_blank" rel="noopener noreferrer" title="View Proof"
+                          <SecureLink url={p.proofUrl} title="View Proof"
                             className="h-8 w-8 rounded-lg flex items-center justify-center bg-accent/50 text-muted-foreground hover:text-foreground hover:bg-accent transition-colors">
                             <ExternalLink className="h-4 w-4" />
-                          </a>
+                          </SecureLink>
                         )}
                         {p.verificationStatus === "PENDING" && (
                           <>

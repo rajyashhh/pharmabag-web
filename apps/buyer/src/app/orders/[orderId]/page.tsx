@@ -1,7 +1,7 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { Package, Truck, ChevronLeft, Calendar, FileText, Loader2, AlertCircle, XCircle } from 'lucide-react';
+import { Package, Truck, ChevronLeft, Calendar, FileText, Loader2, AlertCircle, XCircle, CheckCircle2 } from 'lucide-react';
 import Navbar from '@/components/landing/Navbar';
 import Footer from '@/components/landing/Footer';
 import Timeline from '@/components/shared/Timeline';
@@ -275,7 +275,7 @@ export default function OrderIdPage({ params }: { params: { orderId: string } })
                 </div>
                 <Timeline steps={steps} />
 
-                {normalizeStatus(status) === 'ACCEPTED' && (
+                {normalizeStatus(status) === 'ACCEPTED' && !order.payments?.some((p: any) => p.proofUrl) && (
                   <Link
                     href={`/payments/${order.id}`}
                     className="w-full mt-8 py-4 bg-lime-300 hover:bg-lime-400 text-gray-900 rounded-2xl font-bold transition-all shadow-lg shadow-lime-200/50 flex items-center justify-center gap-2"
@@ -283,6 +283,18 @@ export default function OrderIdPage({ params }: { params: { orderId: string } })
                     <FileText className="w-5 h-5" />
                     Pay Now
                   </Link>
+                )}
+
+                {order.payments?.some((p: any) => p.proofUrl) && normalizeStatus(status) === 'ACCEPTED' && (
+                  <a
+                    href={order.payments.find((p: any) => p.proofUrl)?.proofUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-full mt-8 py-4 bg-gray-100 hover:bg-gray-200 text-gray-600 rounded-2xl font-bold transition-all border border-dashed border-gray-300 flex items-center justify-center gap-2"
+                  >
+                    <CheckCircle2 className="w-5 h-5 text-gray-400" />
+                    Review Proof Uploaded
+                  </a>
                 )}
               </div>
             )}

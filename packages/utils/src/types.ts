@@ -4,6 +4,7 @@ export type OrderStatus =
   | 'PLACED'
   | 'ACCEPTED'
   | 'PAYMENT_RECEIVED'
+  | 'READY_TO_SHIP'
   | 'DISPATCHED_FROM_SELLER'
   | 'RECEIVED_AT_WAREHOUSE'
   | 'SHIPPED'
@@ -14,6 +15,7 @@ export type OrderStatus =
   | 'placed'
   | 'accepted'
   | 'payment_received'
+  | 'ready_to_ship'
   | 'dispatched_from_seller'
   | 'received_at_warehouse'
   | 'shipped'
@@ -50,6 +52,7 @@ export interface SellerProfile {
   city?: string;
   state?: string;
   pincode?: string;
+  isVacation?: boolean;
 }
 
 export interface User {
@@ -66,7 +69,7 @@ export interface User {
   storeName?: string;
   isActive?: boolean;
   isVerified?: boolean;
-  isOnVacation?: boolean;
+  isVacation?: boolean;
   createdAt: string;
   updatedAt?: string;
 }
@@ -170,6 +173,7 @@ export interface Order {
   cancelReason?: string;
   buyer?: any;
   seller?: any;
+  payments?: any[];
 }
 
 export interface Payout {
