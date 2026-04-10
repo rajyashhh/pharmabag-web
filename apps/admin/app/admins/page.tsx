@@ -22,7 +22,7 @@ export default function AdminManagementPage() {
   const deleteAdmin = useDeleteAdmin();
   const [showModal, setShowModal] = useState(false);
   const [editingAdmin, setEditingAdmin] = useState<any>(null);
-  const [form, setForm] = useState({ name: "", phone: "", role: "admin", permissions: "" });
+  const [form, setForm] = useState({ name: "", phone: "", department: "General", permissions: "" });
   const [search, setSearch] = useState("");
 
   const admins: any[] = Array.isArray(adminsData) ? adminsData : (adminsData?.data ?? []);
@@ -32,20 +32,23 @@ export default function AdminManagementPage() {
 
   const openCreate = () => {
     setEditingAdmin(null);
-    setForm({ name: "", phone: "", role: "admin", permissions: "" });
+    setForm({ name: "", phone: "", department: "General", permissions: "" });
     setShowModal(true);
   };
 
   const openEdit = (admin: any) => {
     setEditingAdmin(admin);
-    setForm({ name: admin.name ?? "", phone: admin.phone ?? "", role: admin.role ?? "admin", permissions: admin.permissions ?? "" });
+    setForm({ name: admin.name ?? "", phone: admin.phone ?? "", department: admin.department ?? "General", permissions: admin.permissions ?? "" });
     setShowModal(true);
   };
 
   const handleSave = async () => {
     try {
       if (editingAdmin) {
-        await updateAdmin.mutateAsync({ adminId: editingAdmin.id, payload: form });
+        // Omit phone for updates as it's not editable and may trigger validation errors (forbidNonWhitelisted)
+        // This also prevents potential issues if the backend expects a strict DTO without 'phone'
+        const { phone, ...payload } = form;
+        await updateAdmin.mutateAsync({ adminId: editingAdmin.id, payload });
         toast.success("Admin updated");
       } else {
         await createAdmin.mutateAsync(form);
@@ -100,7 +103,7 @@ export default function AdminManagementPage() {
             <table className="w-full">
               <thead>
                 <tr className="border-b border-border/50 bg-muted/20">
-                  {["Admin", "Phone", "Unique ID", "Role", "Permissions", "Created", "Actions"].map(h => (
+                  {["Admin", "Phone", "Unique ID", "Department", "Permissions", "Created", "Actions"].map(h => (
                     <th key={h} className="px-5 py-3.5 text-center text-xs font-semibold text-muted-foreground uppercase tracking-wider">{h}</th>
                   ))}
                 </tr>
@@ -122,11 +125,13 @@ export default function AdminManagementPage() {
                     <td className="px-5 py-4 max-w-[120px]">
                       <span className="font-mono text-[10px] text-muted-foreground break-all whitespace-normal leading-tight block">{admin.id}</span>
                     </td>
-                    <td className="px-5 py-4">
-                      <Badge variant={admin.permissions?.includes("x") ? "purple" : "info"}>{admin.permissions?.includes("x") ? "Super Admin" : admin.role ?? "Admin"}</Badge>
+                    <td className="px-5 py-4 text-center">
+                      <Badge variant={admin.permissions?.includes("x") ? "purple" : "info"}>
+                        {admin.permissions?.includes("x") ? "Super Admin" : (admin.department || "Admin")}
+                      </Badge>
                     </td>
                     <td className="px-5 py-4">
-                      <div className="flex flex-wrap gap-1">
+                      <div className="flex flex-wrap gap-1 justify-center">
                         {admin.permissions?.includes("x") ? (
                           <Badge variant="purple" size="sm">All</Badge>
                         ) : (
@@ -139,9 +144,9 @@ export default function AdminManagementPage() {
                         )}
                       </div>
                     </td>
-                    <td className="px-5 py-4 text-xs text-muted-foreground">{admin.createdAt ? new Date(admin.createdAt).toLocaleDateString("en-IN") : "—"}</td>
+                    <td className="px-5 py-4 text-xs text-muted-foreground text-center">{admin.createdAt ? new Date(admin.createdAt).toLocaleDateString("en-IN") : "—"}</td>
                     <td className="px-5 py-4">
-                      <div className="flex items-center gap-1">
+                      <div className="flex items-center justify-center gap-1">
                         <Button variant="ghost" size="icon" onClick={() => openEdit(admin)}><Pencil className="h-3.5 w-3.5" /></Button>
                         <Button variant="ghost" size="icon" onClick={() => handleDelete(admin)}><Trash2 className="h-3.5 w-3.5 text-red-500" /></Button>
                       </div>
@@ -159,7 +164,7 @@ export default function AdminManagementPage() {
         <div className="space-y-4">
           <Input label="Name" value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} placeholder="Admin name" />
           <Input label="Phone" value={form.phone} onChange={e => setForm(f => ({ ...f, phone: e.target.value }))} placeholder="10-digit phone" disabled={!!editingAdmin} />
-          <Input label="Role" value={form.role} onChange={e => setForm(f => ({ ...f, role: e.target.value }))} placeholder="admin" />
+          <Input label="Department" value={form.department} onChange={e => setForm(f => ({ ...f, department: e.target.value }))} placeholder="e.g. Sales, Operations, Technical" />
           <div>
             <label className="text-sm font-medium text-foreground mb-2 block">Permissions</label>
             <div className="grid grid-cols-2 gap-2">
@@ -178,7 +183,7 @@ export default function AdminManagementPage() {
                         }));
                       }
                     }}
-                    className="rounded border-border" />
+                    className="rounded border-border text-primary focus:ring-primary" />
                   <span className="text-muted-foreground">{label}</span>
                 </label>
               ))}

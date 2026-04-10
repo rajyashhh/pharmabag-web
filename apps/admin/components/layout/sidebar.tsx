@@ -13,7 +13,6 @@ const NAV = [
   { icon: FileSpreadsheet, label: "Upload CSV File", href: "/suggestions" },
   { icon: Package, label: "Products", href: "/products" },
   { icon: ClipboardList, label: "Orders", href: "/orders" },
-  { icon: CreditCard, label: "Payments", href: "/payments" },
   { icon: Banknote, label: "Settlements", href: "/settlements" },
   { icon: Ticket, label: "Tickets", href: "/tickets" },
   { icon: UserCog, label: "Admins", href: "/admins" },
