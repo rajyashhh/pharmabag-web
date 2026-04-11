@@ -128,6 +128,9 @@ export const productFormSchema = z.object({
 }).refine((data) => data.stock >= data.min_order_qty, {
   message: 'Current stock must be at least equal to minimum order quantity',
   path: ['stock'],
+}).refine((data) => data.min_order_qty <= data.stock, {
+  message: 'Minimum order quantity cannot exceed current stock',
+  path: ['min_order_qty'],
 }).refine((data) => {
   const d = data.discount_form_details;
   // Types that require discount percent
@@ -175,6 +178,13 @@ export const productFormSchema = z.object({
 }, (data) => ({
   message: `Minimum order quantity must be at least ${Math.ceil(20000 / data.product_price)} to meet the ₹20,000 requirement.`,
   path: ['min_order_qty'],
+})).refine((data) => {
+  // Enforce ₹20,000 minimum rule for stock too for consistency
+  const minRequiredMoq = Math.ceil(20000 / data.product_price);
+  return data.stock >= minRequiredMoq;
+}, (data) => ({
+  message: `Current stock must be at least ${Math.ceil(20000 / data.product_price)} units to meet the ₹20,000 requirement.`,
+  path: ['stock'],
 }));
 
 export type ProductFormValues = z.infer<typeof productFormSchema>;

@@ -62,27 +62,24 @@ export function ProductForm({ defaultValues, productId }: { defaultValues?: Part
   const watchMaxMoq = watch("max_order_qty");
   const lastMrpRef = useRef<number>(0);
 
-  // Real-time synchronization and enforcement of ₹20,000 minimum rule
+  // Real-time synchronization when MRP changes
   useEffect(() => {
     if (!watchMrp || watchMrp <= 0) return;
 
     const minRequiredMoq = Math.ceil(20000 / watchMrp);
-    const targetMaxMoq = minRequiredMoq * 5;
 
-    // Only auto-sync Min Order Qty when MRP changes
+    // Only auto-sync values when MRP changes
     const isPriceChanged = watchMrp !== lastMrpRef.current;
 
     if (isPriceChanged) {
-      // Sync only the minimum order requirement
+      // Sync both to the minimum required for the new price
       setValue("min_order_qty", minRequiredMoq, { shouldDirty: true, shouldValidate: true });
-      lastMrpRef.current = watchMrp;
-    } else {
-      // Enforce minimum MOQ for manual edits
-      if (watchMinMoq < minRequiredMoq) {
-        setValue("min_order_qty", minRequiredMoq, { shouldDirty: true, shouldValidate: true });
+      if (watchStock < minRequiredMoq) {
+        setValue("stock", minRequiredMoq, { shouldDirty: true, shouldValidate: true });
       }
+      lastMrpRef.current = watchMrp;
     }
-  }, [watchMrp, watchMinMoq, setValue]);
+  }, [watchMrp, setValue, watchStock]);
 
   // Close suggestions on outside click
   useEffect(() => {
