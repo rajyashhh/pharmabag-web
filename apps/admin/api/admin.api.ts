@@ -456,6 +456,23 @@ export async function getTopSellers(params: { limit?: number } = {}) {
   const { data } = await apiClient.get<{ data: any }>(`/admin/analytics/top-sellers${qs}`);
   return data.data;
 }
+// ─── Marketing ─────────────────────────────────────────
+export async function getMarketingProducts(slot?: string) {
+  const qs = slot ? `?slot=${slot}` : "";
+  const { data } = await apiClient.get<{ data: any }>(`/admin/marketing${qs}`);
+  return data.data;
+}
+
+export async function addMarketingProduct(payload: { productId: string; slot: string; priority?: number }) {
+  const { data } = await apiClient.post<{ data: any }>("/admin/marketing", payload);
+  return data.data;
+}
+
+export async function removeMarketingProduct(id: string) {
+  const { data } = await apiClient.delete<{ data: any }>(`/admin/marketing/${id}`);
+  return data.data;
+}
+
 // ─── Storage ──────────────────────────────────────────
 export async function getPresignedUrl(key: string) {
   const { data } = await apiClient.post<{ data: { url: string } }>("/storage/view", { key });

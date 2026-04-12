@@ -226,3 +226,13 @@ export async function getDiscountDetails(productId: string): Promise<{
     };
   }
 }
+
+export async function getFeaturedProducts(slot: 'HOMEPAGE_CAROUSEL' | 'LOGIN_CAROUSEL'): Promise<Product[]> {
+  try {
+    const { data } = await api.get('/products/featured', { params: { slot } });
+    return data?.data ?? [];
+  } catch (err) {
+    console.warn('[Featured] Failed to fetch featured products:', slot);
+    return [];
+  }
+}

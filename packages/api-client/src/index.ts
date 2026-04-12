@@ -33,6 +33,7 @@ export {
   getNearbyProducts,
   getCities,
   getDiscountDetails,
+  getFeaturedProducts,
   type Product,
   type ProductListResponse,
   type CreateProductInput,

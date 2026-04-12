@@ -142,7 +142,7 @@ export default function LoginPage() {
                 </div>
 
                 <div className="hidden lg:block w-full border-t border-gray-200/40 pt-10">
-                  <ProductCarousel />
+                  <ProductCarousel slot="LOGIN_CAROUSEL" />
                 </div>
               </motion.div>
             </div>
@@ -150,7 +150,7 @@ export default function LoginPage() {
 
           {/* BOTTOM CAROUSEL MOBILE */}
           <div className="lg:hidden w-full pt-1 flex-shrink-0 border-none pb-4">
-            <ProductCarousel />
+            <ProductCarousel slot="LOGIN_CAROUSEL" />
           </div>
         </div>
       </main>

@@ -1,30 +1,43 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
+import { Loader2 } from 'lucide-react';
 import ProductCard from '@/components/shared/ProductCard';
+import { getFeaturedProducts } from '@pharmabag/api-client';
 
-interface Product {
-  id: number;
-  name: string;
-  price: string;
-  image: string;
+interface ProductCarouselProps {
+  reverse?: boolean;
+  slot?: 'HOMEPAGE_CAROUSEL' | 'LOGIN_CAROUSEL';
 }
 
-const FEATURED_PRODUCTS: Product[] = [
-  { id: 1, name: 'manforce', price: '₹545', image: '/products/pharma_bottle.png' },
-  { id: 2, name: 'saridon', price: '₹545', image: '/products/pharma_bottle.png' },
-  { id: 3, name: 'calpos 50', price: '₹545', image: '/products/pharma_bottle.png' },
-  { id: 4, name: 'hylogen', price: '₹545', image: '/products/pharma_bottle.png' },
-  { id: 5, name: 'ozempic', price: '₹545', image: '/products/pharma_bottle.png' },
-  { id: 6, name: 'gollhrny', price: '₹545', image: '/products/pharma_bottle.png' },
-  { id: 7, name: 'Foliyer', price: '₹545', image: '/products/pharma_bottle.png' },
-  { id: 8, name: 'Fhtture', price: '₹545', image: '/products/pharma_bottle.png' },
-];
+export default function ProductCarousel({ reverse = false, slot = 'HOMEPAGE_CAROUSEL' }: ProductCarouselProps) {
+  const [products, setProducts] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
 
-const PRODUCTS_VISIBLE = 8;
+  useEffect(() => {
+    async function load() {
+      try {
+        const data = await getFeaturedProducts(slot);
+        if (data && Array.isArray(data)) {
+          setProducts(data);
+        }
+      } catch (err) {
+        console.error('Failed to load featured products', err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    load();
+  }, [slot]);
 
-export default function ProductCarousel({ reverse = false }: { reverse?: boolean } = {}) {
-  const scrollProducts = [...FEATURED_PRODUCTS, ...FEATURED_PRODUCTS, ...FEATURED_PRODUCTS];
+  if (loading) return <div className="h-40 flex items-center justify-center"><Loader2 className="w-6 h-6 animate-spin text-emerald-500" /></div>;
+  if (!products.length) return null;
+
+  // Duplicating for infinite scroll effect (need at least a few items for it to look good)
+  const scrollProducts = products.length >= 4 
+    ? [...products, ...products, ...products] 
+    : [...products, ...products, ...products, ...products, ...products];
 
   return (
     <div className="w-full h-full mb-4 sm:mb-6 lg:mb-8 overflow-hidden bg-transparent mx-auto pl-[4vw] lg:pl-4 pr-[4vw] flex flex-col justify-center items-center pt-0 lg:pt-2">
@@ -41,7 +54,6 @@ export default function ProductCarousel({ reverse = false }: { reverse?: boolean
           }}
           className="flex w-max gap-4 sm:gap-6"
         >
-          {/* We duplicated FEATURED_PRODUCTS 3 times, so one set is 33.33% of the total width */}
           {scrollProducts.map((product, index) => (
             <div
               key={`${product.id}-${index}`}
@@ -49,8 +61,8 @@ export default function ProductCarousel({ reverse = false }: { reverse?: boolean
             >
               <ProductCard
                 name={product.name}
-                price={product.price}
-                image={product.image}
+                price={`₹${product.mrp || 545}`}
+                image={product.images?.[0]?.url || product.image || '/products/pharma_bottle.png'}
               />
             </div>
           ))}

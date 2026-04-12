@@ -18,6 +18,7 @@ import {
   broadcastNotification, getNotificationHistory, getMyBroadcastHistory, sendUserNotification,
   getPlatformSettings, updatePlatformSettings,
   getRevenueChart, getOrdersChart, getTopProducts, getTopSellers, getPresignedUrl,
+  getMarketingProducts, addMarketingProduct, removeMarketingProduct,
 } from "@/api/admin.api";
 import { useAdminAuth } from "@/store";
 
@@ -457,6 +458,27 @@ export function useRevenueChart(period?: string) { return useQuery({ queryKey: [
 export function useOrdersChart(period?: string) { return useQuery({ queryKey: ["admin", "analytics", "orders", period], queryFn: () => getOrdersChart({ period }), staleTime: 120_000, retry: 1 }); }
 export function useTopProducts(limit?: number) { return useQuery({ queryKey: ["admin", "analytics", "top-products", limit], queryFn: () => getTopProducts({ limit }), staleTime: 120_000, retry: 1 }); }
 export function useTopSellers(limit?: number) { return useQuery({ queryKey: ["admin", "analytics", "top-sellers", limit], queryFn: () => getTopSellers({ limit }), staleTime: 120_000, retry: 1 }); }
+
+// ─── Marketing ─────────────────────────────────────────
+export function useMarketingProducts(slot?: string) {
+  return useQuery({ queryKey: ["admin", "marketing", slot], queryFn: () => getMarketingProducts(slot), staleTime: 60_000, retry: 1 });
+}
+
+export function useAddMarketingProduct() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: addMarketingProduct,
+    onSuccess: () => void qc.invalidateQueries({ queryKey: ["admin", "marketing"] }),
+  });
+}
+
+export function useRemoveMarketingProduct() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: removeMarketingProduct,
+    onSuccess: () => void qc.invalidateQueries({ queryKey: ["admin", "marketing"] }),
+  });
+}
 
 // ─── Storage ──────────────────────────────────────────
 export function usePresignedUrl(key: string | null | undefined) {
