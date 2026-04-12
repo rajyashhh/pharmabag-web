@@ -7,7 +7,7 @@ import { AdminLayout } from "@/components/layout/admin-layout";
 import { Button, Input, Badge, Pagination, Modal } from "@/components/ui";
 import { formatCurrency } from "@pharmabag/utils";
 import { cn } from "@/lib/utils";
-import { useAdminOrders, useUpdateAdminOrderStatus } from "@/hooks/useAdmin";
+import { useAdminOrdersFiltered, useUpdateAdminOrderStatus } from "@/hooks/useAdmin";
 import { getPresignedUrl } from "@pharmabag/api-client";
 import toast from "react-hot-toast";
 
@@ -23,6 +23,10 @@ const STATUS_FILTERS = [
   { label: "Cancelled", v: "CANCELLED" },
 ] as const;
 
+import { DateRangePicker } from "@/components/ui/date-range-picker";
+import { DateRange } from "react-day-picker";
+import { subDays } from "date-fns";
+
 export default function AdminOrdersPage() {
   const router = useRouter();
   const [search, setSearch] = useState("");
@@ -30,7 +34,19 @@ export default function AdminOrdersPage() {
   const [page, setPage] = useState(1);
   const PAGE_LIMIT = 20;
 
-  const { data: ordersData, isLoading } = useAdminOrders(page, PAGE_LIMIT);
+  const [dateRange, setDateRange] = useState<DateRange | undefined>({
+    from: subDays(new Date(), 30),
+    to: new Date(),
+  });
+
+  const { data: ordersData, isLoading } = useAdminOrdersFiltered({
+    page,
+    limit: PAGE_LIMIT,
+    status: filter === "all" ? undefined : filter,
+    search: search || undefined,
+    dateFrom: dateRange?.from?.toISOString(),
+    dateTo: dateRange?.to?.toISOString(),
+  });
   const updateStatus = useUpdateAdminOrderStatus();
 
   // Backend returns { data: [...], total: ... }
@@ -112,10 +128,13 @@ export default function AdminOrdersPage() {
   return (
     <AdminLayout>
       <div className="space-y-6">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h1 className="font-semibold text-2xl text-foreground">Order Monitoring</h1>
           <p className="text-sm text-muted-foreground mt-0.5">{allOrders.length} total orders · {allOrders.filter((o: any) => o.orderStatus === "PLACED").length} pending</p>
         </div>
+        <DateRangePicker value={dateRange} onChange={setDateRange} align="end" />
+      </div>
 
         <div className="flex flex-col sm:flex-row gap-3">
           <div className="flex-1">

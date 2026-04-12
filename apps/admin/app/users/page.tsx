@@ -190,6 +190,10 @@ function SellerDetails({ userId }: { userId: string }) {
   );
 }
 
+import { DateRangePicker } from "@/components/ui/date-range-picker";
+import { DateRange } from "react-day-picker";
+import { subDays } from "date-fns";
+
 export default function UsersPage() {
   const [search, setSearch] = useState("");
   const [role, setRole] = useState<RoleFilter>("all");
@@ -197,7 +201,18 @@ export default function UsersPage() {
   const [expandedUser, setExpandedUser] = useState<string | null>(null);
   const [page, setPage] = useState(1);
   const limit = 20;
-  const { data: usersData, isLoading } = useAdminUsers(page, limit);
+
+  const [dateRange, setDateRange] = useState<DateRange | undefined>({
+    from: subDays(new Date(), 30),
+    to: new Date(),
+  });
+
+  const { data: usersData, isLoading } = useAdminUsers({
+    page,
+    limit,
+    dateFrom: dateRange?.from?.toISOString(),
+    dateTo: dateRange?.to?.toISOString(),
+  });
   const { data: sellersData } = useAdminSellers();
   const updateStatus = useAffirmUserStatus();
   const updateGstStatus = useUpdateGstPanStatus();
@@ -278,11 +293,12 @@ export default function UsersPage() {
   return (
     <AdminLayout>
       <div className="space-y-6">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
             <h1 className="font-semibold text-2xl text-foreground">User Management</h1>
             <p className="text-sm text-muted-foreground mt-0.5">{users.length} total users · {users.filter((u: any) => u.status === "PENDING").length} pending{vacationCount > 0 && <> · <span className="text-amber-600">{vacationCount} on vacation</span></>}</p>
           </div>
+          <DateRangePicker value={dateRange} onChange={setDateRange} align="end" />
         </div>
 
         <div className="flex flex-col sm:flex-row gap-3">

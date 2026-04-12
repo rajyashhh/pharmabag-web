@@ -9,8 +9,21 @@ import { useSellerDashboard, useToggleVacationMode, useSellerProfile } from "@/h
 import { useSellerAuth } from "@/store";
 import toast from "react-hot-toast";
 
+import React, { useState } from "react";
+import { subDays } from "date-fns";
+import { DateRangePicker } from "@/components/ui/date-range-picker";
+import { DateRange } from "react-day-picker";
+
 export default function SellerDashboard() {
-  const { data: dashboardDataRaw, isLoading } = useSellerDashboard();
+  const [dateRange, setDateRange] = React.useState<DateRange | undefined>({
+    from: subDays(new Date(), 30),
+    to: new Date(),
+  });
+
+  const { data: dashboardDataRaw, isLoading } = useSellerDashboard({
+    dateFrom: dateRange?.from?.toISOString(),
+    dateTo: dateRange?.to?.toISOString(),
+  });
   const dashboardData = dashboardDataRaw as any;
   const { user } = useSellerAuth();
   const { data: profile } = useSellerProfile();
@@ -51,17 +64,18 @@ export default function SellerDashboard() {
       )}
 
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h1 className="font-semibold text-2xl text-foreground">Seller Dashboard</h1>
           <p className="text-sm text-muted-foreground mt-0.5">{user?.businessName || user?.name || "Seller"}</p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap items-center gap-3">
+          <DateRangePicker value={dateRange} onChange={setDateRange} align="end" />
           {!isVacation && (
             <Button size="sm" variant="outline" loading={toggleVacation.isPending}
               onClick={() => { toggleVacation.mutate(true, { onSuccess: () => toast.success("Vacation mode activated! Your store is now hidden from buyers."), onError: () => toast.error("Failed to update vacation mode") }); }}
               leftIcon={<Palmtree className="h-3.5 w-3.5"/>}>
-              Vacation Mode
+              Vacation
             </Button>
           )}
           <Link href="/notifications" aria-label="Notifications" className="relative h-9 w-9 rounded-xl border border-border flex items-center justify-center text-muted-foreground hover:bg-accent/60 transition-colors">

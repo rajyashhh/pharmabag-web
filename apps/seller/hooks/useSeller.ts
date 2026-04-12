@@ -48,7 +48,7 @@ export function useSellerMe(enabled: boolean = false) {
   });
 }
 
-export function useSellerDashboard() { return useQuery({ queryKey: ["seller", "dashboard"], queryFn: getSellerDashboard, staleTime: 60_000, retry: 1 }); }
+export function useSellerDashboard(params: { dateFrom?: string; dateTo?: string } = {}) { return useQuery({ queryKey: ["seller", "dashboard", params], queryFn: () => getSellerDashboard(params), staleTime: 60_000, retry: 1 }); }
 
 export function useSellerProfile(enabled: boolean = true) {
   const { setUser, user } = useSellerAuth();
@@ -92,7 +92,7 @@ export function useSellerProduct(id: string) { return useQuery({ queryKey: ["sel
 
 export function useCategories() { return useQuery({ queryKey: ["categories"], queryFn: getCategoriesWithSubs, staleTime: 300_000, retry: 1 }); }
 
-export function useSellerOrders() { return useQuery({ queryKey: ["seller", "orders"], queryFn: getSellerOrders, staleTime: 60_000, retry: 1 }); }
+export function useSellerOrders(params: { dateFrom?: string; dateTo?: string } = {}) { return useQuery({ queryKey: ["seller", "orders", params], queryFn: () => getSellerOrders(params), staleTime: 60_000, retry: 1 }); }
 
 export function useUpdateSellerOrderStatus() {
   const qc = useQueryClient();
@@ -105,7 +105,7 @@ export function useUpdateSellerOrderStatus() {
   });
 }
 
-export function useSellerSettlements() { return useQuery({ queryKey: ["seller", "settlements"], queryFn: getSellerSettlements, staleTime: 60_000, retry: 1 }); }
+export function useSellerSettlements(params: { dateFrom?: string; dateTo?: string } = {}) { return useQuery({ queryKey: ["seller", "settlements", params], queryFn: () => getSellerSettlements(params), staleTime: 60_000, retry: 1 }); }
 
 export function useSellerSettlementSummary() { return useQuery({ queryKey: ["seller", "settlement-summary"], queryFn: getSellerSettlementSummary, staleTime: 60_000, retry: 1 }); }
 
@@ -261,9 +261,7 @@ export function useCreateProductRequest() {
 }
 
 // ─── Analytics ────────────────────────────────────────
-export function useSellerAnalytics() {
-  return useQuery({ queryKey: ["seller", "analytics"], queryFn: getSellerAnalytics, staleTime: 120_000, retry: 1 });
-}
+export function useSellerAnalytics(params: { dateFrom?: string; dateTo?: string } = {}) { return useQuery({ queryKey: ["seller", "analytics", params], queryFn: () => getSellerAnalytics(params), staleTime: 120_000, retry: 1 }); }
 
 // ─── Ticket by ID ─────────────────────────────────────
 export function useSellerTicketById(ticketId: string) {

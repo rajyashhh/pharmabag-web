@@ -9,12 +9,27 @@ import { cn } from "@/lib/utils";
 import toast from "react-hot-toast";
 import { useSettlements, useMarkSettlementPaid } from "@/hooks/useAdmin";
 
+import { DateRangePicker } from "@/components/ui/date-range-picker";
+import { DateRange } from "react-day-picker";
+import { subDays } from "date-fns";
+
 export default function AdminSettlementsPage() {
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState<"ALL" | "PENDING" | "PROCESSED" | "PAID">("ALL");
   const [page, setPage] = useState(1);
   const limit = 20;
-  const { data: settlementsData, isLoading } = useSettlements(page, limit);
+
+  const [dateRange, setDateRange] = useState<DateRange | undefined>({
+    from: subDays(new Date(), 30),
+    to: new Date(),
+  });
+
+  const { data: settlementsData, isLoading } = useSettlements({
+    page,
+    limit,
+    dateFrom: dateRange?.from?.toISOString(),
+    dateTo: dateRange?.to?.toISOString(),
+  });
   const markPaid = useMarkSettlementPaid();
 
   // Modal State
@@ -72,7 +87,7 @@ export default function AdminSettlementsPage() {
   return (
     <AdminLayout>
       <div className="space-y-6">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
             <h1 className="font-semibold text-2xl text-foreground flex items-center gap-2">
               <Banknote className="h-6 w-6 text-primary" />
@@ -82,10 +97,11 @@ export default function AdminSettlementsPage() {
               Manage and disburse payouts to sellers
             </p>
           </div>
-          <div className="flex gap-6 text-right">
-            <div>
+          <div className="flex flex-wrap items-center gap-4">
+            <DateRangePicker value={dateRange} onChange={setDateRange} align="end" />
+            <div className="text-right">
               <p className="font-medium text-xl text-yellow-600 dark:text-yellow-500">{formatCurrency(pendingAmount)}</p>
-              <p className="text-xs text-muted-foreground">Pending Payouts</p>
+              <p className="text-xs text-muted-foreground font-semibold uppercase tracking-wider">Pending Payouts</p>
             </div>
           </div>
         </div>

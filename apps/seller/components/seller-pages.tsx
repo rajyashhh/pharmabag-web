@@ -21,6 +21,9 @@ import {
 } from "@/hooks/useSeller";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
+import { DateRangePicker } from "@/components/ui/date-range-picker";
+import { DateRange } from "react-day-picker";
+import { subDays } from "date-fns";
 
 const ORDER_TABS = [
   { key: "all", label: "All Orders" },
@@ -86,7 +89,15 @@ function OrderTable({ orders, showConfirm = false, updateFn }: { orders: any[]; 
 
 export function OrdersContent() {
   const [tab, setTab] = useState<OrderTab>("all");
-  const { data: orders, isLoading } = useSellerOrders();
+  const [dateRange, setDateRange] = useState<DateRange | undefined>({
+    from: subDays(new Date(), 30),
+    to: new Date(),
+  });
+
+  const { data: orders, isLoading } = useSellerOrders({
+    dateFrom: dateRange?.from?.toISOString(),
+    dateTo: dateRange?.to?.toISOString(),
+  });
   const updateOrderStatus = useUpdateSellerOrderStatus();
   const allOrders: any[] = (Array.isArray(orders) ? orders : (orders as any)?.orders || (orders as any)?.data || []);
 
@@ -113,9 +124,15 @@ export function OrdersContent() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div><h1 className="font-semibold text-2xl text-foreground">Orders</h1><p className="text-sm text-muted-foreground mt-0.5">Manage orders from your store</p></div>
-        {pendingCount > 0 && <Badge variant="warning">{pendingCount} pending</Badge>}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <h1 className="font-semibold text-2xl text-foreground">Orders</h1>
+          <p className="text-sm text-muted-foreground mt-0.5">Manage orders from your store</p>
+        </div>
+        <div className="flex flex-wrap items-center gap-3">
+           <DateRangePicker value={dateRange} onChange={setDateRange} align="end" />
+           {pendingCount > 0 && <Badge variant="warning">{pendingCount} pending</Badge>}
+        </div>
       </div>
 
       {/* Tabs */}

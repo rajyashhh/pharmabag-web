@@ -2,8 +2,11 @@ import { apiClient } from "@/lib/apiClient";
 import type { Product, Order, Payout, Suggestion, CategoryItem } from "@pharmabag/utils";
 import type { ProductPayload } from "@pharmabag/utils";
 
-export async function getSellerDashboard() {
-  const { data } = await apiClient.get<{ data: any }>("/sellers/dashboard");
+export async function getSellerDashboard(params: { dateFrom?: string; dateTo?: string } = {}) {
+  const qs = new URLSearchParams();
+  if (params.dateFrom) qs.set("dateFrom", params.dateFrom);
+  if (params.dateTo) qs.set("dateTo", params.dateTo);
+  const { data } = await apiClient.get<{ data: any }>(`/sellers/dashboard?${qs}`);
   return data.data;
 }
 
@@ -89,8 +92,11 @@ export async function deleteSellerProduct(productId: string) {
   return data;
 }
 
-export async function getSellerOrders() {
-  const { data } = await apiClient.get<any>("/orders/seller");
+export async function getSellerOrders(params: { dateFrom?: string; dateTo?: string } = {}) {
+  const qs = new URLSearchParams();
+  if (params.dateFrom) qs.set("dateFrom", params.dateFrom);
+  if (params.dateTo) qs.set("dateTo", params.dateTo);
+  const { data } = await apiClient.get<any>(`/orders/seller?${qs}`);
   const raw = data.data ?? data;
   return Array.isArray(raw) ? raw : (raw.orders ?? raw.data ?? []);
 }
@@ -100,8 +106,11 @@ export async function updateSellerOrderStatus(orderId: string, status: string) {
   return data.order;
 }
 
-export async function getSellerSettlements() {
-  const { data } = await apiClient.get<{ settlements: any }>("/settlements/seller");
+export async function getSellerSettlements(params: { dateFrom?: string; dateTo?: string } = {}) {
+  const qs = new URLSearchParams();
+  if (params.dateFrom) qs.set("dateFrom", params.dateFrom);
+  if (params.dateTo) qs.set("dateTo", params.dateTo);
+  const { data } = await apiClient.get<{ settlements: any }>(`/settlements/seller?${qs}`);
   return data.settlements;
 }
 
@@ -279,8 +288,11 @@ export async function createProductRequest(payload: { productName: string; manuf
 }
 
 // ─── Analytics ────────────────────────────────────────
-export async function getSellerAnalytics() {
-  const { data } = await apiClient.get<any>("/sellers/analytics");
+export async function getSellerAnalytics(params: { dateFrom?: string; dateTo?: string } = {}) {
+  const qs = new URLSearchParams();
+  if (params.dateFrom) qs.set("dateFrom", params.dateFrom);
+  if (params.dateTo) qs.set("dateTo", params.dateTo);
+  const { data } = await apiClient.get<any>(`/sellers/analytics?${qs}`);
   return data.data ?? data;
 }
 

@@ -2,14 +2,19 @@ import { apiClient } from "@/lib/apiClient";
 import type { Product } from "@pharmabag/utils";
 
 // ─── Dashboard ───────────────────────────────────────
-export async function getAdminDashboard() {
-  const { data } = await apiClient.get<{ data: any }>("/admin/dashboard");
+export async function getAdminDashboard(params: { dateFrom?: string; dateTo?: string } = {}) {
+  const qs = new URLSearchParams();
+  if (params.dateFrom) qs.set("dateFrom", params.dateFrom);
+  if (params.dateTo) qs.set("dateTo", params.dateTo);
+  const { data } = await apiClient.get<{ data: any }>(`/admin/dashboard?${qs}`);
   return data.data;
 }
 
 // ─── Users ───────────────────────────────────────────
-export async function getAdminUsers(page = 1, limit = 50) {
-  const { data } = await apiClient.get<any>(`/admin/users?page=${page}&limit=${limit}`);
+export async function getAdminUsers(params: { page?: number; limit?: number; dateFrom?: string; dateTo?: string } = {}) {
+  const qs = new URLSearchParams();
+  Object.entries(params).forEach(([k, v]) => { if (v) qs.set(k, String(v)); });
+  const { data } = await apiClient.get<any>(`/admin/users?${qs}`);
   return data.data;
 }
 
@@ -112,8 +117,10 @@ export async function rejectPayment(paymentId: string) {
 }
 
 // ─── Settlements ─────────────────────────────────────
-export async function getSettlements(page = 1, limit = 50) {
-  const { data } = await apiClient.get<any>(`/admin/settlements?page=${page}&limit=${limit}`);
+export async function getSettlements(params: { page?: number; limit?: number; dateFrom?: string; dateTo?: string } = {}) {
+  const qs = new URLSearchParams();
+  Object.entries(params).forEach(([k, v]) => { if (v) qs.set(k, String(v)); });
+  const { data } = await apiClient.get<any>(`/admin/settlements?${qs}`);
   return data.data;
 }
 

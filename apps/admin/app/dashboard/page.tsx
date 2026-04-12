@@ -8,9 +8,22 @@ import { StatCard, Badge, StatusBadge, Button } from "@/components/ui";
 import { formatCurrency, formatCompact } from "@pharmabag/utils";
 import { useAdminDashboard } from "@/hooks/useAdmin";
 
+import React from "react";
+import { DateRangePicker } from "@/components/ui/date-range-picker";
+import { DateRange } from "react-day-picker";
+import { subDays } from "date-fns";
+
 export default function AdminDashboardPage() {
   const router = useRouter();
-  const { data: d, isLoading } = useAdminDashboard();
+  const [dateRange, setDateRange] = React.useState<DateRange | undefined>({
+    from: subDays(new Date(), 30),
+    to: new Date(),
+  });
+
+  const { data: d, isLoading } = useAdminDashboard({
+    dateFrom: dateRange?.from?.toISOString(),
+    dateTo: dateRange?.to?.toISOString(),
+  });
 
   if (isLoading) {
     return (
@@ -43,11 +56,12 @@ export default function AdminDashboardPage() {
   return (
     <AdminLayout>
       {/* Header */}
-      <div className="flex items-center justify-between mb-8">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
         <div>
           <h1 className="font-semibold text-2xl text-foreground">Platform Overview</h1>
           <p className="text-sm text-muted-foreground mt-0.5">Monitor the entire PharmaBag ecosystem</p>
         </div>
+        <DateRangePicker value={dateRange} onChange={setDateRange} align="end" />
       </div>
 
       {/* Critical alerts */}

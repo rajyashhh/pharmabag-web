@@ -59,9 +59,9 @@ export function useAdminMe() {
   });
 }
 
-export function useAdminDashboard() { return useQuery({ queryKey: ["admin", "dashboard"], queryFn: getAdminDashboard, staleTime: 60_000, retry: 1 }); }
+export function useAdminDashboard(params: { dateFrom?: string; dateTo?: string } = {}) { return useQuery({ queryKey: ["admin", "dashboard", params], queryFn: () => getAdminDashboard(params), staleTime: 60_000, retry: 1 }); }
 
-export function useAdminUsers(page = 1, limit = 20) { return useQuery({ queryKey: ["admin", "users", page, limit], queryFn: () => getAdminUsers(page, limit), staleTime: 60_000, retry: 1 }); }
+export function useAdminUsers(params: { page?: number; limit?: number; dateFrom?: string; dateTo?: string } = {}) { return useQuery({ queryKey: ["admin", "users", params], queryFn: () => getAdminUsers(params), staleTime: 60_000, retry: 1 }); }
 
 export function useAdminSellers() { return useQuery({ queryKey: ["admin", "sellers"], queryFn: () => getSellers({ limit: 500 }), staleTime: 60_000, retry: 1 }); }
 
@@ -137,7 +137,7 @@ export function useRejectPayment() {
 
 // ─── Settlements ─────────────────────────────────────
 
-export function useSettlements(page = 1, limit = 20) { return useQuery({ queryKey: ["admin", "settlements", page, limit], queryFn: () => getSettlements(page, limit), staleTime: 60_000, retry: 1 }); }
+export function useSettlements(params: { page?: number; limit?: number; dateFrom?: string; dateTo?: string } = {}) { return useQuery({ queryKey: ["admin", "settlements", params], queryFn: () => getSettlements(params), staleTime: 60_000, retry: 1 }); }
 
 export function useMarkSettlementPaid() {
   const qc = useQueryClient();
