@@ -8,9 +8,13 @@ import TrustSection from '@/components/landing/TrustSection';
 import Testimonials from '@/components/landing/Testimonials';
 
 export default function HomePage() {
+  const handleLoginClick = () => {
+    window.dispatchEvent(new CustomEvent('open-login'));
+  };
+
   return (
     <main className="w-full bg-gradient-to-br from-[#8deaffe] via-[#e0ffc7e6] to-[#f4ffede6] min-h-screen relative">
-      <Navbar showUserActions={true} />
+      <Navbar showUserActions={true} onLoginClick={handleLoginClick} />
       <section className="flex-1 overflow-hidden flex flex-col bg-transparent pt-16 lg:pt-24">
         <div className="w-full flex-shrink-0 lg:pt-10 bg-transparent flex flex-col mb-10 lg:mb-8">
           <HeroSection />

@@ -198,7 +198,7 @@ export default function LoginModal({ isOpen: isOpenProp, onClose: onCloseProp }:
 
               {/* Desktop Product Carousel only */}
               <div className="hidden lg:flex w-full mt-12 pt-10 border-t border-gray-200/60 flex-col gap-6 overflow-hidden">
-                <ProductCarousel />
+                <ProductCarousel slot="LOGIN_CAROUSEL" />
               </div>
             </motion.div>
           </div>
@@ -206,7 +206,7 @@ export default function LoginModal({ isOpen: isOpenProp, onClose: onCloseProp }:
 
         {/* BOTTOM: Carousel for mobile */}
         <div className="lg:hidden w-full pt-1 flex-shrink-0 border-none">
-          <ProductCarousel />
+          <ProductCarousel slot="LOGIN_CAROUSEL" />
         </div>
       </div>
     </div>
