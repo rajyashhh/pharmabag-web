@@ -8,6 +8,7 @@ import PremiumBrandsMegaMenu from '@/components/shared/PremiumBrandsMegaMenu';
 import PremiumCategoriesMegaMenu from '@/components/shared/PremiumCategoriesMegaMenu';
 import CartDrawer from '@/components/cart/CartDrawer';
 import { useScrollLock } from '@/hooks/useScrollLock';
+import { useCart } from '@/hooks/useCart';
 
 import { useAuth, getCategories, Category } from '@pharmabag/api-client';
 
@@ -26,6 +27,9 @@ export default function PremiumNavbar({ onLoginClick }: PremiumNavbarProps) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [expandedMobileCategory, setExpandedMobileCategory] = useState<string | null>(null);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  const { data: cart } = useCart();
+  const cartItemCount = cart?.items?.length || 0;
 
   const navItems = [
     { label: 'Brands', href: '#', type: 'menu' },
@@ -137,9 +141,14 @@ export default function PremiumNavbar({ onLoginClick }: PremiumNavbarProps) {
 
             <button
               onClick={() => setIsCartOpen(true)}
-              className="text-black hover:text-gray-600 transition-colors"
+              className="text-black hover:text-gray-600 transition-colors relative"
             >
               <svg width="20" height="20" className="sm:w-[22px] sm:h-[22px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z" /><path d="M3 6h18" /><path d="M16 10a4 4 0 0 1-8 0" /></svg>
+              {cartItemCount > 0 && (
+                <span className="absolute -top-1.5 -right-1.5 flex h-4 w-4 sm:h-5 sm:w-5 items-center justify-center rounded-full bg-lime-300 text-[10px] sm:text-[11px] font-bold text-black border-2 border-white">
+                  {cartItemCount}
+                </span>
+              )}
             </button>
 
             <Link href="/profile" className="text-black hover:text-gray-600 transition-colors">

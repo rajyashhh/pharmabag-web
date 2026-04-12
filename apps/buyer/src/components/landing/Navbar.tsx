@@ -219,9 +219,14 @@ export default function Navbar({
                   onClick={() =>
                     setIsCartOpen(true)
                   }
-                  className="p-1.5 text-gray-700 hover:text-sky-600"
+                  className="relative p-1.5 text-gray-700 hover:text-sky-600"
                 >
                   <ShoppingBag className="w-4 h-4 sm:w-5 sm:h-5" />
+                  {cartData?.items && cartData.items.length > 0 && (
+                    <span className="absolute -top-1 -right-1 w-4 h-4 bg-lime-400 text-gray-900 text-[10px] font-black rounded-full flex items-center justify-center">
+                      {cartData.items.length}
+                    </span>
+                  )}
                 </button>
 
               </div>
