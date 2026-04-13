@@ -1,6 +1,6 @@
 "use client";
 import * as React from "react";
-import { format, subDays, startOfMonth, endOfMonth, startOfYesterday, endOfYesterday } from "date-fns";
+import { format, subDays, startOfMonth, endOfMonth, startOfYesterday, endOfYesterday, startOfDay, endOfDay } from "date-fns";
 import { Calendar as CalendarIcon, ChevronLeft, ChevronRight, Clock, X } from "lucide-react";
 import { DateRange, DayPicker } from "react-day-picker";
 import { cn } from "@/lib/utils";
@@ -51,10 +51,10 @@ export function DateRangePicker({
   };
 
   const quickRanges = [
-    { label: "Today", getValue: () => ({ from: new Date(), to: new Date() }) },
-    { label: "Yesterday", getValue: () => ({ from: startOfYesterday(), to: startOfYesterday() }) },
-    { label: "Last 7 Days", getValue: () => ({ from: subDays(new Date(), 6), to: new Date() }) },
-    { label: "Last 30 Days", getValue: () => ({ from: subDays(new Date(), 29), to: new Date() }) },
+    { label: "Today", getValue: () => ({ from: startOfDay(new Date()), to: endOfDay(new Date()) }) },
+    { label: "Yesterday", getValue: () => ({ from: startOfYesterday(), to: endOfYesterday() }) },
+    { label: "Last 7 Days", getValue: () => ({ from: startOfDay(subDays(new Date(), 6)), to: endOfDay(new Date()) }) },
+    { label: "Last 30 Days", getValue: () => ({ from: startOfDay(subDays(new Date(), 29)), to: endOfDay(new Date()) }) },
     { label: "This Month", getValue: () => ({ from: startOfMonth(new Date()), to: endOfMonth(new Date()) }) },
   ];
 
