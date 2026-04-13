@@ -48,7 +48,7 @@ export function OrderStatusBadge({ status }: { status: OrderStatus }) {
     RECEIVED_AT_WAREHOUSE:{label:"At Warehouse",variant:"purple"},
     SHIPPED:{label:"Shipped",variant:"info"}, OUT_FOR_DELIVERY:{label:"Out for Delivery",variant:"purple"},
     DELIVERED:{label:"Delivered",variant:"success"},
-    CANCELLED:{label:"Cancelled",variant:"error"}, RETURNED:{label:"Returned",variant:"error"},
+    CANCELLED:{label:"Cancelled",variant:"error"},
   };
   const { label, variant } = m[status] ?? { label: status, variant: "default" as const };
   return <Badge variant={variant}><span className="h-1.5 w-1.5 rounded-full bg-current"/>{label}</Badge>;

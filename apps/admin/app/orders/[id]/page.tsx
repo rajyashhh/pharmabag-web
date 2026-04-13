@@ -19,7 +19,6 @@ const ORDER_STATUSES = [
   { key: "RECEIVED_AT_WAREHOUSE", label: "At Warehouse", icon: MapPin, color: "bg-amber-500" },
   { key: "SHIPPED", label: "Shipped", icon: Truck, color: "bg-indigo-500" },
   { key: "OUT_FOR_DELIVERY", label: "Out for Delivery", icon: Package, color: "bg-purple-500" },
-  { key: "RETURNED", label: "Returned", icon: XCircle, color: "bg-pink-500" },
   { key: "DELIVERED", label: "Delivered", icon: CheckCircle, color: "bg-green-500" },
 ];
 
@@ -237,20 +236,6 @@ export default function OrderDetailPage() {
                   <span className="text-sm text-muted-foreground">Amount</span>
                   <span className="text-sm font-semibold text-foreground">{formatCurrency(order.totalAmount ?? 0)}</span>
                 </div>
-                {order.payments?.[0]?.proofUrl && (
-                  <div className="pt-2 border-t border-border/10 mt-2">
-                    <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-1.5 leading-none">Payment Proof</p>
-                    <a 
-                      href={order.payments[0].proofUrl} 
-                      target="_blank" 
-                      rel="noopener noreferrer"
-                      className="text-xs text-primary underline hover:text-primary/80 flex items-center gap-1.5 font-medium"
-                    >
-                      <FileText className="h-3 w-3" />
-                      View Uploaded Document
-                    </a>
-                  </div>
-                )}
               </div>
             </motion.div>
 

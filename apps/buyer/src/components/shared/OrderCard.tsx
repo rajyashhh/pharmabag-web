@@ -30,8 +30,6 @@ export default function OrderCard({ orderId, date, status, total, itemCount }: O
         return { cls: 'bg-blue-100 text-blue-700 border-blue-200', icon: Truck };
       case 'CANCELLED':
         return { cls: 'bg-red-100 text-red-700 border-red-200', icon: AlertCircle };
-      case 'RETURNED':
-        return { cls: 'bg-pink-100 text-pink-700 border-pink-200', icon: AlertCircle };
       default: 
         return { cls: 'bg-gray-100 text-gray-700 border-gray-200', icon: Package };
     }

@@ -153,7 +153,7 @@ export default function AdminOrdersPage() {
             <table className="w-full" aria-label="Orders">
               <thead>
                 <tr className="border-b border-border/50 bg-muted/20">
-                  {["Order ID", "Buyer", "Seller ID", "Buyer ID", "Items", "Amount", "Payment", "Status", "Action", "Date"].map(h => (
+                  {["Order ID", "Buyer", "Seller ID", "Buyer ID", "Items", "Amount", "Payment", "Action", "Date"].map(h => (
                     <th key={h} scope="col" className="px-5 py-3.5 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">{h}</th>
                   ))}
                 </tr>
@@ -192,7 +192,6 @@ export default function AdminOrdersPage() {
                         )}
                       </div>
                     </td>
-                    <td className="px-5 py-4"><Badge variant={o.orderStatus === "DELIVERED" ? "success" : o.orderStatus === "PLACED" ? "warning" : o.orderStatus === "CANCELLED" ? "error" : "info"}>{o.orderStatus ?? "—"}</Badge></td>
                     <td className="px-5 py-4">
                       {["PLACED", "ACCEPTED", "PAYMENT_RECEIVED", "DISPATCHED_FROM_SELLER", "RECEIVED_AT_WAREHOUSE", "SHIPPED", "OUT_FOR_DELIVERY"].includes(o.orderStatus) && (
                         <div className="flex flex-col items-start gap-1">

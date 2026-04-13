@@ -120,7 +120,7 @@ export default function AdminDashboardPage() {
           <table className="w-full" aria-label="Platform orders">
             <thead>
               <tr className="border-b border-border/50 bg-muted/20">
-                {["Order ID", "Buyer Phone", "Amount", "Payment", "Status", "Date"].map(h => (
+                {["Order ID", "Buyer Phone", "Amount", "Payment", "Date"].map(h => (
                   <th key={h} scope="col" className="px-5 py-3.5 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">{h}</th>
                 ))}
               </tr>
@@ -141,7 +141,6 @@ export default function AdminDashboardPage() {
                   <td className="px-5 py-4 text-sm text-muted-foreground">{o.buyer?.phone ?? "—"}</td>
                   <td className="px-5 py-4 text-sm font-semibold text-foreground">{formatCurrency(o.totalAmount ?? 0)}</td>
                   <td className="px-5 py-4"><Badge variant={o.paymentStatus === "PAID" ? "success" : o.paymentStatus === "PENDING" ? "warning" : "error"}>{o.paymentStatus ?? "—"}</Badge></td>
-                  <td className="px-5 py-4"><Badge variant={o.orderStatus === "DELIVERED" ? "success" : o.orderStatus === "PLACED" ? "warning" : "info"}>{o.orderStatus ?? "—"}</Badge></td>
                   <td className="px-5 py-4 text-xs text-muted-foreground whitespace-nowrap">{o.createdAt ? new Date(o.createdAt).toLocaleDateString("en-IN") : "—"}</td>
                 </motion.tr>
               ))}

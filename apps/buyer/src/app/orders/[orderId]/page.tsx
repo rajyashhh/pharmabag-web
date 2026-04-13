@@ -74,7 +74,6 @@ function buildTimelineSteps(status: string | undefined) {
 function getStatusBadge(status: string | undefined) {
   const s = normalizeStatus(status);
   if (s === 'DELIVERED') return { label: 'Delivered', cls: 'bg-green-100 text-green-700 font-bold' };
-  if (s === 'RETURNED') return { label: 'Returned', cls: 'bg-pink-100 text-pink-700 font-bold' };
   if (s === 'SHIPPED') return { label: 'In Transit', cls: 'bg-blue-100 text-blue-700 font-bold' };
   if (s === 'OUT_FOR_DELIVERY') return { label: 'Out for Delivery', cls: 'bg-purple-100 text-purple-700 font-bold' };
   if (s === 'CANCELLED') return { label: 'Cancelled', cls: 'bg-red-100 text-red-700 font-bold' };
