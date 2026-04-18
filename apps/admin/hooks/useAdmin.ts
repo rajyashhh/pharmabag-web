@@ -7,7 +7,7 @@ import {
   getAdminProducts, getAdminProductsFiltered, getProductById, disableProduct, enableProduct, deleteProduct, createProduct, updateProduct, approveProduct, rejectProduct,
   getAdminOrders, getAdminOrdersFiltered, getOrderById, updateAdminOrderStatus, cancelOrder, getOrderInvoice,
   getPayments, confirmPayment, rejectPayment,
-  getSettlements, markSettlementPaid, getSellerSettlements, createSettlement,
+  getSettlements, markSettlementPaid, getSellerSettlements, createSettlement, syncSettlements,
   getTickets, getTicketById, replyToTicket, updateTicketStatus,
   getCategories, createCategory, updateCategory, deleteCategory,
   getSubCategories, createSubCategory, updateSubCategory, deleteSubCategory as deleteSubCategoryApi,
@@ -18,7 +18,7 @@ import {
   broadcastNotification, getNotificationHistory, getMyBroadcastHistory, sendUserNotification,
   getPlatformSettings, updatePlatformSettings,
   getRevenueChart, getOrdersChart, getTopProducts, getTopSellers, getPresignedUrl,
-  getMarketingProducts, addMarketingProduct, removeMarketingProduct,
+  getMarketingProducts, addMarketingProduct, removeMarketingProduct, uploadSettlementProof,
 } from "@/api/admin.api";
 import { useAdminAuth } from "@/store";
 
@@ -143,7 +143,8 @@ export function useSettlements(params: { page?: number; limit?: number; dateFrom
 export function useMarkSettlementPaid() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: ({ settlementId, payoutReference }: { settlementId: string; payoutReference: string }) => markSettlementPaid(settlementId, payoutReference),
+    mutationFn: ({ settlementId, payoutReference, paymentProofUrl }: { settlementId: string; payoutReference: string; paymentProofUrl?: string }) => 
+      markSettlementPaid(settlementId, payoutReference, paymentProofUrl),
     onSuccess: () => void qc.invalidateQueries({ queryKey: ["admin", "settlements"] }),
   });
 }
@@ -337,6 +338,17 @@ export function useCreateSettlement() {
   });
 }
 
+export function useSyncSettlements() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: syncSettlements,
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: ["admin", "settlements"] });
+      void qc.invalidateQueries({ queryKey: ["admin", "orders"] });
+    },
+  });
+}
+
 // ─── Admin Management ────────────────────────────────
 
 export function useAdmins() { return useQuery({ queryKey: ["admin", "admins"], queryFn: getAdmins, staleTime: 60_000, retry: 1 }); }
@@ -487,5 +499,10 @@ export function usePresignedUrl(key: string | null | undefined) {
     queryFn: () => getPresignedUrl(key!),
     enabled: !!key && !key.startsWith("http") && !key.startsWith("data:"),
     staleTime: 300_000, // 5 minutes
+  });
+}
+export function useUploadSettlementProof() {
+  return useMutation({
+    mutationFn: uploadSettlementProof,
   });
 }

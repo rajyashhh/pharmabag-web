@@ -110,13 +110,13 @@ export async function getSellerSettlements(params: { dateFrom?: string; dateTo?:
   const qs = new URLSearchParams();
   if (params.dateFrom) qs.set("dateFrom", params.dateFrom);
   if (params.dateTo) qs.set("dateTo", params.dateTo);
-  const { data } = await apiClient.get<{ settlements: any }>(`/settlements/seller?${qs}`);
-  return data.settlements;
+  const { data } = await apiClient.get<any>(`/settlements/seller?${qs}`);
+  return data.data ?? [];
 }
 
 export async function getSellerSettlementSummary() {
-  const { data } = await apiClient.get<{ summary: any }>("/settlements/summary");
-  return data.summary;
+  const { data } = await apiClient.get<any>("/settlements/summary");
+  return data.data ?? data;
 }
 
 export async function requestSellerPayout() {

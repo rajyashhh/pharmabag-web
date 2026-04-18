@@ -6,11 +6,12 @@ import { LayoutDashboard, Package, ClipboardList, LogOut, ChevronLeft, Store, Pa
 import { cn } from "@/lib/utils";
 import { useSellerAuth } from "@/store";
 import { useSidebar } from "@/context/sidebar-context";
+import { useSellerOrders } from "@/hooks/useSeller";
 
 const NAV = [
   { icon: LayoutDashboard, label: "Dashboard", href: "/dashboard" },
   { icon: Package, label: "Products", href: "/products" },
-  { icon: ClipboardList, label: "Orders", href: "/orders" },
+  { icon: ClipboardList, label: "Orders", href: "/orders", badge: "pending" },
   { icon: Bell, label: "Notifications", href: "/notifications" },
   { icon: LifeBuoy, label: "Support", href: "/support" },
   { icon: User, label: "Profile", href: "/profile" },
@@ -21,6 +22,13 @@ export function SellerSidebar() {
   const { user, logout } = useSellerAuth();
   const router = useRouter();
   const { open, setOpen } = useSidebar();
+  const { data: orders } = useSellerOrders();
+
+  const allOrders = (Array.isArray(orders) ? orders : (orders as any)?.orders || (orders as any)?.data || []);
+  const pendingCount = allOrders.filter((o: any) => {
+    const s = (o.orderStatus || o.status || "").toUpperCase();
+    return s === "PLACED" || s === "PENDING";
+  }).length;
 
   return (
     <aside className={cn("fixed top-0 left-0 h-full z-40 flex flex-col glass border-r border-white/30 dark:border-white/10 transition-all duration-300", open ? "w-64" : "w-20")} aria-label="Seller navigation">
@@ -34,15 +42,38 @@ export function SellerSidebar() {
         </button>
       </div>
       <nav className="flex-1 py-4 px-2 space-y-1 overflow-y-auto no-sb">
-        {NAV.map(({icon:Icon,label,href})=>{
+        {NAV.map(({icon:Icon,label,href,badge})=>{
           const active=pathname===href||(href!=="/dashboard"&&pathname.startsWith(href));
+          const hasBadge = badge === "pending" && pendingCount > 0;
+
           return (
             <Link key={href} href={href} aria-current={active?"page":undefined}
-              className={cn("flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all fr relative overflow-hidden",
+              className={cn("flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all relative overflow-hidden group",
                 active?"bg-primary/10 text-primary":"text-muted-foreground hover:text-foreground hover:bg-accent/60")}>
               {active&&<motion.div layoutId="seller-active" className="absolute inset-0 bg-primary/10 rounded-xl" transition={{duration:0.2}}/>}
-              <Icon className={cn("h-4 w-4 flex-shrink-0 relative z-10",active&&"text-primary")} aria-hidden/>
-              <AnimatePresence>{open&&<motion.span initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} className="whitespace-nowrap relative z-10">{label}</motion.span>}</AnimatePresence>
+              
+              <div className="relative">
+                <Icon className={cn("h-4 w-4 flex-shrink-0 relative z-10",active&&"text-primary")} aria-hidden/>
+                {hasBadge && !open && (
+                  <span className="absolute -top-1 -right-1 flex h-2 w-2">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-orange-400 opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-orange-500"></span>
+                  </span>
+                )}
+              </div>
+
+              <AnimatePresence>
+                {open && (
+                  <motion.div initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} className="flex-1 flex items-center justify-between whitespace-nowrap relative z-10">
+                    <span>{label}</span>
+                    {hasBadge && (
+                      <span className="px-1.5 py-0.5 rounded-full bg-orange-500 text-white text-[10px] font-bold min-w-[18px] text-center shadow-lg shadow-orange-500/20">
+                        {pendingCount}
+                      </span>
+                    )}
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </Link>
           );
         })}

@@ -117,15 +117,23 @@ export async function rejectPayment(paymentId: string) {
 }
 
 // ─── Settlements ─────────────────────────────────────
-export async function getSettlements(params: { page?: number; limit?: number; dateFrom?: string; dateTo?: string } = {}) {
+export async function getSettlements(params: { 
+  page?: number; 
+  limit?: number; 
+  dateFrom?: string; 
+  dateTo?: string;
+  sellerId?: string;
+  status?: string;
+  [key: string]: any;
+} = {}) {
   const qs = new URLSearchParams();
   Object.entries(params).forEach(([k, v]) => { if (v) qs.set(k, String(v)); });
   const { data } = await apiClient.get<any>(`/admin/settlements?${qs}`);
   return data.data;
 }
 
-export async function markSettlementPaid(settlementId: string, payoutReference: string) {
-  const { data } = await apiClient.patch<{ data: any }>(`/admin/settlements/${settlementId}/mark-paid`, { payoutReference });
+export async function markSettlementPaid(settlementId: string, payoutReference: string, paymentProofUrl?: string) {
+  const { data } = await apiClient.patch<{ data: any }>(`/admin/settlements/${settlementId}/mark-paid`, { payoutReference, paymentProofUrl });
   return data.data;
 }
 
@@ -266,7 +274,7 @@ export async function getAdminOrdersFiltered(params: { page?: number; limit?: nu
   const qs = new URLSearchParams();
   Object.entries(params).forEach(([k, v]) => { if (v) qs.set(k, String(v)); });
   const { data } = await apiClient.get<any>(`/admin/orders?${qs}`);
-  return data.data;
+  return data?.data?.data ?? data?.data ?? data ?? [];
 }
 
 export async function cancelOrder(orderId: string, reason?: string) {
@@ -291,6 +299,11 @@ export async function getSellerSettlements(sellerId: string, params: { page?: nu
 export async function createSettlement(payload: { sellerId: string; orderIds: string[]; amount: number }) {
   const { data } = await apiClient.post<{ data: any }>("/admin/settlements", payload);
   return data.data;
+}
+
+export async function syncSettlements() {
+  const { data } = await apiClient.post<{ data: any }>("/admin/settlements/sync");
+  return data?.data ?? data ?? [];
 }
 
 // ─── Admin Management ────────────────────────────────
@@ -380,7 +393,7 @@ export async function getReferralCodes(params: { page?: number; limit?: number }
   return data.data;
 }
 
-export async function createReferralCode(payload: { code: string; discountPercent: number; maxUses?: number; expiresAt?: string }) {
+export async function createReferralCode(payload: { code: string; description?: string }) {
   const { data } = await apiClient.post<{ data: any }>("/admin/referrals", payload);
   return data.data;
 }
@@ -476,5 +489,13 @@ export async function removeMarketingProduct(id: string) {
 // ─── Storage ──────────────────────────────────────────
 export async function getPresignedUrl(key: string) {
   const { data } = await apiClient.post<{ data: { url: string } }>("/storage/view", { key });
+  return data.data.url;
+}
+export async function uploadSettlementProof(file: File) {
+  const formData = new FormData();
+  formData.append("file", file);
+  const { data } = await apiClient.post<{ data: { url: string } }>("/storage/settlement-proof", formData, {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
   return data.data.url;
 }

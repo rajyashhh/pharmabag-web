@@ -18,6 +18,7 @@ const NAV = [
   { icon: Ticket, label: "Tickets", href: "/tickets" },
   { icon: UserCog, label: "Admins", href: "/admins" },
   { icon: Bell, label: "Notifications", href: "/notifications" },
+  { icon: Gift, label: "Referrals", href: "/referrals" },
 ];
 
 export function AdminSidebar() {

@@ -4,7 +4,7 @@ import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Building2, FileText, Upload, CheckCircle2, AlertCircle, ArrowRight,
-  ArrowLeft, Loader2, Shield, MapPin, Phone, Mail, User
+  ArrowLeft, Loader2, Shield, MapPin, Phone, Mail, User, Gift
 } from 'lucide-react';
 import Navbar from '@/components/landing/Navbar';
 import LoginModal from '@/components/landing/LoginModal';
@@ -56,6 +56,7 @@ export default function OnboardingPage() {
     city: '',
     state: '',
     pincode: '',
+    inviteCode: '',
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [gstVerified, setGstVerified] = useState(false);
@@ -247,6 +248,7 @@ export default function OnboardingPage() {
         }] : [])
       ] : undefined,
       gstPanResponse: verificationResult || undefined,
+      inviteCode: form.inviteCode.trim() || undefined,
     };
 
     const onSuccess = () => {
@@ -611,6 +613,21 @@ export default function OnboardingPage() {
                         className={`w-full px-4 py-3 rounded-xl border ${errors.pincode ? 'border-red-300 bg-red-50' : 'border-gray-200 bg-gray-50/50'} focus:border-emerald-400 focus:ring-1 focus:ring-emerald-400 outline-none transition-colors`}
                       />
                       {errors.pincode && <p className="text-xs text-red-500 mt-1">{errors.pincode}</p>}
+                    </div>
+
+                    <div className="pt-4">
+                      <label className="block text-sm font-black uppercase tracking-wider text-gray-400 mb-2 ml-1">Referral Code (Optional)</label>
+                      <div className="relative group">
+                        <Gift className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-300 group-focus-within:text-emerald-500 transition-colors" />
+                        <input
+                          type="text"
+                          value={form.inviteCode}
+                          onChange={(e) => updateField('inviteCode', e.target.value.toUpperCase())}
+                          placeholder="e.g. PHARMABAG_OFFER"
+                          className="w-full pl-12 pr-4 py-4 rounded-2xl border-2 border-dashed border-gray-200 bg-gray-50/30 focus:border-emerald-400 focus:bg-white focus:border-solid outline-none transition-all font-mono font-bold text-gray-700"
+                        />
+                      </div>
+                      <p className="text-[10px] text-gray-400 mt-2 ml-1 font-medium">Were you referred? Enter the code here to link your account.</p>
                     </div>
                   </div>
                 </motion.div>
