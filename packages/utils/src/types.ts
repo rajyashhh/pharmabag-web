@@ -125,6 +125,27 @@ export interface Product {
     specialPrice?: number;
     tag?: string;
   };
+  listings?: MarketplaceListing[];
+  sellerCount?: number;
+  hasSellers?: boolean;
+  minPrice?: number;
+}
+
+export interface MarketplaceListing {
+  id: string;
+  price: number;
+  discountType?: string;
+  discountMeta?: any;
+  stock: number;
+  expiryDate?: string;
+  seller: {
+    id: string;
+    companyName: string;
+    rating?: number;
+    city?: string;
+    state?: string;
+  };
+  images?: string[];
 }
 
 export interface OrderItem {

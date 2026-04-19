@@ -1,18 +1,17 @@
 'use client';
 
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Share2, Loader2, Bookmark, Truck, CheckCircle } from 'lucide-react';
+import { X, Share2, Loader2, Bookmark, Truck, CheckCircle, Plus, Star, Bell, Package } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
 import { useToast } from '@/components/shared/Toast';
-import { StockBasedButton } from '@/components/shared/StockBasedButton';
 import { ShareButton } from '@/components/shared/ShareButton';
-import { PriceSection } from '@/components/shared/PriceSection';
 import { NotifyStockAlertModal } from '@/components/shared/NotifyStockAlertModal';
 import { CustomOrderModal } from '@/components/shared/CustomOrderModal';
 import { useAddToCart, useCart } from '@/hooks/useCart';
+import { useProductById } from '@/hooks/useProducts';
 import { calculatePricing, getSellingPrice, getEffectiveDiscountPercent } from '@pharmabag/utils';
 import type { Product } from '@pharmabag/utils';
 
@@ -24,335 +23,263 @@ interface QuickViewModalProps {
 
 export function QuickViewModal({ product, isOpen, onClose }: QuickViewModalProps) {
   const router = useRouter();
+  const { data: fullProductRaw, isLoading: isLoadingDetails } = useProductById(product?.id || '', {
+    enabled: !!product?.id && isOpen
+  });
+
+  const fullProduct = fullProductRaw as any;
+  const displayProduct = fullProduct || (product as any);
+  const listings = displayProduct?.listings || [];
   const { toast } = useToast();
   const addToCart = useAddToCart();
   const { data: cartData } = useCart();
   const [showStockAlert, setShowStockAlert] = useState(false);
   const [showCustomOrder, setShowCustomOrder] = useState(false);
   const [isBookmarked, setIsBookmarked] = useState(false);
-  const [orderQty, setOrderQty] = useState(product?.minimumOrderQuantity || 1);
 
-  // Sync quantity with cart when product changes
-  useEffect(() => {
-    if (!product) return;
-    
-    // Check if product is already in cart
-    const cartItem = cartData?.items?.find(item => item.productId === product.id);
-    
-    if (cartItem) {
-      // Product is in cart, use current cart quantity
-      setOrderQty(cartItem.quantity);
-    } else {
-      // Product not in cart, use MOQ
-      setOrderQty(product.minimumOrderQuantity || 1);
-    }
-  }, [product?.id, cartData?.items]);
-
-  const handleAddToCart = () => {
-    if (!product) return;
-
-    addToCart.mutate(
-      { 
-        productId: product.id, 
-        quantity: orderQty,
-        productName: product.name,
-        price: sellingPrice,
-        mrp: product.mrp,
-        imageUrl: typeof product.images?.[0] === 'string' ? product.images[0] : (product.images?.[0] as any)?.url
-      },
-      {
-        onSuccess: () => {
-          toast(`${product.name} added to bag!`, 'success');
-          // Don't close modal - let user continue shopping
-        },
-        onError: (err: any) => {
-          const status = err?.response?.status || err?.status;
-          const message = err?.response?.data?.message || err?.message || '';
-          let errorMsg = 'Failed to add to bag';
-          
-          if (status === 401 || status === 403) {
-            errorMsg = 'Please log in to add items to bag';
-          } else if (status === 400 && message.includes('already in cart')) {
-            errorMsg = 'Product quantity has been updated in cart';
-          } else if (status === 400 && message.includes('Minimum order quantity')) {
-            const match = message.match(/(\d+)/);
-            const requiredQty = match ? match[1] : '1';
-            errorMsg = `Minimum order quantity is ${requiredQty}. Please add at least ${requiredQty} items.`;
-          } else if (message) {
-            errorMsg = message;
-          }
-          
-          toast(errorMsg, 'error');
-        },
-      }
-    );
-  };
-
-  const handleViewProduct = () => {
-    if (!product) return;
-    onClose();
-    router.push(`/products/${product.id}`);
-  };
-
-  if (!product) return null;
-
-  // Calculate pricing
-  const dd = (product as any).discountDetails || (product as any).discountFormDetails;
-  let sellingPrice = (product as any).sellingPrice || (product as any).ptr || product.price || product.mrp || 0;
-  let computedPtr: number | undefined;
-  let buyGetTag = '';
-
-  if (dd?.type && product.mrp && (product as any).gstPercent != null) {
-    try {
-      const pricing = calculatePricing(product.mrp, (product as any).gstPercent, dd);
-      sellingPrice = getSellingPrice(pricing);
-      computedPtr = pricing.ptr;
-      if (pricing.get > 0) {
-        buyGetTag = `Buy ${pricing.buy} Get ${pricing.get}`;
-      }
-    } catch {
-      // Fallback
-    }
-  }
-
-  // If sellingPrice is still 0 or invalid, fall back to MRP (no discount)
-  if (!sellingPrice || sellingPrice <= 0) sellingPrice = product.mrp || 0;
-
-  const discount = product.mrp && sellingPrice > 0 ? Math.round(getEffectiveDiscountPercent(product.mrp, sellingPrice)) : 0;
-  const inStock = (product.stock ?? 0) > 0;
+  if (!displayProduct) return null;
 
   return (
     <>
       <AnimatePresence>
         {isOpen && (
           <motion.div
-            key="quick-view-overlay"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.25 }}
             className="fixed inset-0 z-[100] flex items-center justify-center p-4"
             onClick={onClose}
           >
-            {/* Apple Frosted Glass Backdrop */}
+            {/* Ambient Backdrop */}
             <div className="absolute inset-0 bg-white/10 backdrop-blur-2xl backdrop-saturate-[1.8]" />
 
-            {/* Modal Card */}
             <motion.div
               initial={{ opacity: 0, scale: 0.95, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+              className="relative w-full max-w-[840px] max-h-[90vh] overflow-y-auto bg-white/95 backdrop-blur-sm rounded-[32px] shadow-[0_25px_60px_-12px_rgba(0,0,0,0.25),0_0_0_1px_rgba(255,255,255,0.1)] border border-white/40 no-scrollbar"
               onClick={(e) => e.stopPropagation()}
-              className="relative w-full max-w-[760px] max-h-[90vh] overflow-y-auto bg-white/95 backdrop-blur-sm rounded-[24px] shadow-[0_25px_60px_-12px_rgba(0,0,0,0.25),0_0_0_1px_rgba(255,255,255,0.1)] border border-white/40 overflow-hidden"
             >
-              {/* Header: Title Left, Actions Right */}
-              <div className="flex items-center justify-between px-8 pt-8 pb-2 relative">
-                {/* Product Title */}
-                <h2 className="text-[22px] md:text-[26px] font-[800] text-gray-800 tracking-tight leading-tight w-[80%] pr-4">
-                  {product.name}
-                </h2>
-
-                {/* Actions Area */}
-                <div className="flex items-center gap-5 mr-[68px]">
-                  <ShareButton
-                    productName={product.name}
-                    productPrice={sellingPrice}
-                    productImage={typeof product.images?.[0] === 'string' ? product.images[0] : (product.images?.[0] as any)?.url || '/products/pharma_bottle.png'}
-                    productId={product.id}
-                    discount={discount}
-                    className="p-1 transition-all hover:scale-105 rounded-full"
-                    iconClassName="w-[26px] h-[26px] text-gray-900"
-                  />
+              {/* Header section with Bookmark & Share */}
+              <div className="flex items-center justify-between px-8 pt-8 pb-4 relative">
+                <div className="max-w-[80%]">
+                  <h2 className="text-[24px] md:text-[28px] font-[900] text-gray-900 tracking-tight leading-tight">
+                    {displayProduct.name}
+                  </h2>
+                  <p className="text-[13px] font-bold text-teal-600 uppercase tracking-widest mt-1">
+                    {displayProduct.category?.name || 'Pharmaceuticals'}
+                  </p>
                 </div>
 
-                {/* Flush Right Ribbon Bookmark */}
+                <div className="flex items-center gap-4 mr-16">
+                   <ShareButton 
+                      productName={displayProduct.name}
+                      productId={displayProduct.id}
+                      productPrice={displayProduct.mrp}
+                      className="p-2 bg-gray-50 rounded-full hover:bg-gray-100 transition-colors"
+                   />
+                </div>
+
+                {/* Ribbon Bookmark */}
                 <button
                   onClick={() => setIsBookmarked(!isBookmarked)}
                   className="absolute right-0 top-8 transition-all hover:opacity-80"
-                  title="Bookmark"
                 >
-                  <svg width="64" height="46" viewBox="0 0 64 46" fill={isBookmarked ? "#e5e7eb" : "white"} stroke="#d1d5db" strokeWidth="2.5" strokeLinejoin="miter">
-                    {/* Tag pointing right with left cutoff.
-                        Start top-left(0,0), straight right to (64,0), straight down to (64,46), 
-                        straight left to (0,46), diagonal in to (18,23), diagonal out to (0,0) */}
-                    <path d="M 0 0 L 64 0 L 64 46 L 0 46 L 20 23 Z" />
+                  <svg width="60" height="42" viewBox="0 0 60 42">
+                    <path 
+                      d="M 0 0 L 60 0 L 60 42 L 0 42 L 18 21 Z" 
+                      fill={isBookmarked ? "#10b981" : "#f3f4f6"} 
+                      stroke={isBookmarked ? "#059669" : "#e5e7eb"}
+                      strokeWidth="2"
+                    />
                   </svg>
+                </button>
+                
+                <button
+                  onClick={onClose}
+                  className="absolute -top-2 -right-2 md:top-8 md:right-8 p-2 rounded-full bg-white shadow-md border border-gray-100 hover:bg-gray-50 transition-colors z-20"
+                >
+                  <X className="w-5 h-5 text-gray-400" />
                 </button>
               </div>
 
-              {/* Dynamic Info Grid & Image vs Actions */}
-              <div className="px-8 pb-8 pt-1 grid grid-cols-1 md:grid-cols-[62%_38%] gap-4 md:gap-7">
-                
-                {/* ── LEFT COLUMN: Grid + Image ── */}
-                <div className="flex flex-col">
-                  {/* Stats Grid */}
-                  <div className="grid grid-cols-2 gap-x-2 gap-y-1.5 text-[14px]">
-                    <div className="truncate"><span className="font-[800] text-gray-800 mr-1">Expiry:</span> <span className="text-gray-700 font-medium">{product.expiryDate ? new Date(product.expiryDate).toLocaleDateString('en-CA', {year: 'numeric', month: '2-digit'}).replace('/', '-') : 'N/A'}</span></div>
-                    <div className="truncate"><span className="font-[800] text-gray-800 mr-1">Discount:</span> <span className="text-gray-700 font-medium">{discount}%</span></div>
-                    
-                    <div className="truncate"><span className="font-[800] text-gray-800 mr-1">Stock:</span> <span className="text-gray-700 font-medium">{product.stock || 0}</span></div>
-                    <div className="truncate"><span className="font-[800] text-gray-800 mr-1">Buy:</span> <span className="text-gray-700 font-medium">{(product as any).discountDetails?.buy || ''}</span></div>
-                    
-                    <div className="truncate"><span className="font-[800] text-gray-800 mr-1">Min qty:</span> <span className="text-gray-700 font-medium">{product.minimumOrderQuantity || 1}</span></div>
-                    <div className="truncate"><span className="font-[800] text-gray-800 mr-1">Get:</span> <span className="text-gray-700 font-medium">{(product as any).discountDetails?.get || ''}</span></div>
-                    
-                    <div className="truncate"><span className="font-[800] text-gray-800 mr-1">Max qty:</span> <span className="text-gray-700 font-medium">{(product as any).maximumOrderQuantity || product.stock || 'N/A'}</span></div>
-                    <div className="truncate"><span className="font-[800] text-gray-800 mr-1">GST:</span> <span className="text-gray-700 font-medium">{(product as any).gstPercent ? `${(product as any).gstPercent}.00%` : '0%'}</span></div>
-                    
-                    <div className="truncate"><span className="font-[800] text-gray-800 mr-1">Medicine Type:</span> <span className="text-gray-700 font-medium">{(product as any).medicineType || 'Miscellaneous'}</span></div>
-                    <div className="truncate text-gray-700 font-medium tracking-wide uppercase">{product.manufacturer || 'PHARMABAG'}</div>
+              <div className="px-8 pb-8 pt-2">
+                {/* Information Grid */}
+                <div className="grid grid-cols-1 md:grid-cols-[1fr_240px] gap-8 mb-8">
+                  <div className="space-y-6">
+                    <div className="grid grid-cols-2 gap-y-4 gap-x-6">
+                      <div>
+                        <p className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-1">Manufacturer</p>
+                        <p className="text-[14px] font-[700] text-gray-700">{displayProduct.manufacturer || 'General Pharma'}</p>
+                      </div>
+                      <div>
+                        <p className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-1">Composition</p>
+                        <p className="text-[14px] font-[700] text-gray-700 truncate">{displayProduct.chemicalComposition || 'N/A'}</p>
+                      </div>
+                      <div>
+                        <p className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-1">Base MRP</p>
+                        <p className="text-[16px] font-black text-gray-900">₹{displayProduct.mrp?.toFixed(2)}</p>
+                      </div>
+                      <div>
+                        <p className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-1">GST Application</p>
+                        <p className="text-[14px] font-bold text-blue-600">{displayProduct.gstPercent || 12}% Included</p>
+                      </div>
+                    </div>
+
+                    <div className="p-4 rounded-2xl bg-gray-50/50 border border-gray-100 italic text-[13px] text-gray-500 leading-relaxed border-l-4 border-l-teal-500">
+                      {displayProduct.description || "The product information provided is for informational purposes only. Please consult a qualified healthcare professional before use."}
+                    </div>
                   </div>
 
-                  {/* Product Image */}
-                  <div className="relative w-full aspect-[4/3.5] min-h-[440px] mt-6 flex items-center justify-center">
-                    <Image
-                      src={(typeof product.images?.[0] === 'string' ? product.images[0] : (product.images?.[0] as any)?.url) || '/products/pharma_bottle.png'}
-                      alt={product.name}
-                      fill
-                      className="object-contain"
-                      sizes="300px"
-                    />
+                  <div className="relative aspect-square bg-[#f8fcf9] rounded-3xl border border-gray-100 flex items-center justify-center p-6 shadow-sm overflow-hidden group">
+                     <Image
+                        src={displayProduct.images?.[0] || displayProduct.image || '/products/pharma_bottle.png'}
+                        alt={displayProduct.name}
+                        fill
+                        className="object-contain p-6 group-hover:scale-110 transition-transform duration-500"
+                        priority
+                      />
                   </div>
                 </div>
 
-                {/* ── RIGHT COLUMN: Pricing + Cart ── */}
-                <div className="flex flex-col pt-1">
-                  
-                  {/* Pricing Matrix */}
-                  <div className="flex flex-col gap-y-2 text-[15px] mb-6 mt-1 pr-6">
-                    <div className="flex items-center justify-between"><span className="font-[900] text-black tracking-wide">MRP:</span> <span className="text-[#3b82f6] font-bold">₹{product.mrp?.toFixed(2) || '0.00'}</span></div>
-                    <div className="flex items-center justify-between"><span className="font-[900] text-black tracking-wide">PTR:</span> <span className="text-[#3b82f6] font-bold">₹{computedPtr?.toFixed(2) || '0.00'}</span></div>
-                    <div className="flex items-center justify-between mb-0.5"><span className="font-[900] text-black tracking-wide">Net rate:</span> <span className="text-[#3b82f6] font-[900] text-[16px]">₹{sellingPrice.toFixed(2)}</span></div>
-                    <div className="flex items-center justify-between"><span className="font-[900] text-black tracking-wide">Country:</span> <span className="text-gray-700 font-medium whitespace-nowrap">{(product as any).country || 'India'}</span></div>
+                {/* Marketplace Comparison section */}
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-lg font-[900] text-gray-900 uppercase tracking-tight flex items-center gap-3">
+                      Compare Seller Offers
+                      <span className="bg-teal-100 text-teal-700 text-[10px] px-2 py-0.5 rounded-full font-black">
+                        {listings.length} Available
+                      </span>
+                    </h3>
                   </div>
 
-                  {/* Add to Bag Custom GUI */}
-                  <div className="flex items-center gap-4 mb-4">
-                    {/* Qty Controller */}
-                    <div className="flex items-center border border-gray-200 rounded-md overflow-hidden h-[42px] bg-[#f9fafb]">
-                      <button 
-                        onClick={() => setOrderQty(q => Math.max(product.minimumOrderQuantity || 1, q - 1))}
-                        className="w-[42px] h-full flex items-center justify-center text-gray-500 hover:bg-gray-100 font-medium text-lg transition-colors border-r border-gray-200"
-                      >
-                        -
-                      </button>
-                      <input 
-                        type="number" 
-                        value={orderQty}
-                        onChange={(e) => {
-                          const val = parseInt(e.target.value, 10);
-                          const min = product.minimumOrderQuantity || 1;
-                          const stock = product.stock || 0;
-                          const maxLimit = (product as any).maximumOrderQuantity || stock;
-                          const max = Math.min(stock, maxLimit);
-                          if (!isNaN(val)) {
-                            setOrderQty(Math.max(min, Math.min(max, val)));
-                          } else {
-                            setOrderQty(min);
-                          }
-                        }}
-                        className="w-[48px] h-full text-center font-bold text-gray-900 bg-transparent focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                      />
-                      <button 
-                        onClick={() => {
-                          const stock = product.stock || 0;
-                          const maxLimit = (product as any).maximumOrderQuantity || stock;
-                          const max = Math.min(stock, maxLimit);
-                          setOrderQty(q => Math.min(max, q + 1));
-                        }}
-                        disabled={orderQty >= Math.min(product.stock || 0, (product as any).maximumOrderQuantity || (product.stock || 0))}
-                        className="w-[42px] h-full flex items-center justify-center text-gray-500 hover:bg-gray-100 font-medium text-lg transition-colors border-l border-gray-200 disabled:opacity-30 disabled:cursor-not-allowed"
-                      >
-                        +
-                      </button>
-                    </div>
-                    
-                    {/* Arrow Cart Button */}
-                    <button 
-                      onClick={handleAddToCart}
-                      disabled={addToCart.isPending || !inStock}
-                      className="w-[44px] h-[44px] flex items-center justify-center rounded-full border border-gray-300 text-gray-800 hover:border-gray-900 hover:text-black transition-all active:scale-95 disabled:opacity-50"
-                    >
-                      {addToCart.isPending ? <Loader2 className="w-5 h-5 animate-spin" /> : <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>}
-                    </button>
-                  </div>
+                  <div className="space-y-3">
+                    {listings.map((listing: any) => {
+                      const inStock = (listing.stock || 0) > 0;
+                      const cartItem = cartData?.items?.find((item: any) => item.productId === listing.id);
+                      
+                      return (
+                        <div key={listing.id} className="flex flex-col sm:flex-row sm:items-center justify-between p-5 rounded-2xl bg-white border border-gray-100 shadow-sm hover:border-teal-200 transition-all gap-4">
+                          <div className="flex items-center gap-5">
+                            {/* Price & Seller */}
+                            <div className="bg-purple-50 text-purple-700 px-3 py-1.5 rounded-xl font-black text-[11px] min-w-[75px] text-center border border-purple-100">
+                               {listing.discountMeta?.discountPercent || 10}% OFF
+                            </div>
+                            
+                            <div className="flex flex-col">
+                              <span className="text-[18px] font-black text-gray-900 leading-none">₹{listing.price?.toLocaleString('en-IN')}</span>
+                              <span className="text-[11px] font-bold text-gray-400 uppercase tracking-tight mt-1">{listing.seller?.companyName || 'Verified Pharma'}</span>
+                            </div>
 
-                  {/* Delivery Info */}
-                  <div className="text-[17px] font-[800] text-black tracking-tight mb-5 mt-2">
-                    Delivery in 4-8 days
-                  </div>
+                            {/* Stock Indicator */}
+                            <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-gray-50 border border-gray-100">
+                               <Package className="w-3.5 h-3.5 text-gray-400" />
+                               <span className={`text-[11px] font-black ${inStock ? 'text-emerald-600' : 'text-rose-600'}`}>
+                                 {inStock ? `${listing.stock} Units In Stock` : 'Out of Stock'}
+                               </span>
+                            </div>
+                          </div>
 
-                  {/* Additional Offers Section */}
-                  <div className="relative w-full mb-4">
-                    {/* Dotted border separator */}
-                    <div className="w-full border-t border-dashed border-gray-300 mb-4" />
-                    
-                    <div className="border border-dashed border-gray-300 rounded-lg p-2.5 pb-2.5 pt-4 bg-gradient-to-br from-white to-gray-50/50 relative mt-[-10px]">
-                      {/* Flag overlaps the top border */}
-                      <div className="absolute -top-[11px] left-[-1px] bg-gradient-to-r from-[#10b981] to-[#059669] text-white text-[10px] font-[800] uppercase tracking-wider px-2.5 py-1 rounded-r-md z-10 shadow-sm">
-                        Additional offers
-                      </div>
+                          <div className="flex items-center gap-4">
+                             {/* Rating */}
+                             <div className="flex items-center gap-1.5 px-2 py-1 rounded-lg bg-amber-50 border border-amber-100">
+                                <span className="text-amber-700 font-black text-[12px]">{listing.seller?.rating || '4.5'}</span>
+                                <Star className="w-3 h-3 fill-amber-500 text-amber-500" />
+                             </div>
 
-                      {((product as any).offers && (product as any).offers.length > 0) ? (
-                        <div className="flex items-start gap-2.5 pl-1.5 mt-2">
-                          <svg width="18" height="18" viewBox="0 0 24 24" fill="#10b981" className="flex-shrink-0 mt-0.5 transform -rotate-45 relative top-0.5">
-                            <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/>
-                          </svg>
-                          <div className="mt-[-2px]">
-                            <p className="text-[12.5px] font-[800] text-gray-900 leading-tight">{(product as any).offers[0].title}</p>
-                            <p className="text-[11px] text-gray-500 font-medium">{(product as any).offers[0].description}</p>
+                             {/* Actions */}
+                             <div className="flex items-center gap-2">
+                               {inStock ? (
+                                 cartItem ? (
+                                   <div className="flex items-center bg-gray-900 rounded-xl overflow-hidden h-10 text-white shadow-lg">
+                                     <button 
+                                       className="w-10 h-full flex items-center justify-center hover:bg-gray-800 transition-colors"
+                                       onClick={() => addToCart.mutate({ productId: listing.id, quantity: Math.max(0, cartItem.quantity - 1), replace: true })}
+                                     >
+                                       -
+                                     </button>
+                                     <span className="px-3 font-black text-sm">{cartItem.quantity}</span>
+                                     <button 
+                                       className="w-10 h-full flex items-center justify-center hover:bg-gray-800 transition-colors"
+                                       onClick={() => addToCart.mutate({ productId: listing.id, quantity: cartItem.quantity + 1, replace: true })}
+                                     >
+                                       +
+                                     </button>
+                                   </div>
+                                 ) : (
+                                   <button 
+                                     onClick={() => addToCart.mutate({ 
+                                       productId: listing.id, 
+                                       quantity: listing.moq || 1,
+                                       productName: displayProduct.name,
+                                       price: listing.price,
+                                       mrp: displayProduct.mrp
+                                     })}
+                                     className="px-6 h-10 rounded-xl bg-teal-600 text-white font-black text-xs uppercase tracking-widest hover:bg-teal-700 transition-all shadow-lg active:scale-95"
+                                   >
+                                     Add To Bag
+                                   </button>
+                                 )
+                               ) : (
+                                 <button 
+                                   onClick={() => setShowStockAlert(true)}
+                                   className="h-10 px-4 rounded-xl border border-rose-100 bg-rose-50 text-rose-600 font-bold text-xs uppercase flex items-center gap-2"
+                                 >
+                                   <Bell className="w-4 h-4" />
+                                   Notify
+                                 </button>
+                               )}
+                             </div>
                           </div>
                         </div>
-                      ) : (
-                        <div className="flex items-center justify-center py-1.5 mt-1">
-                          <p className="text-[12px] text-gray-400 font-medium italic">No offers available</p>
+                      );
+                    })}
+
+                    {listings.length === 0 && (
+                      <div className="flex flex-col items-center justify-center py-10 px-6 rounded-[32px] bg-gray-50/50 border-2 border-dashed border-gray-200 text-center gap-4">
+                        <Package className="w-10 h-10 text-gray-300" />
+                        <div>
+                          <p className="text-lg font-black text-gray-800">No Professional Sellers Found</p>
+                          <p className="text-[13px] text-gray-500 max-w-[320px] mx-auto mt-1">We couldn't locate active listings in our network. Would you like us to source this for you?</p>
                         </div>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Custom Order Link */}
-                  <div className="text-[14px] text-gray-800 mb-5">
-                    Have a <button onClick={() => setShowCustomOrder(true)} className="font-[800] underline decoration-2 underline-offset-4 cursor-pointer hover:text-black">Custom Order ?</button>
-                  </div>
-
-                  {/* Badges - Custom Replica */}
-                  <div className="flex items-center gap-2 mb-6">
-                    {/* Free Shipping Circle Badge */}
-                    <div className="w-[46px] h-[46px] rounded-full border border-black flex flex-col items-center justify-center bg-white flex-shrink-0 overflow-hidden shrink-0">
-                      <span className="text-[7.5px] font-[900] uppercase leading-none tracking-tighter mb-[1px]">Free</span>
-                      <Truck className="w-[15px] h-[15px] text-black mb-[1px]" strokeWidth={2.5} />
-                      <span className="text-[6px] font-[900] uppercase leading-none tracking-tighter">Shipping</span>
-                    </div>
-
-                    {/* Certified Badge - Shield with Ribbon */}
-                    <div className="relative flex items-center ml-1 h-[36px]">
-                      {/* Shield SVG Background */}
-                      <div className="absolute -left-2 top-1/2 -translate-y-1/2 w-[44px] h-[44px] flex items-center justify-center z-20">
-                        <svg viewBox="0 0 100 100" className="w-[42px] h-[42px] drop-shadow-sm">
-                          {/* Inner Shield */}
-                          <path d="M50 8 L85 22 V50 C85 70 50 92 50 92 C50 92 15 70 15 50 V22 Z" fill="#15b759" />
-                          <path d="M50 14 L78 26 V50 C78 65 50 82 50 82 C50 82 22 65 22 50 V26 Z" fill="white" />
-                          {/* White Checkmark */}
-                          <path d="M38 52 L46 60 L62 42" stroke="#15b759" strokeWidth="8" strokeLinecap="round" strokeLinejoin="round" fill="none" />
-                        </svg>
+                        <button 
+                          onClick={() => setShowCustomOrder(true)}
+                          className="px-8 py-3 bg-white border border-gray-200 rounded-2xl text-[12px] font-black text-teal-600 uppercase tracking-widest hover:bg-teal-50 transition-all shadow-sm"
+                        >
+                          Request Personalized Source
+                        </button>
                       </div>
-                      <div className="bg-[#107335] text-white pl-[40px] pr-2 h-full flex flex-col items-start justify-center rounded-r border-t border-b border-r border-[#0d5f2c] min-w-[95px] rounded-l-[20px] shadow-sm z-10 relative">
-                        <span className="text-[7px] font-bold uppercase tracking-[0.05em] opacity-90 leading-tight">Pharma Bag</span>
-                        <span className="text-[13px] font-black uppercase tracking-wide leading-tight">Certified</span>
-                      </div>
-                    </div>
+                    )}
                   </div>
+                </div>
 
-                  {/* View Product Page Link */}
-                  <Link href={`/products/${product.id}`} onClick={onClose} className="flex items-center gap-4 mt-auto cursor-pointer group w-max">
-                    <span className="text-[15px] text-gray-900 font-[800]">View Product Page</span>
-                    <div className="w-10 h-10 flex items-center justify-center rounded-full border border-gray-300 text-gray-500 transition-all group-hover:border-gray-900 group-hover:text-black shadow-sm pointer-events-none">
-                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
-                    </div>
-                  </Link>
-
+                {/* Footer Badges */}
+                <div className="mt-10 pt-8 border-t border-gray-100 flex flex-wrap items-center justify-center gap-10">
+                   <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-full bg-emerald-50 flex items-center justify-center">
+                         <Truck className="w-5 h-5 text-emerald-600" />
+                      </div>
+                      <div>
+                         <p className="text-[11px] font-black uppercase text-gray-800">Swift Logistics</p>
+                         <p className="text-[10px] text-gray-400 font-bold">Priority Delivery</p>
+                      </div>
+                   </div>
+                   <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center">
+                         <CheckCircle className="w-5 h-5 text-blue-600" />
+                      </div>
+                      <div>
+                         <p className="text-[11px] font-black uppercase text-gray-800">Quality Verified</p>
+                         <p className="text-[10px] text-gray-400 font-bold">100% Assurance</p>
+                      </div>
+                   </div>
+                   <Link 
+                      href={`/products/${displayProduct.id}`}
+                      onClick={onClose}
+                      className="px-6 py-2.5 bg-gray-900 text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-black transition-all ml-auto"
+                   >
+                     View Profile
+                   </Link>
                 </div>
               </div>
             </motion.div>
@@ -360,20 +287,18 @@ export function QuickViewModal({ product, isOpen, onClose }: QuickViewModalProps
         )}
       </AnimatePresence>
 
-      {/* Stock Alert Modal */}
       <NotifyStockAlertModal
         isOpen={showStockAlert}
-        productName={product.name}
-        productId={product.id}
+        productName={displayProduct.name}
+        productId={displayProduct.id}
         onClose={() => setShowStockAlert(false)}
       />
 
-      {/* Custom Order Modal */}
       <CustomOrderModal
         isOpen={showCustomOrder}
         onClose={() => setShowCustomOrder(false)}
-        productName={product.name}
-        productId={product.id}
+        productName={displayProduct.name}
+        productId={displayProduct.id}
       />
     </>
   );

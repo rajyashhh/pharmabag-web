@@ -22,6 +22,7 @@ interface PremiumProductCardProps {
   rateLabel?: string;
   infoIcon?: boolean;
   productId?: string;
+  product?: any;
   isLoadingCart?: boolean;
   onBookmark?: (bookmarked: boolean) => void;
   onCartChange?: (quantity: number | null) => void;
@@ -43,6 +44,7 @@ export default function PremiumProductCard({
   rateLabel = 'N. RATE',
   infoIcon = false,
   productId,
+  product,
   isLoadingCart = false,
   onBookmark,
   onCartChange,
@@ -346,15 +348,23 @@ export default function PremiumProductCard({
           {/* Top Header Row */}
           <div className="flex justify-between items-center w-full min-w-0 mb-0.5 gap-1">
             <span className="text-[9px] xs:text-[10px] sm:text-[12px] font-medium text-gray-600 uppercase tracking-wide flex-1 text-left">MRP</span>
-            <span className="text-[9px] xs:text-[10px] sm:text-[12px] font-medium text-gray-600 uppercase tracking-wide text-center flex-1">MOQ {moq}</span>
-            <span className="text-[9px] xs:text-[10px] sm:text-[12px] font-medium text-gray-600 uppercase tracking-wide flex-1 text-right whitespace-nowrap">{rateLabel}</span>
+            {(product as any)?.sellerCount > 1 ? (
+              <span className="text-[9px] xs:text-[10px] sm:text-[12px] font-black text-primary uppercase tracking-tighter text-center flex-1">
+                {(product as any).sellerCount} SELLERS
+              </span>
+            ) : (
+              <span className="text-[9px] xs:text-[10px] sm:text-[12px] font-medium text-gray-600 uppercase tracking-wide text-center flex-1">MOQ {moq}</span>
+            )}
+            <span className="text-[9px] xs:text-[10px] sm:text-[12px] font-medium text-gray-600 uppercase tracking-wide flex-1 text-right whitespace-nowrap">
+              {(product as any)?.sellerCount > 1 ? 'FROM' : rateLabel}
+            </span>
           </div>
 
           {/* Values Row */}
           <div className="flex justify-between items-center w-full min-w-0 gap-1">
             <span className="text-[11px] xs:text-[12px] sm:text-[14px] font-medium text-gray-800 truncate flex-1 text-left">₹{Math.round(Number(mrp || price))}</span>
             <span className="text-[11px] xs:text-[12px] sm:text-[14px] text-transparent text-center flex-1 select-none pointer-events-none">-</span>
-            <span className="text-[11px] xs:text-[12px] sm:text-[14px] font-medium text-gray-800 truncate flex-1 text-right">₹{Math.round(Number(ptr || price))}</span>
+            <span className="text-[11px] xs:text-[12px] sm:text-[14px] font-[900] text-gray-900 truncate flex-1 text-right">₹{Math.round(Number(price))}</span>
           </div>
 
         </div>

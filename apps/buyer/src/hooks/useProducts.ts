@@ -22,11 +22,12 @@ export function useProducts(params?: {
   });
 }
 
-export function useProductById(id: string) {
+export function useProductById(id: string, options: any = {}) {
   return useQuery({
     queryKey: ['product', id],
     queryFn: () => getProductById(id),
     enabled: !!id,
+    ...options,
   });
 }
 

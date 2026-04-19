@@ -15,7 +15,8 @@ import { useState, useEffect } from 'react';
 import { calculatePricing, getSellingPrice, getEffectiveDiscountPercent } from '@pharmabag/utils';
 
 export default function ProductDetailPage({ params }: { params: { productId: string } }) {
-  const { data: product, isLoading, isError } = useProductById(params.productId);
+  const { data: productRaw, isLoading, isError } = useProductById(params.productId);
+  const product = productRaw as any;
   const addToCart = useAddToCart();
   const { data: cartData } = useCart();
   const { data: wishlistData } = useWishlist();
@@ -62,13 +63,13 @@ export default function ProductDetailPage({ params }: { params: { productId: str
 
   const handleAddToCart = () => {
     if (!product) return;
-    
+
     // Validate quantity before sending
     const min = (product as any).minimumOrderQuantity || 1;
     const stock = product.stock || 0;
     const maxLimit = (product as any).maximumOrderQuantity || stock;
     const max = Math.min(stock, maxLimit);
-    
+
     let finalQty = parseInt(String(quantity), 10);
     if (isNaN(finalQty)) finalQty = min;
     if (finalQty < min) finalQty = min;
@@ -213,7 +214,11 @@ export default function ProductDetailPage({ params }: { params: { productId: str
   if (!sellingPrice || sellingPrice <= 0) sellingPrice = product.mrp || 0;
 
   const discount = product.mrp && sellingPrice > 0 ? Math.round(getEffectiveDiscountPercent(product.mrp, sellingPrice)) : 0;
-  const inStock = (product.stock ?? 0) > 0;
+  const listings = product.listings || [];
+  const totalStock = listings.length > 0
+    ? listings.reduce((sum: number, l: any) => sum + (l.stock || 0), 0)
+    : (product.stock ?? 0);
+  const inStock = totalStock > 0;
 
   return (
     <main className="min-h-screen bg-gray-50/50">
@@ -290,256 +295,117 @@ export default function ProductDetailPage({ params }: { params: { productId: str
                 )}
               </div>
 
-              {/* Price */}
-              <div className="bg-white/40 backdrop-blur-xl p-4 sm:p-6 rounded-2xl sm:rounded-3xl border border-white/40 shadow-lg">
-                <div className="flex items-baseline gap-2 sm:gap-4 flex-wrap">
-                  <span className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900">₹{sellingPrice.toLocaleString('en-IN')}</span>
-                  {product.mrp && product.mrp > sellingPrice && (
-                    <>
-                      <span className="text-base sm:text-lg md:text-xl text-gray-400 line-through">₹{product.mrp.toLocaleString('en-IN')}</span>
-                      {discountDisplayTag && (
-                        <span className="text-[15px] font-normal text-green-800 bg-green-50 border border-green-300 px-10 py-0.5 rounded-full whitespace-nowrap">
-                          {discountDisplayTag}
-                        </span>
-                      )}
-                    </>
-                  )}
-                </div>
-                {computedPtr && (
-                  <p className="text-sm text-gray-500 mt-1 font-medium">PTR: ₹{computedPtr.toLocaleString('en-IN')}</p>
-                )}
-                {/* Fallback to computed discount if no structured tag exists */}
-                {!discountDisplayTag && discount > 0 && (
-                  <span className="inline-block text-[14px] font-normal text-green-800 bg-green-50 border border-green-300 px-8 py-0.5 rounded-full mt-2">
-                    {discount}% OFF
-                  </span>
-                )}
-                <p className="text-xs text-gray-400 mt-2 font-medium">Inclusive of all taxes</p>
-              </div>
-
-              {/* Stock Status + Wishlist */}
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className={`w-3 h-3 rounded-full ${inStock ? 'bg-green-400' : 'bg-red-400'}`} />
-                  <span className={`font-bold ${inStock ? 'text-green-600' : 'text-red-600'}`}>
-                    {inStock ? `In Stock (${product.stock} available)` : 'Out of Stock'}
-                  </span>
-                </div>
-                <motion.button
-                  whileTap={{ scale: 0.85 }}
-                  onClick={handleToggleWishlist}
-                  disabled={addToWishlist.isPending || removeFromWishlist.isPending}
-                  className="p-3 rounded-2xl border border-white/60 bg-white/60 backdrop-blur-sm hover:bg-white transition-all shadow-sm disabled:opacity-50"
-                  title={isWishlisted ? 'Remove from wishlist' : 'Add to wishlist'}
-                >
-                  <Heart className={`w-5 h-5 transition-colors ${isWishlisted ? 'fill-red-500 text-red-500' : 'text-gray-400 hover:text-red-400'}`} />
-                </motion.button>
-              </div>
-
-              {/* Quantity + Add to Bag */}
-              {inStock && (
-                <div className="flex flex-col xs:flex-row items-stretch xs:items-center gap-3 sm:gap-4 md:gap-6">
-                  <div className="flex items-center bg-white/60 rounded-2xl border border-gray-200 overflow-hidden">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        const min = (product as any).minimumOrderQuantity || 1;
-                        setQuantity((q) => Math.max(min, Number(q) - 1));
-                      }}
-                      className="px-4 py-3 hover:bg-gray-100 transition-colors"
-                    >
-                      <Minus className="w-4 h-4 text-gray-600" />
-                    </button>
-                    <input
-                      type="text"
-                      inputMode="numeric"
-                      pattern="[0-9]*"
-                      value={quantity}
-                      onChange={(e) => {
-                        const val = e.target.value.replace(/\D/g, '');
-                        if (val === '') {
-                          setQuantity('' as any);
-                          return;
-                        }
-                        const parsed = parseInt(val, 10);
-                        const stock = product.stock || 0;
-                        const maxLimit = (product as any).maximumOrderQuantity || stock;
-                        const max = Math.min(stock, maxLimit);
-                        
-                        if (parsed > max) {
-                            setQuantity(max);
-                            toast(`Only ${max} units available in stock`, 'error');
-                        } else {
-                            setQuantity(parsed);
-                        }
-                      }}
-                      onBlur={() => {
-                        const min = (product as any).minimumOrderQuantity || 1;
-                        const stock = product.stock || 0;
-                        const maxLimit = (product as any).maximumOrderQuantity || stock;
-                        const max = Math.min(stock, maxLimit);
-                        
-                        let val = parseInt(String(quantity), 10);
-                        if (isNaN(val) || val < min) {
-                           setQuantity(min);
-                        } else if (val > max) {
-                           setQuantity(max);
-                        }
-                      }}
-                      className="w-16 px-2 py-3 font-bold text-gray-900 tabular-nums text-center bg-transparent outline-none border-x border-gray-100"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => {
-                        const stock = product.stock || 0;
-                        const maxLimit = (product as any).maximumOrderQuantity || stock;
-                        const max = Math.min(stock, maxLimit);
-                        setQuantity((q) => Math.min(max, Number(q) + 1));
-                      }}
-                      disabled={Number(quantity) >= Math.min(product.stock || 0, (product as any).maximumOrderQuantity || (product.stock || 0))}
-                      className="px-4 py-3 hover:bg-gray-100 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
-                    >
-                      <Plus className="w-4 h-4 text-gray-600" />
-                    </button>
+              {/* Unified Product Details Section (Promoted to Top) */}
+              <div className="bg-white/40 backdrop-blur-xl p-6 sm:p-8 rounded-[32px] border border-white/60 shadow-xl space-y-8 mb-8">
+                <div className="flex items-center justify-between border-b border-gray-100 pb-4">
+                  <h2 className="text-[14px] font-black text-gray-400 uppercase tracking-widest">Product Details</h2>
+                  <div className="flex items-center gap-2">
+                    <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                    <span className="text-[10px] font-black text-emerald-600 uppercase">Live Marketplace Data</span>
                   </div>
-                  <motion.button
-                    whileTap={{ scale: 0.95 }}
-                    onClick={handleAddToCart}
-                    disabled={addToCart.isPending || added}
-                    className={`flex-1 py-4 rounded-2xl font-bold flex items-center justify-center gap-3 shadow-xl transition-all disabled:opacity-70 ${added
-                      ? 'bg-green-500 text-white shadow-green-200'
-                      : 'bg-gray-900 text-white hover:bg-black shadow-black/20'
-                      }`}
-                  >
-                    {added ? (
-                      <>
-                        <Check className="w-5 h-5" />
-                        Added to Bag
-                      </>
-                    ) : addToCart.isPending ? (
-                      <>
-                        <Loader2 className="w-5 h-5 animate-spin" />
-                        Adding...
-                      </>
-                    ) : (
-                      <>
-                        <ShoppingBag className="w-5 h-5" />
-                        Add to Bag
-                      </>
-                    )}
-                  </motion.button>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-8">
+                  {/* Manufacturer */}
+                  <div className="space-y-2">
+                    <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Manufacturer</p>
+                    <p className="text-[16px] font-[900] text-gray-900 leading-tight uppercase">
+                      {product.manufacturer || 'Verified Pharma Brand'}
+                    </p>
+                  </div>
+
+                  {/* Chemical Composition */}
+                  <div className="space-y-2">
+                    <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Chemical Composition</p>
+                    <p className="text-[16px] font-[900] text-gray-700 leading-tight italic">
+                      {product.chemicalComposition || 'N/A'}
+                    </p>
+                  </div>
+
+                  {/* Aggregate Marketplace Stock */}
+                  <div className="space-y-2">
+                    <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Total Stock</p>
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 bg-emerald-50 rounded-xl">
+                        <Package className="w-5 h-5 text-emerald-600" />
+                      </div>
+                      <p className="text-[20px] font-black text-emerald-600 tabular-nums">
+                        {totalStock.toLocaleString('en-IN')} <span className="text-[12px] uppercase">Units</span>
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Price section removed as per Marketplace strategy */}
+
+              {/* Marketplace Offers Section (Plus-Style Interaction) */}
+              {listings.length > 0 && (
+                <div className="bg-white/40 backdrop-blur-xl p-6 sm:p-8 rounded-[32px] border border-white/60 shadow-xl space-y-8">
+                  <div className="flex items-center justify-between border-b border-gray-100 pb-4">
+                    <h2 className="text-[14px] font-black text-gray-400 uppercase tracking-widest">Marketplace Offers</h2>
+                    <span className="text-gray-300 text-[10px] font-black uppercase tracking-widest">{listings.length} Verified Sellers</span>
+                  </div>
+
+                  <div className="divide-y divide-gray-100/50">
+                    {listings.map((l: any, idx: number) => {
+                      const listingInStock = (l.stock || 0) > 0;
+                      const listingCartItem = cartData?.items?.find((item: any) => item.productId === l.id);
+                      const minQty = l.moq || l.minimumOrderQuantity || 1;
+
+                      return (
+                        <div key={l.id} className={`flex items-center justify-between py-6 transition-all group ${idx === 0 ? 'pt-0' : ''}`}>
+                          <div className="flex flex-col">
+                            <span className="text-[18px] font-black text-gray-900 group-hover:text-teal-600 transition-colors">₹{l.price?.toLocaleString('en-IN')}</span>
+                            <span className="text-[11px] font-[800] text-gray-400 uppercase tracking-wide truncate max-w-[180px]">{l.seller?.companyName || 'Verified Pharma'}</span>
+                          </div>
+
+                          <div className="flex items-center gap-6">
+                            <div className="text-right sr-only sm:not-sr-only">
+                              <p className={`text-[11px] font-black uppercase ${listingInStock ? 'text-emerald-600' : 'text-rose-600'}`}>
+                                {listingInStock ? `${l.stock} In Stock` : 'Out of Stock'}
+                              </p>
+                              <div className="flex items-center justify-end gap-1.5 mt-0.5">
+                                <span className="text-[9px] font-bold text-gray-400 uppercase">Min: {minQty}</span>
+                                <div className="w-1 h-1 rounded-full bg-gray-200" />
+                                <span className="text-[9px] font-[800] text-gray-300">EXP: {l.expiryDate ? new Date(l.expiryDate).toLocaleDateString() : 'N/A'}</span>
+                              </div>
+                            </div>
+
+                            {listingInStock ? (
+                              listingCartItem ? (
+                                <div className="flex items-center bg-gray-900 rounded-full p-1 h-11 text-white shadow-xl border border-white/10">
+                                  <button onClick={() => addToCart.mutate({ productId: l.id, quantity: Math.max(0, listingCartItem.quantity - 1), replace: true })} className="w-10 h-full flex items-center justify-center hover:bg-gray-800 transition-colors"><Minus className="w-4 h-4" strokeWidth={3} /></button>
+                                  <span className="px-3 font-black text-sm text-center min-w-[34px]">{listingCartItem.quantity}</span>
+                                  <button onClick={() => addToCart.mutate({ productId: l.id, quantity: listingCartItem.quantity + 1, replace: true })} className="w-10 h-full flex items-center justify-center hover:bg-gray-800 transition-colors"><Plus className="w-4 h-4" strokeWidth={3} /></button>
+                                </div>
+                              ) : (
+                                <button 
+                                  onClick={() => addToCart.mutate({ 
+                                    productId: l.id, 
+                                    quantity: minQty, 
+                                    productName: product.name, 
+                                    price: l.price, 
+                                    mrp: product.mrp,
+                                    imageUrl: product.images?.[0]
+                                  })}
+                                  className="w-10 h-10 flex items-center justify-center text-black hover:bg-black/5 rounded-full transition-all active:scale-90 group-hover:scale-110"
+                                  title={`Add minimum ${minQty} units`}
+                                >
+                                  <Plus className="w-6 h-6" strokeWidth={2.5} />
+                                </button>
+                              )
+                            ) : (
+                              <span className="text-[11px] font-black text-gray-300 uppercase tracking-widest">Unavailable</span>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
                 </div>
               )}
 
-              {/* Product Details Grid */}
-              <div className="bg-white/40 backdrop-blur-xl p-4 sm:p-6 md:p-8 rounded-2xl sm:rounded-3xl border border-white/40 shadow-lg">
-                <h2 className="text-base sm:text-lg font-bold text-gray-900 mb-4 sm:mb-6">Product Details</h2>
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6">
-                  {/* MRP */}
-                  <div className="flex flex-col">
-                    <span className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-1">MRP</span>
-                    <span className="text-sm sm:text-base font-bold text-gray-900">₹{product.mrp?.toLocaleString('en-IN') || 'N/A'}</span>
-                  </div>
-
-                  {/* PTR */}
-                  {computedPtr && (
-                    <div className="flex flex-col">
-                      <span className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-1">PTR</span>
-                      <span className="text-sm sm:text-base font-bold text-gray-900">₹{computedPtr.toLocaleString('en-IN')}</span>
-                    </div>
-                  )}
-
-                  {/* Net Rate */}
-                  <div className="flex flex-col">
-                    <span className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-1">Net Rate</span>
-                    <span className="text-sm sm:text-base font-bold text-gray-900">₹{sellingPrice.toLocaleString('en-IN')}</span>
-                  </div>
-
-                  {/* Discount */}
-                  {discount > 0 && (
-                    <div className="flex flex-col">
-                      <span className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-1">Discount</span>
-                      <span className="text-sm sm:text-base font-bold text-green-600">{discount}%</span>
-                    </div>
-                  )}
-
-                  {/* GST */}
-                  {((product as any).gstPercent || (product as any).gst) && (
-                    <div className="flex flex-col">
-                      <span className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-1">GST</span>
-                      <span className="text-sm sm:text-base font-bold text-gray-900">{(product as any).gstPercent || (product as any).gst}%</span>
-                    </div>
-                  )}
-
-                  {/* Stock */}
-                  <div className="flex flex-col">
-                    <span className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-1">Stock</span>
-                    <span className={`text-sm sm:text-base font-bold ${inStock ? 'text-green-600' : 'text-red-600'}`}>
-                      {product.stock ?? 'N/A'} {inStock ? 'units' : ''}
-                    </span>
-                  </div>
-
-                  {/* Min Qty */}
-                  {(product as any).minimumOrderQuantity && (
-                    <div className="flex flex-col">
-                      <span className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-1">Min Qty</span>
-                      <span className="text-sm sm:text-base font-bold text-gray-900">{(product as any).minimumOrderQuantity}</span>
-                    </div>
-                  )}
-
-                  {/* Max Qty */}
-                  {(product as any).maximumOrderQuantity && (
-                    <div className="flex flex-col">
-                      <span className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-1">Max Qty</span>
-                      <span className="text-sm sm:text-base font-bold text-gray-900">{(product as any).maximumOrderQuantity}</span>
-                    </div>
-                  )}
-
-                  {/* Expiry Date */}
-                  {(product as any).expiryDate && (
-                    <div className="flex flex-col">
-                      <span className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-1">Expiry</span>
-                      <span className="text-sm sm:text-base font-bold text-gray-900">
-                        {new Date((product as any).expiryDate).toLocaleDateString('en-IN', { year: 'numeric', month: '2-digit' })}
-                      </span>
-                    </div>
-                  )}
-
-                  {/* Generic Name (from extraFields) */}
-                  {(product as any).genericName && (
-                    <div className="flex flex-col">
-                      <span className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-1">Generic</span>
-                      <span className="text-sm sm:text-base font-bold text-gray-900">{(product as any).genericName}</span>
-                    </div>
-                  )}
-
-                  {/* Manufacturer */}
-                  {(product as any).manufacturer && (
-                    <div className="flex flex-col">
-                      <span className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-1">Manufacturer</span>
-                      <span className="text-sm sm:text-base font-bold text-gray-900">{(product as any).manufacturer}</span>
-                    </div>
-                  )}
-
-                  {/* Chemical Composition */}
-                  {(product as any).chemicalComposition && (
-                    <div className="flex flex-col">
-                      <span className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-1">Chemical</span>
-                      <span className="text-sm sm:text-base font-bold text-gray-900">{(product as any).chemicalComposition}</span>
-                    </div>
-                  )}
-
-                  {/* Discount Display Tag */}
-                  {discountDisplayTag && (
-                    <div className="flex flex-col">
-                      <span className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-1">Offer</span>
-                      <span className="text-sm sm:text-base font-normal text-green-800 bg-green-50/50 border border-green-300 px-6 py-0.5 rounded-full w-fit">
-                        {discountDisplayTag}
-                      </span>
-                    </div>
-                  )}
-                </div>
-              </div>
 
               {/* Description */}
               {product.description && (
