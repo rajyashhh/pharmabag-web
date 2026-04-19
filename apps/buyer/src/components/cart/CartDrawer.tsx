@@ -143,9 +143,12 @@ export default function CartDrawer({ isOpen, onClose }: { isOpen: boolean; onClo
                         <div className="flex justify-between">
                           <h3 className="font-bold text-gray-900 leading-tight">{itemName}</h3>
                           <button
-                            onClick={() => removeItem.mutate(item.id, {
-                              onSuccess: () => toast('Item removed from bag', 'info'),
-                            })}
+                            onMouseDown={(e) => {
+                              e.preventDefault();
+                              removeItem.mutate(item.id, {
+                                onSuccess: () => toast('Item removed from bag', 'info'),
+                              });
+                            }}
                             disabled={removeItem.isPending || syncCart.isPending}
                             className="text-gray-300 hover:text-red-500 transition-colors disabled:opacity-50"
                           >

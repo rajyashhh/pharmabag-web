@@ -163,7 +163,7 @@ export function QuickViewModal({ product, isOpen, onClose }: QuickViewModalProps
                           <div className="flex items-center gap-5">
                             {/* Price & Seller */}
                             <div className="bg-purple-50 text-purple-700 px-3 py-1.5 rounded-xl font-black text-[11px] min-w-[75px] text-center border border-purple-100">
-                               {listing.discountMeta?.discountPercent || 10}% OFF
+                               {listing.discountMeta?.discountPercent ? `${listing.discountMeta.discountPercent}% OFF` : 'FLAT'}
                             </div>
                             
                             <div className="flex flex-col">

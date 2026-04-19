@@ -1,11 +1,11 @@
 'use client';
 
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronLeft, ChevronRight, Package, ShoppingBag, Star, Loader2, AlertCircle, Minus, Plus, Check, Send, User, Heart } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Package, ShoppingBag, Star, Loader2, AlertCircle, Minus, Plus, Check, Send, User, Heart, Trash2 } from 'lucide-react';
 import Navbar from '@/components/landing/Navbar';
 
 import { useProductById } from '@/hooks/useProducts';
-import { useAddToCart, useCart } from '@/hooks/useCart';
+import { useAddToCart, useCart, useRemoveCartItem } from '@/hooks/useCart';
 import { useProductReviews, useCreateReview } from '@/hooks/useReviews';
 import { useWishlist, useAddToWishlist, useRemoveFromWishlist } from '@/hooks/useWishlist';
 import { useToast } from '@/components/shared/Toast';
@@ -18,6 +18,7 @@ export default function ProductDetailPage({ params }: { params: { productId: str
   const { data: productRaw, isLoading, isError } = useProductById(params.productId);
   const product = productRaw as any;
   const addToCart = useAddToCart();
+  const removeCartItem = useRemoveCartItem();
   const { data: cartData } = useCart();
   const { data: wishlistData } = useWishlist();
   const addToWishlist = useAddToWishlist();
@@ -354,69 +355,181 @@ export default function ProductDetailPage({ params }: { params: { productId: str
           {/* Full Width Marketplace Offers Section */}
           {listings.length > 0 && (
             <div className="bg-white/40 backdrop-blur-xl p-4 sm:p-6 md:p-8 rounded-[32px] sm:rounded-[40px] border border-white/60 shadow-xl mt-4">
-              <div className="flex items-center justify-between border-b border-gray-100/50 pb-2 mb-2">
+              <div className="flex items-center justify-between border-b border-gray-100/50 pb-3 mb-2">
                 <div>
                   <h2 className="text-[14px] font-black text-gray-400 uppercase tracking-widest">Marketplace Offers</h2>
-                  <p className="text-[11px] text-gray-400 font-medium mt-0.5">Direct quotes from verified pharma sellers</p>
+                  <p className="text-[11px] text-gray-400 font-medium mt-0.5">Competitive quotes from verified sellers</p>
                 </div>
-                <span className="text-teal-600 bg-teal-50 px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest">{listings.length} VERIFIED SELLERS</span>
+                <div className="flex items-center gap-4">
+                   <span className="text-teal-600 bg-teal-50 px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest">{listings.length} VERIFIED SELLERS</span>
+                </div>
               </div>
 
-              <div className="divide-y divide-gray-100/50">
+              {/* Header Row (Desktop Only) */}
+              <div className="hidden lg:grid lg:grid-cols-12 gap-4 px-4 py-2 text-[10px] font-black text-gray-400 uppercase tracking-widest">
+                <div className="col-span-1">Offer</div>
+                <div className="col-span-2 text-center">MRP</div>
+                <div className="col-span-2 text-center">Net Price</div>
+                <div className="col-span-2 text-center">Expiry</div>
+                <div className="col-span-2 text-center">Inventory</div>
+                <div className="col-span-3 text-right">Purchase</div>
+              </div>
+
+              <div className="divide-y divide-gray-100/30">
                 {listings.map((l: any, idx: number) => {
                   const listingInStock = (l.stock || 0) > 0;
                   const listingCartItem = cartData?.items?.find((item: any) => item.productId === l.id);
                   const minQty = l.moq || l.minimumOrderQuantity || 1;
+                  
+                  // Calculate or fetch discount for the pill
+                  const mrp = l.mrp || product.mrp || l.price || 0;
+                  const calculatedDiscount = mrp > l.price ? (((mrp - l.price) / mrp) * 100).toFixed(2) : null;
+                  const discountPercent = l.discountMeta?.discountPercent || calculatedDiscount;
+                  const discountTag = l.discountTag || (discountPercent ? `${discountPercent}% Off` : null);
 
                   return (
-                    <div key={l.id} className={`flex flex-col sm:flex-row sm:items-center justify-between py-4 sm:py-5 transition-all group ${idx === 0 ? 'pt-2' : ''}`}>
-                      <div className="flex items-center gap-4 mb-3 sm:mb-0">
-                        <div className="flex flex-col">
-                          <span className="text-[22px] sm:text-[26px] font-black text-gray-900 group-hover:text-teal-600 transition-colors leading-none">₹{l.price?.toLocaleString('en-IN')}</span>
-                          <span className="text-[12px] font-[800] text-gray-400 uppercase tracking-wider mt-1.5 flex items-center gap-2">
-                             <div className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-                             {l.seller?.companyName || 'Verified Pharma'}
-                          </span>
-                        </div>
+                    <div key={l.id} className="grid grid-cols-1 lg:grid-cols-12 items-center gap-4 py-6 px-4 hover:bg-gray-50/50 transition-all rounded-2xl group">
+                      
+                      {/* 1. Discount Tag / Offer Column */}
+                      <div className="lg:col-span-1">
+                        {discountTag ? (
+                          <div className="bg-white border-2 border-gray-900 px-3 py-1.5 rounded-full text-[11px] font-black text-gray-900 whitespace-nowrap shadow-sm text-center">
+                            {discountTag}
+                          </div>
+                        ) : (
+                          <div className="bg-gray-50 border border-gray-200 px-3 py-1.5 rounded-full text-[10px] font-black text-gray-400 uppercase text-center">
+                            No Disc
+                          </div>
+                        )}
                       </div>
 
-                      <div className="flex items-center justify-between sm:justify-end gap-6 sm:gap-8">
-                        <div className="text-right">
-                          <p className={`text-[12px] font-black uppercase ${listingInStock ? 'text-emerald-600' : 'text-rose-600'}`}>
-                            {listingInStock ? `${l.stock} Units In Stock` : 'Out of Stock'}
-                          </p>
-                          <div className="flex items-center justify-end gap-2 mt-1">
-                            <span className="text-[10px] font-bold text-gray-400 uppercase">MOQ: {minQty}</span>
-                            <div className="w-1 h-1 rounded-full bg-gray-200" />
-                            <span className="text-[10px] font-[800] text-gray-300">EXPIRES: {l.expiryDate ? new Date(l.expiryDate).toLocaleDateString() : 'N/A'}</span>
-                          </div>
-                        </div>
+                      {/* 2. MRP */}
+                      <div className="lg:col-span-2 flex flex-col items-center">
+                        <span className="lg:hidden text-[10px] font-black text-gray-400 uppercase">MRP</span>
+                        <p className="text-[12px] font-bold text-gray-400 uppercase">MRP</p>
+                        <p className="text-[18px] font-black text-gray-500">₹{mrp?.toLocaleString('en-IN')}</p>
+                      </div>
 
+                      {/* 3. NET PRICE */}
+                      <div className="lg:col-span-2 flex flex-col items-center group-hover:scale-110 transition-transform">
+                        <span className="lg:hidden text-[10px] font-black text-teal-600 uppercase">Net Price</span>
+                        <p className="text-[12px] font-black text-gray-900 uppercase">Net Price</p>
+                        <p className="text-[22px] font-black text-gray-900 leading-none">₹{l.price?.toLocaleString('en-IN')}</p>
+                        <p className="text-[9px] font-bold text-gray-400 mt-1 uppercase truncate">{l.seller?.companyName || 'Verified Seller'}</p>
+                      </div>
+
+                      {/* 4. EXPIRY */}
+                      <div className="lg:col-span-2 flex flex-col items-center">
+                         <span className="lg:hidden text-[10px] font-black text-gray-400 uppercase">Expiry</span>
+                         <p className="text-[14px] font-black text-gray-400 uppercase">Expiry</p>
+                         <p className="text-[16px] font-black text-gray-700 mt-1">
+                            {l.expiryDate ? new Date(l.expiryDate).toLocaleDateString('en-GB', { month: '2-digit', year: '2-digit' }) : 'N/A'}
+                         </p>
+                      </div>
+
+                      {/* 5. Inventory (Stock/MOQ) */}
+                      <div className="lg:col-span-2 flex flex-col items-center">
+                        <p className={`text-[12px] font-black uppercase ${listingInStock ? 'text-gray-900' : 'text-rose-600'}`}>
+                           {listingInStock ? `${l.stock} In Stock` : 'Out of Stock'}
+                        </p>
+                        <p className="text-[14px] font-black text-gray-900 uppercase mt-1">
+                           MOQ {minQty}
+                        </p>
+                      </div>
+
+                      {/* 6 & 7. Action Controls (Dynamic Selector) */}
+                      <div className="lg:col-span-3 flex items-center justify-center lg:justify-end gap-3 mt-4 lg:mt-0">
                         {listingInStock ? (
-                          listingCartItem ? (
-                            <div className="flex items-center bg-gray-900 rounded-full p-1.5 h-14 text-white shadow-2xl border border-white/10">
-                              <button onClick={() => addToCart.mutate({ productId: l.id, quantity: Math.max(0, listingCartItem.quantity - 1), replace: true })} className="w-12 h-full flex items-center justify-center hover:bg-gray-800 transition-colors"><Minus className="w-5 h-5" strokeWidth={3} /></button>
-                              <span className="px-5 font-black text-lg text-center min-w-[50px]">{listingCartItem.quantity}</span>
-                              <button onClick={() => addToCart.mutate({ productId: l.id, quantity: listingCartItem.quantity + 1, replace: true })} className="w-12 h-full flex items-center justify-center hover:bg-gray-800 transition-colors"><Plus className="w-5 h-5" strokeWidth={3} /></button>
-                            </div>
-                          ) : (
-                            <button
-                              onClick={() => addToCart.mutate({
-                                productId: l.id,
-                                quantity: minQty,
-                                productName: product.name,
-                                price: l.price,
-                                mrp: product.mrp,
-                                imageUrl: product.images?.[0]
-                              })}
-                              className="w-14 h-14 bg-white border-2 border-gray-100 flex items-center justify-center text-black hover:border-teal-500 hover:text-teal-600 rounded-full transition-all active:scale-90 hover:scale-110 shadow-sm"
-                              title={`Add minimum ${minQty} units`}
-                            >
-                              <Plus className="w-7 h-7" strokeWidth={2.5} />
-                            </button>
-                          )
+                          <div className="flex items-center gap-3 w-full lg:w-auto">
+                            {(!listingCartItem || listingCartItem.quantity === 0) ? (
+                              /* 1. standalone + button when not in cart or quantity is zero */
+                              <button 
+                                onClick={() => {
+                                  addToCart.mutate({ 
+                                    productId: l.id, 
+                                    quantity: minQty, 
+                                    productName: product.name,
+                                    price: l.price,
+                                    mrp: mrp,
+                                    imageUrl: product.images?.[0]
+                                  });
+                                }}
+                                className="w-full lg:w-[144px] h-12 bg-white border-2 border-slate-200 text-slate-900 rounded-xl flex items-center justify-center hover:border-teal-500 hover:text-teal-600 transition-all active:scale-95 shadow-sm group/add"
+                                title={`Add minimum ${minQty} units`}
+                              >
+                                <Plus className="w-6 h-6 group-hover/add:scale-125 transition-transform" strokeWidth={3} />
+                              </button>
+                            ) : (
+                              /* 2. Full selector with Trash when in cart */
+                              <div className="flex items-center gap-2">
+                                <div className="flex items-center bg-white border-2 border-slate-200 rounded-xl p-1 h-12 shadow-sm w-full lg:w-36">
+                                  <button 
+                                    onMouseDown={(e) => {
+                                      e.preventDefault();
+                                      if (listingCartItem.quantity > minQty) {
+                                        addToCart.mutate({ productId: l.id, quantity: listingCartItem.quantity - 1, replace: true });
+                                      } else {
+                                        // If at MOQ, clicking minus removes
+                                        removeCartItem.mutate(listingCartItem.id);
+                                      }
+                                    }}
+                                    className="w-10 h-full flex items-center justify-center text-slate-500 hover:text-slate-900 transition-colors"
+                                  >
+                                    <Minus className="w-4 h-4" strokeWidth={3} />
+                                  </button>
+                                  
+                                  <MarketplaceQtyInput 
+                                    initialQuantity={listingCartItem.quantity}
+                                    stock={l.stock}
+                                    minQty={minQty}
+                                    onUpdate={(nextQty) => {
+                                       addToCart.mutate({ 
+                                          productId: l.id, 
+                                          quantity: nextQty, 
+                                          productName: product.name,
+                                          price: l.price,
+                                          mrp: mrp,
+                                          imageUrl: product.images?.[0],
+                                          replace: true 
+                                        });
+                                    }}
+                                  />
+                                  
+                                  <button 
+                                    onMouseDown={(e) => {
+                                      e.preventDefault();
+                                      if (listingCartItem.quantity < l.stock) {
+                                        addToCart.mutate({ productId: l.id, quantity: listingCartItem.quantity + 1, replace: true });
+                                      } else {
+                                        toast(`Maximum stock reached (${l.stock})`, 'error');
+                                      }
+                                    }}
+                                    className={`w-10 h-full flex items-center justify-center transition-colors ${listingCartItem.quantity >= l.stock ? 'opacity-20 cursor-not-allowed' : 'text-slate-900 hover:bg-slate-50 rounded-lg'}`}
+                                    disabled={listingCartItem.quantity >= l.stock}
+                                  >
+                                    <Plus className="w-4 h-4" strokeWidth={3} />
+                                  </button>
+                                </div>
+
+                                {/* Trash/Delete Button */}
+                                <button 
+                                  onMouseDown={(e) => {
+                                    e.preventDefault();
+                                    // Bypassing any blurring issues, strictly remove the cart item
+                                    removeCartItem.mutate(listingCartItem.id);
+                                  }}
+                                  className="w-12 h-12 bg-rose-50 border border-rose-100 text-rose-500 rounded-xl flex items-center justify-center hover:bg-rose-100 hover:text-rose-600 transition-all active:scale-95 shadow-sm"
+                                  title="Remove from Bag"
+                                >
+                                  <Trash2 className="w-5 h-5" />
+                                </button>
+                              </div>
+                            )}
+                          </div>
                         ) : (
-                          <span className="text-[12px] font-black text-gray-300 uppercase tracking-widest italic">Sold Out</span>
+                          <div className="h-12 flex items-center px-8 bg-gray-100 text-gray-400 rounded-xl font-black text-[11px] uppercase tracking-widest italic">
+                             Currently Unavailable
+                          </div>
                         )}
                       </div>
                     </div>
@@ -621,3 +734,63 @@ export default function ProductDetailPage({ params }: { params: { productId: str
 //     </div>
 //   );
 // }
+
+/* ─── Marketplace Quantity Input Component ──────────────── */
+
+function MarketplaceQtyInput({ 
+  initialQuantity, 
+  stock, 
+  minQty, 
+  onUpdate 
+}: { 
+  initialQuantity: number; 
+  stock: number; 
+  minQty: number; 
+  onUpdate: (qty: number) => void;
+}) {
+  const [val, setVal] = useState<string>(String(initialQuantity));
+
+  // Sync from props only when initialQuantity changes externally
+  useEffect(() => {
+    setVal(String(initialQuantity));
+  }, [initialQuantity]);
+
+  const handleBlur = () => {
+    let num = parseInt(val, 10);
+    
+    // If empty or invalid, treat as removal (0)
+    if (isNaN(num)) {
+      num = 0;
+    }
+
+    // Snap to valid range
+    let finalQty = num;
+    if (num > stock) finalQty = stock;
+    if (num < minQty) finalQty = 0;
+    if (num < 0) finalQty = 0;
+    
+    // If the snapped value is different from what was typed, update display
+    setVal(String(finalQty));
+    
+    // Update cart if the value is different from the server state
+    if (finalQty !== initialQuantity) {
+      onUpdate(finalQty);
+    }
+  };
+
+  return (
+    <input 
+      type="text"
+      inputMode="numeric"
+      className="flex-1 bg-transparent font-black text-lg text-slate-900 min-w-[40px] text-center outline-none selection:bg-slate-200"
+      value={val}
+      onChange={(e) => setVal(e.target.value.replace(/\D/g, ''))}
+      onBlur={handleBlur}
+      onKeyDown={(e) => { 
+        if(e.key === 'Enter') {
+          e.currentTarget.blur();
+        }
+      }}
+    />
+  );
+}

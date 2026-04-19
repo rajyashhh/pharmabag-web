@@ -37,7 +37,12 @@ export const localCart = {
       } else {
         cart.items[existingIndex].quantity += itemData.quantity;
       }
-    } else {
+      
+      // Remove item if quantity is 0 or less
+      if (cart.items[existingIndex].quantity <= 0) {
+        cart.items.splice(existingIndex, 1);
+      }
+    } else if (itemData.quantity > 0) {
       cart.items.push({
         id: `local-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
         ...itemData
@@ -54,9 +59,15 @@ export const localCart = {
 
   updateItem: (itemId: string, quantity: number) => {
     const cart = localCart.get();
-    const item = cart.items.find(i => i.id === itemId);
-    if (item) {
-      item.quantity = quantity;
+    const existingIndex = cart.items.findIndex(i => i.id === itemId);
+    
+    if (existingIndex > -1) {
+      if (quantity <= 0) {
+        cart.items.splice(existingIndex, 1);
+      } else {
+        cart.items[existingIndex].quantity = quantity;
+      }
+      
       cart.subtotal = cart.items.reduce((sum, item) => sum + (item.price || 0) * item.quantity, 0);
       cart.total = cart.subtotal;
       localCart.set(cart);

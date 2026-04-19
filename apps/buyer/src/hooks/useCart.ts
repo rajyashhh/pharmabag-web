@@ -20,25 +20,9 @@ export function useCart() {
   return useQuery({
     queryKey: ['cart', isAuthenticated],
     queryFn: async () => {
-      // Always favor local cart for the UI to satisfy "no backend until checkout"
-      const local = localCart.get();
-      if (local.items.length > 0) return local;
-
-      // If local is empty and user is logged in, maybe fetch from backend as fallback?
-      // Or just keep it local. The user said "only backend ... when checkout button clicked".
-      if (isAuthenticated) {
-        try {
-          const backendCart = await getCart();
-          if (backendCart.items.length > 0) {
-            // Optional: sync backend to local if local is empty? 
-            // For now let's just return it.
-            return backendCart;
-          }
-        } catch (e) {
-          console.error("Failed to fetch backend cart", e);
-        }
-      }
-      return local;
+      // Local cart is the strict source of truth for the UI until Checkout.
+      // This prevents "ghost items" from the backend magically reappearing after a local deletion.
+      return localCart.get();
     },
     staleTime: 15 * 1000,
     gcTime: 60 * 1000,
@@ -51,7 +35,7 @@ export function useAddToCart() {
     mutationFn: async ({ productId, quantity, replace = false, ...extra }: { productId: string; quantity?: number; replace?: boolean; [key: string]: any }) => {
       return localCart.addItem({ 
         productId, 
-        quantity: quantity || 1,
+        quantity: quantity !== undefined ? quantity : 1,
         ...extra 
       } as any, replace);
     },
