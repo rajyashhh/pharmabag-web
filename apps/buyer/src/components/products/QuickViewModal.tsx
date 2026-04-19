@@ -11,6 +11,7 @@ import { StockBasedButton } from '@/components/shared/StockBasedButton';
 import { ShareButton } from '@/components/shared/ShareButton';
 import { PriceSection } from '@/components/shared/PriceSection';
 import { NotifyStockAlertModal } from '@/components/shared/NotifyStockAlertModal';
+import { CustomOrderModal } from '@/components/shared/CustomOrderModal';
 import { useAddToCart, useCart } from '@/hooks/useCart';
 import { calculatePricing, getSellingPrice, getEffectiveDiscountPercent } from '@pharmabag/utils';
 import type { Product } from '@pharmabag/utils';
@@ -27,6 +28,7 @@ export function QuickViewModal({ product, isOpen, onClose }: QuickViewModalProps
   const addToCart = useAddToCart();
   const { data: cartData } = useCart();
   const [showStockAlert, setShowStockAlert] = useState(false);
+  const [showCustomOrder, setShowCustomOrder] = useState(false);
   const [isBookmarked, setIsBookmarked] = useState(false);
   const [orderQty, setOrderQty] = useState(product?.minimumOrderQuantity || 1);
 
@@ -312,7 +314,7 @@ export function QuickViewModal({ product, isOpen, onClose }: QuickViewModalProps
 
                   {/* Custom Order Link */}
                   <div className="text-[14px] text-gray-800 mb-5">
-                    Have a <a href="#" className="font-[800] underline decoration-2 underline-offset-4 cursor-pointer hover:text-black">Custom Order ?</a>
+                    Have a <button onClick={() => setShowCustomOrder(true)} className="font-[800] underline decoration-2 underline-offset-4 cursor-pointer hover:text-black">Custom Order ?</button>
                   </div>
 
                   {/* Badges - Custom Replica */}
@@ -364,6 +366,14 @@ export function QuickViewModal({ product, isOpen, onClose }: QuickViewModalProps
         productName={product.name}
         productId={product.id}
         onClose={() => setShowStockAlert(false)}
+      />
+
+      {/* Custom Order Modal */}
+      <CustomOrderModal
+        isOpen={showCustomOrder}
+        onClose={() => setShowCustomOrder(false)}
+        productName={product.name}
+        productId={product.id}
       />
     </>
   );

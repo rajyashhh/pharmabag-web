@@ -2,7 +2,7 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { LayoutDashboard, Users, Package, ClipboardList, BarChart3, Settings, LogOut, Shield, ChevronLeft, FolderTree, CreditCard, Banknote, Ticket, Bell, UserCog, FileSpreadsheet, Image, Gift, Layout } from "lucide-react";
+import { LayoutDashboard, Users, Package, ClipboardList, BarChart3, Settings, LogOut, Shield, ChevronLeft, FolderTree, CreditCard, Banknote, Ticket, Bell, UserCog, FileSpreadsheet, Image, Gift, Layout, MessageSquare } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAdminAuth } from "@/store";
 import { useState } from "react";
@@ -19,6 +19,7 @@ const NAV = [
   { icon: UserCog, label: "Admins", href: "/admins" },
   { icon: Bell, label: "Notifications", href: "/notifications" },
   { icon: Gift, label: "Referrals", href: "/referrals" },
+  { icon: MessageSquare, label: "Custom Orders", href: "/custom-orders" },
 ];
 
 export function AdminSidebar() {

@@ -19,6 +19,7 @@ import {
   getPlatformSettings, updatePlatformSettings,
   getRevenueChart, getOrdersChart, getTopProducts, getTopSellers, getPresignedUrl,
   getMarketingProducts, addMarketingProduct, removeMarketingProduct, uploadSettlementProof,
+  getAdminCustomOrders, updateCustomOrderStatus, deleteCustomOrder,
 } from "@/api/admin.api";
 import { useAdminAuth } from "@/store";
 
@@ -504,5 +505,26 @@ export function usePresignedUrl(key: string | null | undefined) {
 export function useUploadSettlementProof() {
   return useMutation({
     mutationFn: uploadSettlementProof,
+  });
+}
+
+// ─── Custom Orders ───────────────────────────────────
+export function useCustomOrders(params: { page?: number; limit?: number } = {}) {
+  return useQuery({ queryKey: ["admin", "custom-orders", params], queryFn: () => getAdminCustomOrders(params), staleTime: 60_000, retry: 1 });
+}
+
+export function useUpdateCustomOrderStatus() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, status }: { id: string; status: string }) => updateCustomOrderStatus(id, status),
+    onSuccess: () => void qc.invalidateQueries({ queryKey: ["admin", "custom-orders"] }),
+  });
+}
+
+export function useDeleteCustomOrder() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: deleteCustomOrder,
+    onSuccess: () => void qc.invalidateQueries({ queryKey: ["admin", "custom-orders"] }),
   });
 }

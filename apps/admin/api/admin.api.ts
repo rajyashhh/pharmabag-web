@@ -499,3 +499,22 @@ export async function uploadSettlementProof(file: File) {
   });
   return data.data.url;
 }
+
+// ─── Custom Orders ───────────────────────────────────
+export async function getAdminCustomOrders(params: { page?: number; limit?: number } = {}) {
+  const qs = new URLSearchParams();
+  if (params.page) qs.set("page", String(params.page));
+  if (params.limit) qs.set("limit", String(params.limit));
+  const { data } = await apiClient.get<any>(`/custom-orders/admin?${qs}`);
+  return data.data;
+}
+
+export async function updateCustomOrderStatus(id: string, status: string) {
+  const { data } = await apiClient.patch<{ data: any }>(`/custom-orders/${id}/status`, { status });
+  return data.data;
+}
+
+export async function deleteCustomOrder(id: string) {
+  const { data } = await apiClient.delete<{ data: any }>(`/custom-orders/${id}`);
+  return data.data;
+}
