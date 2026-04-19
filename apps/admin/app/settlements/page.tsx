@@ -302,7 +302,7 @@ export default function AdminSettlementsPage() {
                             rel="noopener noreferrer" 
                             className="inline-flex items-center gap-1.5 text-green-600 hover:text-green-700 bg-green-50 dark:bg-green-900/20 px-3 py-1.5 rounded-lg border border-green-200/50 dark:border-green-800/30 text-xs font-bold transition-all hover:shadow-sm"
                           >
-                            <ImageIcon className="h-3.5 w-3.5" />
+                            <ExternalLink className="h-3.5 w-3.5" />
                             View Receipt
                           </a>
                           <span className="text-[10px] text-muted-foreground font-medium pr-1">
