@@ -181,11 +181,12 @@ export default function PremiumProductCard({
       </div>
 
       {/* Top Right - Status/Cart - Aligned with Share button */}
-      <div
-        className="absolute top-[14px] right-2 z-20"
-        onPointerDown={(e) => e.stopPropagation()}
-        onClick={(e) => e.stopPropagation()}
-      >
+      {(product?.sellerCount === 1) && (
+        <div
+          className="absolute top-[14px] right-2 z-20"
+          onPointerDown={(e) => e.stopPropagation()}
+          onClick={(e) => e.stopPropagation()}
+        >
         {hasItems ? (
           <div className="flex items-center gap-1.5 sm:gap-2">
             <button
@@ -285,6 +286,7 @@ export default function PremiumProductCard({
           />
         )}
       </div>
+      )}
 
       {/* Image Section */}
       <div className="relative w-full h-[120px] xs:h-[140px] sm:h-[160px] flex items-center justify-center mt-3 group-hover:scale-105 transition-transform duration-500 ease-out z-10">
@@ -362,9 +364,21 @@ export default function PremiumProductCard({
 
           {/* Values Row */}
           <div className="flex justify-between items-center w-full min-w-0 gap-1">
-            <span className="text-[11px] xs:text-[12px] sm:text-[14px] font-medium text-gray-800 truncate flex-1 text-left">₹{Math.round(Number(mrp || price))}</span>
+            <span className="text-[11px] xs:text-[12px] sm:text-[14px] font-medium text-gray-800 truncate flex-1 text-left">
+              {product?.sellerCount === 0 ? (
+                <span className="text-[9px] text-gray-400 font-bold">N/A</span>
+              ) : (
+                <>₹{Math.round(Number(mrp || price))}</>
+              )}
+            </span>
             <span className="text-[11px] xs:text-[12px] sm:text-[14px] text-transparent text-center flex-1 select-none pointer-events-none">-</span>
-            <span className="text-[11px] xs:text-[12px] sm:text-[14px] font-[900] text-gray-900 truncate flex-1 text-right">₹{Math.round(Number(price))}</span>
+            <span className="text-[11px] xs:text-[12px] sm:text-[14px] font-[900] text-gray-900 truncate flex-1 text-right">
+               {product?.sellerCount === 0 ? (
+                <span className="text-[9px] text-gray-400 font-bold">NOT AVAILABLE</span>
+              ) : (
+                <>₹{Math.round(Number(price))}</>
+              )}
+            </span>
           </div>
 
         </div>

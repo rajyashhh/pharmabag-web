@@ -296,7 +296,7 @@ export default function ProductDetailPage({ params }: { params: { productId: str
               </div>
 
               {/* Unified Product Details Section (Promoted to Top) */}
-              <div className="bg-white/40 backdrop-blur-xl p-6 sm:p-8 rounded-[32px] border border-white/60 shadow-xl space-y-8 mb-8">
+              <div className="bg-white/40 backdrop-blur-xl p-6 sm:p-8 rounded-[32px] border border-white/60 shadow-xl space-y-8 mb-4">
                 <div className="flex items-center justify-between border-b border-gray-100 pb-4">
                   <h2 className="text-[14px] font-black text-gray-400 uppercase tracking-widest">Product Details</h2>
                   <div className="flex items-center gap-2">
@@ -339,72 +339,6 @@ export default function ProductDetailPage({ params }: { params: { productId: str
 
               {/* Price section removed as per Marketplace strategy */}
 
-              {/* Marketplace Offers Section (Plus-Style Interaction) */}
-              {listings.length > 0 && (
-                <div className="bg-white/40 backdrop-blur-xl p-6 sm:p-8 rounded-[32px] border border-white/60 shadow-xl space-y-8">
-                  <div className="flex items-center justify-between border-b border-gray-100 pb-4">
-                    <h2 className="text-[14px] font-black text-gray-400 uppercase tracking-widest">Marketplace Offers</h2>
-                    <span className="text-gray-300 text-[10px] font-black uppercase tracking-widest">{listings.length} Verified Sellers</span>
-                  </div>
-
-                  <div className="divide-y divide-gray-100/50">
-                    {listings.map((l: any, idx: number) => {
-                      const listingInStock = (l.stock || 0) > 0;
-                      const listingCartItem = cartData?.items?.find((item: any) => item.productId === l.id);
-                      const minQty = l.moq || l.minimumOrderQuantity || 1;
-
-                      return (
-                        <div key={l.id} className={`flex items-center justify-between py-6 transition-all group ${idx === 0 ? 'pt-0' : ''}`}>
-                          <div className="flex flex-col">
-                            <span className="text-[18px] font-black text-gray-900 group-hover:text-teal-600 transition-colors">₹{l.price?.toLocaleString('en-IN')}</span>
-                            <span className="text-[11px] font-[800] text-gray-400 uppercase tracking-wide truncate max-w-[180px]">{l.seller?.companyName || 'Verified Pharma'}</span>
-                          </div>
-
-                          <div className="flex items-center gap-6">
-                            <div className="text-right sr-only sm:not-sr-only">
-                              <p className={`text-[11px] font-black uppercase ${listingInStock ? 'text-emerald-600' : 'text-rose-600'}`}>
-                                {listingInStock ? `${l.stock} In Stock` : 'Out of Stock'}
-                              </p>
-                              <div className="flex items-center justify-end gap-1.5 mt-0.5">
-                                <span className="text-[9px] font-bold text-gray-400 uppercase">Min: {minQty}</span>
-                                <div className="w-1 h-1 rounded-full bg-gray-200" />
-                                <span className="text-[9px] font-[800] text-gray-300">EXP: {l.expiryDate ? new Date(l.expiryDate).toLocaleDateString() : 'N/A'}</span>
-                              </div>
-                            </div>
-
-                            {listingInStock ? (
-                              listingCartItem ? (
-                                <div className="flex items-center bg-gray-900 rounded-full p-1 h-11 text-white shadow-xl border border-white/10">
-                                  <button onClick={() => addToCart.mutate({ productId: l.id, quantity: Math.max(0, listingCartItem.quantity - 1), replace: true })} className="w-10 h-full flex items-center justify-center hover:bg-gray-800 transition-colors"><Minus className="w-4 h-4" strokeWidth={3} /></button>
-                                  <span className="px-3 font-black text-sm text-center min-w-[34px]">{listingCartItem.quantity}</span>
-                                  <button onClick={() => addToCart.mutate({ productId: l.id, quantity: listingCartItem.quantity + 1, replace: true })} className="w-10 h-full flex items-center justify-center hover:bg-gray-800 transition-colors"><Plus className="w-4 h-4" strokeWidth={3} /></button>
-                                </div>
-                              ) : (
-                                <button
-                                  onClick={() => addToCart.mutate({
-                                    productId: l.id,
-                                    quantity: minQty,
-                                    productName: product.name,
-                                    price: l.price,
-                                    mrp: product.mrp,
-                                    imageUrl: product.images?.[0]
-                                  })}
-                                  className="w-10 h-10 flex items-center justify-center text-black hover:bg-black/5 rounded-full transition-all active:scale-90 group-hover:scale-110"
-                                  title={`Add minimum ${minQty} units`}
-                                >
-                                  <Plus className="w-6 h-6" strokeWidth={2.5} />
-                                </button>
-                              )
-                            ) : (
-                              <span className="text-[11px] font-black text-gray-300 uppercase tracking-widest">Unavailable</span>
-                            )}
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              )}
 
 
               {/* Description */}
@@ -416,6 +350,81 @@ export default function ProductDetailPage({ params }: { params: { productId: str
               )}
             </div>
           </div>
+
+          {/* Full Width Marketplace Offers Section */}
+          {listings.length > 0 && (
+            <div className="bg-white/40 backdrop-blur-xl p-4 sm:p-6 md:p-8 rounded-[32px] sm:rounded-[40px] border border-white/60 shadow-xl mt-4">
+              <div className="flex items-center justify-between border-b border-gray-100/50 pb-2 mb-2">
+                <div>
+                  <h2 className="text-[14px] font-black text-gray-400 uppercase tracking-widest">Marketplace Offers</h2>
+                  <p className="text-[11px] text-gray-400 font-medium mt-0.5">Direct quotes from verified pharma sellers</p>
+                </div>
+                <span className="text-teal-600 bg-teal-50 px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest">{listings.length} VERIFIED SELLERS</span>
+              </div>
+
+              <div className="divide-y divide-gray-100/50">
+                {listings.map((l: any, idx: number) => {
+                  const listingInStock = (l.stock || 0) > 0;
+                  const listingCartItem = cartData?.items?.find((item: any) => item.productId === l.id);
+                  const minQty = l.moq || l.minimumOrderQuantity || 1;
+
+                  return (
+                    <div key={l.id} className={`flex flex-col sm:flex-row sm:items-center justify-between py-4 sm:py-5 transition-all group ${idx === 0 ? 'pt-2' : ''}`}>
+                      <div className="flex items-center gap-4 mb-3 sm:mb-0">
+                        <div className="flex flex-col">
+                          <span className="text-[22px] sm:text-[26px] font-black text-gray-900 group-hover:text-teal-600 transition-colors leading-none">₹{l.price?.toLocaleString('en-IN')}</span>
+                          <span className="text-[12px] font-[800] text-gray-400 uppercase tracking-wider mt-1.5 flex items-center gap-2">
+                             <div className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+                             {l.seller?.companyName || 'Verified Pharma'}
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center justify-between sm:justify-end gap-6 sm:gap-8">
+                        <div className="text-right">
+                          <p className={`text-[12px] font-black uppercase ${listingInStock ? 'text-emerald-600' : 'text-rose-600'}`}>
+                            {listingInStock ? `${l.stock} Units In Stock` : 'Out of Stock'}
+                          </p>
+                          <div className="flex items-center justify-end gap-2 mt-1">
+                            <span className="text-[10px] font-bold text-gray-400 uppercase">MOQ: {minQty}</span>
+                            <div className="w-1 h-1 rounded-full bg-gray-200" />
+                            <span className="text-[10px] font-[800] text-gray-300">EXPIRES: {l.expiryDate ? new Date(l.expiryDate).toLocaleDateString() : 'N/A'}</span>
+                          </div>
+                        </div>
+
+                        {listingInStock ? (
+                          listingCartItem ? (
+                            <div className="flex items-center bg-gray-900 rounded-full p-1.5 h-14 text-white shadow-2xl border border-white/10">
+                              <button onClick={() => addToCart.mutate({ productId: l.id, quantity: Math.max(0, listingCartItem.quantity - 1), replace: true })} className="w-12 h-full flex items-center justify-center hover:bg-gray-800 transition-colors"><Minus className="w-5 h-5" strokeWidth={3} /></button>
+                              <span className="px-5 font-black text-lg text-center min-w-[50px]">{listingCartItem.quantity}</span>
+                              <button onClick={() => addToCart.mutate({ productId: l.id, quantity: listingCartItem.quantity + 1, replace: true })} className="w-12 h-full flex items-center justify-center hover:bg-gray-800 transition-colors"><Plus className="w-5 h-5" strokeWidth={3} /></button>
+                            </div>
+                          ) : (
+                            <button
+                              onClick={() => addToCart.mutate({
+                                productId: l.id,
+                                quantity: minQty,
+                                productName: product.name,
+                                price: l.price,
+                                mrp: product.mrp,
+                                imageUrl: product.images?.[0]
+                              })}
+                              className="w-14 h-14 bg-white border-2 border-gray-100 flex items-center justify-center text-black hover:border-teal-500 hover:text-teal-600 rounded-full transition-all active:scale-90 hover:scale-110 shadow-sm"
+                              title={`Add minimum ${minQty} units`}
+                            >
+                              <Plus className="w-7 h-7" strokeWidth={2.5} />
+                            </button>
+                          )
+                        ) : (
+                          <span className="text-[12px] font-black text-gray-300 uppercase tracking-widest italic">Sold Out</span>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
 
           {/* Reviews Section */}
           {/* <ReviewsSection productId={params.productId} /> */}

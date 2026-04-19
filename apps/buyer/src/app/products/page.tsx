@@ -627,6 +627,7 @@ function ProductsPageContent() {
                           rateLabel={computedPtr ? 'PTR' : (product.rateLabel || 'N. RATE')}
                           infoIcon={product.infoIcon}
                           productId={product.id}
+                          product={product}
                           isBookmarked={wishlistSet.has(product.id)}
                           onBookmark={handleBookmark}
                           isLoadingCart={pendingCartProducts.has(product.id)}
