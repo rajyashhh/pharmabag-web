@@ -80,7 +80,7 @@ export default function ReferralsPage() {
     },
     { 
       label: "Order Count", 
-      value: codes.reduce((acc: number, c: any) => acc + (c.orders?.length || 0), 0), 
+      value: codes.reduce((acc: number, c: any) => acc + (c.orderCount || 0), 0), 
       icon: Users, 
       color: "text-purple-500", 
       bg: "bg-purple-500/10",
@@ -217,7 +217,7 @@ export default function ReferralsPage() {
                     </td>
                     <td className="px-8 py-6 text-center">
                       <div className="flex flex-col items-center gap-1">
-                        <span className="text-lg font-bold text-foreground">{c.orders?.length || 0}</span>
+                        <span className="text-lg font-bold text-foreground">{c.orderCount || 0}</span>
                         <span className="text-[10px] font-bold text-muted-foreground tracking-widest uppercase">Checkouts</span>
                       </div>
                     </td>
