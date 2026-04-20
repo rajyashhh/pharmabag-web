@@ -25,7 +25,7 @@ interface PremiumProductCardProps {
   product?: any;
   isLoadingCart?: boolean;
   onBookmark?: (bookmarked: boolean) => void;
-  onCartChange?: (quantity: number | null) => void;
+  onCartChange?: (quantity: number | null, productId?: string) => void;
   onQuickView?: () => void;
   onClick?: () => void;
 }
@@ -76,9 +76,12 @@ export default function PremiumProductCard({
     isEditingRef.current = true;
     if (debounceTimer.current) clearTimeout(debounceTimer.current);
 
+    // Use bestListingId if available (for multi-seller products), otherwise fallback to productId
+    const activeId = product?.bestListingId || productId;
+
     // Wait until they finish clicking (400ms pause)
     debounceTimer.current = setTimeout(() => {
-      onCartChange?.(qty);
+      onCartChange?.(qty, activeId);
       debounceTimer.current = null;
 
       // Keep the "editing lock" active while API request actually processes (give it 1.5s)
@@ -184,7 +187,7 @@ export default function PremiumProductCard({
       </div>
 
       {/* Top Right - Status/Cart - Aligned with Share button */}
-      {(product?.sellerCount === 1) && (
+      {(product?.sellerCount > 0) && (
         <div
           className="absolute top-[14px] right-2 z-20"
           onPointerDown={(e) => e.stopPropagation()}
@@ -352,16 +355,12 @@ export default function PremiumProductCard({
 
           {/* Top Header Row */}
           <div className="flex justify-between items-center w-full min-w-0 mb-0.5 gap-1">
-            <span className="text-[9px] xs:text-[10px] sm:text-[12px] font-medium text-gray-600 uppercase tracking-wide flex-1 text-left">MRP</span>
-            {(product as any)?.sellerCount > 1 ? (
-              <span className="text-[9px] xs:text-[10px] sm:text-[12px] font-black text-primary uppercase tracking-tighter text-center flex-1">
-                {(product as any).sellerCount} SELLERS
-              </span>
-            ) : (
-              <span className="text-[9px] xs:text-[10px] sm:text-[12px] font-medium text-gray-600 uppercase tracking-wide text-center flex-1">MOQ</span>
-            )}
+            <span className="text-[9px] xs:text-[10px] sm:text-[12px] font-medium text-gray-600 uppercase tracking-wide flex-1 text-left">
+              {(product as any)?.sellerCount > 1 ? 'MIN MRP' : 'MRP'}
+            </span>
+            <span className="text-[9px] xs:text-[10px] sm:text-[12px] font-medium text-gray-600 uppercase tracking-wide text-center flex-1">MOQ</span>
             <span className="text-[9px] xs:text-[10px] sm:text-[12px] font-medium text-gray-600 uppercase tracking-wide flex-1 text-right whitespace-nowrap">
-              {(product as any)?.sellerCount > 1 ? 'FROM' : rateLabel}
+              {(product as any)?.sellerCount > 1 ? 'MIN RATE' : rateLabel}
             </span>
           </div>
 
@@ -374,11 +373,7 @@ export default function PremiumProductCard({
                 <>₹{Math.round(Number(mrp || price))}</>
               )}
             </span>
-            {(product as any)?.sellerCount > 1 ? (
-              <span className="text-[11px] xs:text-[12px] sm:text-[14px] text-transparent text-center flex-1 select-none pointer-events-none">-</span>
-            ) : (
-              <span className="text-[11px] xs:text-[12px] sm:text-[14px] font-[900] text-gray-800 text-center flex-1">{moq}</span>
-            )}
+            <span className="text-[11px] xs:text-[12px] sm:text-[14px] font-[900] text-gray-800 text-center flex-1">{moq}</span>
             <span className="text-[11px] xs:text-[12px] sm:text-[14px] font-[900] text-gray-900 truncate flex-1 text-right">
                {product?.sellerCount === 0 ? (
                 <span className="text-[9px] text-gray-400 font-bold">NOT AVAILABLE</span>

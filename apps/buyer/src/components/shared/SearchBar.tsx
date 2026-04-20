@@ -54,11 +54,11 @@ export default function SearchBar() {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const handleSelect = (productId: string) => {
+  const handleSelect = (product: any) => {
     if (query.trim()) saveRecentSearch(query.trim());
     setIsFocused(false);
     setQuery('');
-    router.push(`/products/${productId}`);
+    router.push(`/products/${product.slug || product.id}`);
   };
 
   const handleFullSearch = (searchQuery: string) => {
@@ -154,7 +154,7 @@ export default function SearchBar() {
                     {products.map((product) => (
                       <button
                         key={product.id}
-                        onClick={() => handleSelect(product.id)}
+                        onClick={() => handleSelect(product)}
                         className="flex items-center gap-3 w-full px-3 py-2.5 rounded-xl hover:bg-gray-50 transition-colors group"
                       >
                         <div className="w-10 h-10 bg-gray-50 rounded-xl flex items-center justify-center flex-shrink-0">

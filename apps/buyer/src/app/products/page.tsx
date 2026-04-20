@@ -18,11 +18,12 @@ import { useAddToCart, useCart, useRemoveCartItem, useUpdateCartItem } from '@/h
 import { useWishlist, useAddToWishlist, useRemoveFromWishlist } from '@/hooks/useWishlist';
 import { useToast } from '@/components/shared/Toast';
 import { calculatePricing, getSellingPrice, getEffectiveDiscountPercent, generateProductSlug } from '@pharmabag/utils';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, useRouter } from 'next/navigation';
 import { usePlatformConfig } from '@/hooks/usePlatformConfig';
 
 function ProductsPageContent() {
   const searchParams = useSearchParams();
+  const router = useRouter();
   const querySearch = searchParams.get('search');
   const queryCategory = searchParams.get('category') || searchParams.get('categoryId');
   const querySubCategory = searchParams.get('subCategoryId');
@@ -492,8 +493,8 @@ function ProductsPageContent() {
 
                     const cartItemObj = cartData?.items?.find((item: any) => item.productId === product.id);
 
-                    const handleCartChange = (quantity: number | null) => {
-                      if (quantity === null) {
+                    const handleCartChange = (quantity: number | null, overrideId?: string) => {
+                      if (quantity === null || quantity <= 0) {
                         // Remove from cart
                         if (cartItemObj) {
                           removeCartItem.mutate(cartItemObj.id, {
@@ -514,8 +515,9 @@ function ProductsPageContent() {
                       }
 
                       setPendingCartProducts(prev => new Set(prev).add(product.id));
+
                       const sellerMoq = product.moq || product.minimumOrderQuantity || 1;
-                      const moq = computedSellingPrice > 0
+                      const minQty = computedSellingPrice > 0
                         ? Math.max(sellerMoq, Math.ceil(minOrderAmount / computedSellingPrice))
                         : sellerMoq;
 
@@ -543,7 +545,7 @@ function ProductsPageContent() {
                         // Product not in cart, add it
                         addToCart.mutate(
                           {
-                            productId: product.id,
+                            productId: overrideId || product.id,
                             quantity,
                             productName: product.name,
                             price: computedSellingPrice,
@@ -640,7 +642,7 @@ function ProductsPageContent() {
                           onQuickView={() => {
                             setQuickViewProduct(product);
                           }}
-                          onClick={() => window.location.href = `/products/${generateProductSlug(product.name, product.id)}`}
+                          onClick={() => router.push(`/products/${generateProductSlug(product.name, product.id)}`)}
                           onCartChange={handleCartChange}
                         />
                       </div>

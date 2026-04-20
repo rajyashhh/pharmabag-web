@@ -15,6 +15,7 @@ interface Props {
 export function CategorySelector({ selectedCategoryIds, onChangeCategories, selectedSubcategoryIds, onChangeSubcategories, error }: Props) {
   const { data: categories, isLoading } = useCategories();
   const [showAllSubcats, setShowAllSubcats] = useState(false);
+  const [showAllCategories, setShowAllCategories] = useState(false);
 
   // Safe default: assuming data is array of { id: string, name: string, subcategories?: ... }
   const safeCategories = Array.isArray(categories)
@@ -67,16 +68,22 @@ export function CategorySelector({ selectedCategoryIds, onChangeCategories, sele
       }).filter((sc: any) => sc && sc.id && sc.name) : [];
     });
 
-  const subcatsToDisplay = showAllSubcats 
+  const subcatsToDisplay = showAllSubcats || selectedSubcategoryIds.length === 0
     ? availableSubcats 
     : availableSubcats.filter((sc: any) => selectedSubcategoryIds.includes(sc.id));
+
+  const categoriesToDisplay = showAllCategories || selectedCategoryIds.length === 0
+    ? safeCategories
+    : safeCategories.filter((c: any) => selectedCategoryIds.includes(c.id));
 
   return (
     <div className="space-y-4">
       <div className="space-y-2">
-        <label className="block text-sm font-medium text-foreground">Categories</label>
+        <div className="flex items-center justify-between">
+          <label className="block text-sm font-medium text-foreground">Categories</label>
+        </div>
         <div className="flex flex-wrap gap-2">
-          {safeCategories.map((c: any) => {
+          {categoriesToDisplay.map((c: any) => {
             const isSelected = selectedCategoryIds.includes(c.id);
             return (
               <button
@@ -102,17 +109,7 @@ export function CategorySelector({ selectedCategoryIds, onChangeCategories, sele
           <div className="flex items-center justify-between">
              <div className="flex items-center gap-2">
                <label className="block text-sm font-medium text-foreground">Subcategories</label>
-               <span className="text-[10px] bg-muted px-1.5 py-0.5 rounded text-muted-foreground font-mono">
-                 {selectedSubcategoryIds.length}/{availableSubcats.length}
-               </span>
              </div>
-             <button 
-               type="button" 
-               onClick={() => setShowAllSubcats(!showAllSubcats)} 
-               className="text-[11px] font-bold text-primary hover:underline transition-all uppercase tracking-wider bg-primary/5 px-2 py-1 rounded"
-             >
-               {showAllSubcats ? "Hide Extra" : `Show All (${availableSubcats.length})`}
-             </button>
           </div>
           <div className="flex flex-wrap gap-2 transition-all duration-300">
             {subcatsToDisplay.map((sc: any) => {
@@ -135,21 +132,7 @@ export function CategorySelector({ selectedCategoryIds, onChangeCategories, sele
                 </button>
               );
             })}
-            {!showAllSubcats && availableSubcats.length > subcatsToDisplay.length && (
-              <button
-                type="button"
-                onClick={() => setShowAllSubcats(true)}
-                className="px-3 py-1.5 rounded-full text-xs font-bold border border-dashed border-primary/30 text-primary hover:bg-primary/5 transition-all"
-              >
-                + {availableSubcats.length - subcatsToDisplay.length} more...
-              </button>
-            )}
           </div>
-          {!showAllSubcats && subcatsToDisplay.length === 0 && (
-            <p className="text-[11px] text-muted-foreground italic pl-1">
-              Select subcategories to show them here, or click <strong>Show All</strong> to browse.
-            </p>
-          )}
         </div>
       )}
     </div>
