@@ -188,6 +188,7 @@ export default function UserDetailPage() {
                 <InfoRow icon={Building2} label="Company" value={sp.companyName ?? sp.businessName ?? "—"} />
                 <InfoRow icon={FileText} label="GST Number" value={sp.gstNumber ?? "—"} mono />
                 <InfoRow icon={FileText} label="PAN Number" value={sp.panNumber ?? "—"} mono />
+                {sp.email && <InfoRow icon={Mail} label="Business Email" value={sp.email} />}
                 
                 {sp.drugLicenseUrl && (
                   <SecureDocViewer url={sp.drugLicenseUrl} label="License 1 (20B)" number={sp.drugLicenseNumber} expiry={sp.drugLicenseExpiry} />
@@ -196,8 +197,16 @@ export default function UserDetailPage() {
                   <SecureDocViewer url={sp.drugLicenseUrl2} label="License 2 (21B)" number={sp.drugLicenseNumber2} expiry={sp.drugLicenseExpiry2} />
                 )}
                 <InfoRow icon={MapPin} label="Address" value={[sp.address, sp.city, sp.state, sp.pincode].filter(Boolean).join(", ") || "—"} className="sm:col-span-2" />
-                {sp.bankAccountNumber && <InfoRow icon={Building2} label="Bank Account" value={`${sp.bankName ?? ""} — ${sp.bankAccountNumber}`} mono />}
-                {sp.ifscCode && <InfoRow icon={FileText} label="IFSC" value={sp.ifscCode} mono />}
+                {sp.bankAccount && (
+                  <>
+                    <InfoRow icon={Building2} label="Bank Detail" value={`${sp.bankAccount.bankName ?? ""} — ${sp.bankAccount.accountNumber ?? ""}`} mono />
+                    <InfoRow icon={UserCheck} label="Account Holder" value={sp.bankAccount.accountHolder ?? "—"} />
+                    <InfoRow icon={FileText} label="IFSC Code" value={sp.bankAccount.ifsc ?? "—"} mono />
+                  </>
+                )}
+                {sp.cancelCheck && (
+                  <SecureDocViewer url={sp.cancelCheck} label="Cancelled Cheque" />
+                )}
               </div>
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

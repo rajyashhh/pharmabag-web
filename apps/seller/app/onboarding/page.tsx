@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { 
   Store, Building2, FileText, CheckCircle2, AlertCircle, MapPin, 
-  ArrowRight, ArrowLeft, Loader2, Upload, Shield, Phone, Mail 
+  ArrowRight, ArrowLeft, Loader2, Upload, Shield, Phone, Mail, CreditCard 
 } from "lucide-react";
 import { Button, Input, ExpiryPicker } from "@/components/ui";
 import { 
@@ -38,6 +38,7 @@ export default function SellerOnboardingPage() {
   const uploadKyc = useUploadDrugLicense();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const fileInputRef2 = useRef<HTMLInputElement>(null);
+  const checkInputRef = useRef<HTMLInputElement>(null);
 
 
   const [formData, setFormData] = useState({
@@ -54,6 +55,12 @@ export default function SellerOnboardingPage() {
     city: "",
     state: "",
     pincode: "",
+    bankAccountNumber: "",
+    bankName: "",
+    bankIfsc: "",
+    bankAccountHolder: "",
+    cancelCheck: "",
+    email: "",
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -63,8 +70,10 @@ export default function SellerOnboardingPage() {
   const [verificationResult, setVerificationResult] = useState<any>(null);
   const [uploading, setUploading] = useState(false);
   const [uploading2, setUploading2] = useState(false);
+  const [uploadingCheck, setUploadingCheck] = useState(false);
   const [uploadedFileName, setUploadedFileName] = useState("");
   const [uploadedFileName2, setUploadedFileName2] = useState("");
+  const [uploadedCheckName, setUploadedCheckName] = useState("");
   const [isFetchingPincode, setIsFetchingPincode] = useState(false);
 
   // Auto-fill City/State from Pincode
@@ -116,6 +125,12 @@ export default function SellerOnboardingPage() {
         city: existingProfile.city || prev.city,
         state: existingProfile.state || prev.state,
         pincode: existingProfile.pincode || prev.pincode,
+        bankAccountNumber: existingProfile.bankAccount?.accountNumber || prev.bankAccountNumber,
+        bankName: existingProfile.bankAccount?.bankName || prev.bankName,
+        bankIfsc: existingProfile.bankAccount?.ifsc || prev.bankIfsc,
+        bankAccountHolder: existingProfile.bankAccount?.accountHolder || prev.bankAccountHolder,
+        cancelCheck: existingProfile.cancelCheck || prev.cancelCheck,
+        email: existingProfile.email || prev.email,
       }));
       if (existingProfile.gstNumber) setGstVerified(true);
       if (existingProfile.panNumber) setPanVerified(true);
@@ -210,6 +225,26 @@ export default function SellerOnboardingPage() {
       },
     });
   };
+  
+  const handleCheckUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    
+    const kycFormData = new FormData();
+    kycFormData.append("file", file);
+    
+    setUploadingCheck(true);
+    uploadKyc.mutate(kycFormData, {
+      onSuccess: (res: any) => {
+        const urlOrKey = res.url || res.key || (typeof res === 'string' ? res : '');
+        updateField("cancelCheck", urlOrKey);
+        setUploadedCheckName(file.name);
+        toast.success("Cancelled cheque uploaded");
+      },
+      onError: () => toast.error("Upload failed"),
+      onSettled: () => setUploadingCheck(false),
+    });
+  };
 
   const validate = () => {
     const e: Record<string, string> = {};
@@ -228,6 +263,14 @@ export default function SellerOnboardingPage() {
     if (!formData.state) e.state = "State is required";
     if (!formData.pincode.trim()) e.pincode = "Pincode is required";
     else if (!/^\d{6}$/.test(formData.pincode.trim())) e.pincode = "Invalid pincode";
+    
+    if (!formData.bankAccountNumber.trim()) e.bankAccountNumber = "Account number is required";
+    if (!formData.bankName.trim()) e.bankName = "Bank name is required";
+    if (!formData.bankIfsc.trim()) e.bankIfsc = "IFSC code is required";
+    if (!formData.bankAccountHolder.trim()) e.bankAccountHolder = "Account holder name is required";
+    if (!formData.cancelCheck) e.cancelCheck = "Please upload cancelled cheque";
+    if (!formData.email.trim()) e.email = "Email is required";
+    else if (!/^\S+@\S+\.\S+$/.test(formData.email)) e.email = "Invalid email format";
 
     setErrors(e);
     return Object.keys(e).length === 0;
@@ -251,6 +294,14 @@ export default function SellerOnboardingPage() {
       city: formData.city,
       state: formData.state,
       pincode: formData.pincode,
+      bankAccount: {
+        accountNumber: formData.bankAccountNumber.trim(),
+        bankName: formData.bankName.trim(),
+        ifsc: formData.bankIfsc.trim().toUpperCase(),
+        accountHolder: formData.bankAccountHolder.trim(),
+      },
+      cancelCheck: formData.cancelCheck,
+      email: formData.email.trim().toLowerCase(),
       gstPanResponse: verificationResult,
     };
 
@@ -364,6 +415,15 @@ export default function SellerOnboardingPage() {
                 </div>
               </div>
 
+              <div className="relative py-2">
+                <div className="absolute inset-0 flex items-center" aria-hidden="true">
+                  <div className="w-full border-t border-slate-100"></div>
+                </div>
+                <div className="relative flex justify-center text-xs uppercase">
+                  <span className="bg-white px-4 text-slate-400 font-bold tracking-widest">OR</span>
+                </div>
+              </div>
+ 
               {/* PAN Verification */}
               <div className="space-y-1.5">
                 <div className="flex gap-2 items-end">
@@ -387,6 +447,10 @@ export default function SellerOnboardingPage() {
               )}
 
               <Input label="Business Legal Name" value={formData.companyName} onChange={(e) => updateField("companyName", e.target.value)} placeholder="Full registered company name" className="h-14 rounded-2xl" error={errors.companyName} />
+              
+              <div className="grid grid-cols-1 gap-4">
+                <Input label="Business Email" value={formData.email} onChange={(e) => updateField("email", e.target.value)} placeholder="contact@business.com" type="email" className="h-14 rounded-2xl" error={errors.email} />
+              </div>
               
               <div className="space-y-4 pt-4 border-t border-slate-50">
                 <div className="flex items-center gap-3 mb-2">
@@ -452,6 +516,34 @@ export default function SellerOnboardingPage() {
                   </div>
                 </div>
                 <Input label="Pincode" value={formData.pincode} onChange={(e) => updateField("pincode", e.target.value.replace(/\D/g, "").slice(0,6))} placeholder="400001" maxLength={6} className="h-14 rounded-2xl" error={errors.pincode} />
+              </div>
+
+              <div className="space-y-4 pt-4 border-t border-slate-50">
+                <div className="flex items-center gap-3 mb-2">
+                   <div className="p-2 bg-indigo-50 rounded-lg"><CreditCard className="w-5 h-5 text-indigo-600" /></div>
+                   <h2 className="text-xl font-bold text-slate-900">Bank Details</h2>
+                </div>
+                <Input label="Account Holder Name" value={formData.bankAccountHolder} onChange={(e) => updateField("bankAccountHolder", e.target.value)} placeholder="As per bank records" className="h-14 rounded-2xl" error={errors.bankAccountHolder} />
+                <div className="grid grid-cols-2 gap-4">
+                  <Input label="Account Number" value={formData.bankAccountNumber} onChange={(e) => updateField("bankAccountNumber", e.target.value)} placeholder="000000000000" className="h-14 rounded-2xl" error={errors.bankAccountNumber} />
+                  <Input label="IFSC Code" value={formData.bankIfsc} onChange={(e) => updateField("bankIfsc", e.target.value.toUpperCase())} placeholder="HDFC0001234" className="h-14 rounded-2xl uppercase" error={errors.bankIfsc} />
+                </div>
+                <Input label="Bank Name" value={formData.bankName} onChange={(e) => updateField("bankName", e.target.value)} placeholder="e.g. HDFC Bank" className="h-14 rounded-2xl" error={errors.bankName} />
+                
+                <div className="mt-4">
+                  <label className="block text-sm font-bold text-slate-700 mb-2">Upload Cancelled Cheque</label>
+                  <input ref={checkInputRef} type="file" accept=".pdf,.jpg,.jpeg,.png" onChange={handleCheckUpload} className="hidden" />
+                  <button onClick={() => checkInputRef.current?.click()} disabled={uploadingCheck} className={`w-full flex flex-col items-center justify-center p-6 border-2 border-dashed ${errors.cancelCheck ? 'border-red-400 bg-red-50' : 'border-slate-200'} rounded-[24px] hover:border-primary/50 hover:bg-slate-50 transition-all text-slate-500 group`}>
+                    {uploadingCheck ? (
+                      <><Loader2 className="w-6 h-6 animate-spin mb-1 text-primary" /> <span className="font-bold text-xs">Uploading...</span></>
+                    ) : uploadedCheckName || formData.cancelCheck ? (
+                      <><CheckCircle2 className="w-6 h-6 text-emerald-500 mb-1" /> <span className="font-bold text-xs text-slate-900 line-clamp-1">{uploadedCheckName || "Cheque Uploaded"}</span></>
+                    ) : (
+                      <><Upload className="w-6 h-6 mb-1 group-hover:text-primary transition-colors" /> <span className="font-bold text-xs group-hover:text-slate-900 text-center">Click to upload cancelled cheque</span></>
+                    )}
+                  </button>
+                  {errors.cancelCheck && <p className="text-[10px] text-red-500 mt-1 font-bold">{errors.cancelCheck}</p>}
+                </div>
               </div>
             </div>
 

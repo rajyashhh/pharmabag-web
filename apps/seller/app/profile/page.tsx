@@ -59,10 +59,10 @@ export default function ProfilePage() {
           </div>
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-3 flex-wrap">
-              <h2 className="text-xl font-semibold text-foreground">{p.name || p.businessName || sellerProfile.businessName || "Seller"}</h2>
+              <h2 className="text-xl font-semibold text-foreground">{sellerProfile.companyName || p.name || "Seller"}</h2>
               <VerificationBadge status={p.status} />
             </div>
-            <p className="text-sm text-muted-foreground mt-0.5">{sellerProfile.businessName || p.storeName || ""}</p>
+            <p className="text-sm text-muted-foreground mt-0.5">{sellerProfile.companyName || ""}</p>
             {p.email && <p className="text-xs text-muted-foreground mt-1">{p.email}</p>}
           </div>
         </div>
@@ -73,11 +73,11 @@ export default function ProfilePage() {
         <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="glass-card rounded-2xl p-6">
           <h3 className="font-semibold text-foreground mb-4 flex items-center gap-2"><Building2 className="h-4 w-4 text-primary" />Business Information</h3>
           <div>
-            <InfoRow label="Business Name" value={sellerProfile.businessName || p.storeName} />
-            <InfoRow label="Owner Name" value={p.name} />
+            <InfoRow label="Business Name" value={sellerProfile.companyName} />
+            <InfoRow label="Owner Name" value={sellerProfile.ownerName || p.name} />
             <InfoRow label="Phone" value={p.phone} mono />
             <InfoRow label="Email" value={p.email} />
-            <InfoRow label="Registration Date" value={p.createdAt ? new Date(p.createdAt).toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric" }) : undefined} />
+            <InfoRow label="Registration Date" value={sellerProfile.createdAt ? new Date(sellerProfile.createdAt).toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric" }) : undefined} />
           </div>
         </motion.div>
 
@@ -87,7 +87,8 @@ export default function ProfilePage() {
           <div>
             <InfoRow label="GST Number" value={sellerProfile.gstNumber || sellerProfile.gst} mono />
             <InfoRow label="PAN Number" value={sellerProfile.panNumber || sellerProfile.pan} mono />
-            <InfoRow label="Drug License" value={sellerProfile.drugLicenseNumber || sellerProfile.drugLicense} mono />
+            <InfoRow label="Drug License 1" value={sellerProfile.drugLicenseNumber || sellerProfile.drugLicense} mono />
+            <InfoRow label="Drug License 2" value={sellerProfile.drugLicenseNumber2} mono />
             <InfoRow label="FSSAI Number" value={sellerProfile.fssaiNumber} mono />
             <InfoRow label="Verification" value={undefined} />
             <div className="pl-0 sm:pl-44 -mt-3 pb-2">
@@ -100,10 +101,10 @@ export default function ProfilePage() {
         <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="glass-card rounded-2xl p-6">
           <h3 className="font-semibold text-foreground mb-4 flex items-center gap-2"><MapPin className="h-4 w-4 text-primary" />Business Address</h3>
           <div>
-            <InfoRow label="Street" value={sellerProfile.address?.street || sellerProfile.streetAddress} />
-            <InfoRow label="City" value={sellerProfile.address?.city || sellerProfile.city} />
-            <InfoRow label="State" value={sellerProfile.address?.state || sellerProfile.state} />
-            <InfoRow label="Pincode" value={sellerProfile.address?.pincode || sellerProfile.pincode} mono />
+            <InfoRow label="Street" value={sellerProfile.address} />
+            <InfoRow label="City" value={sellerProfile.city} />
+            <InfoRow label="State" value={sellerProfile.state} />
+            <InfoRow label="Pincode" value={sellerProfile.pincode} mono />
           </div>
         </motion.div>
 
@@ -111,11 +112,11 @@ export default function ProfilePage() {
         <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }} className="glass-card rounded-2xl p-6">
           <h3 className="font-semibold text-foreground mb-4 flex items-center gap-2"><CreditCard className="h-4 w-4 text-primary" />Bank Details</h3>
           <div>
-            <InfoRow label="Account Holder" value={sellerProfile.bankDetails?.accountHolder || sellerProfile.accountHolderName} />
-            <InfoRow label="Account Number" value={sellerProfile.bankDetails?.accountNumber} mono />
-            <InfoRow label="Bank Name" value={sellerProfile.bankDetails?.bankName} />
-            <InfoRow label="IFSC Code" value={sellerProfile.bankDetails?.ifsc || sellerProfile.bankDetails?.ifscCode} mono />
-            <InfoRow label="Branch" value={sellerProfile.bankDetails?.branch} />
+            <InfoRow label="Account Holder" value={sellerProfile.bankAccount?.accountHolder} />
+            <InfoRow label="Account Number" value={sellerProfile.bankAccount?.accountNumber} mono />
+            <InfoRow label="Bank Name" value={sellerProfile.bankAccount?.bankName} />
+            <InfoRow label="IFSC Code" value={sellerProfile.bankAccount?.ifsc} mono />
+            <InfoRow label="Branch" value={sellerProfile.bankAccount?.branch} />
           </div>
         </motion.div>
       </div>

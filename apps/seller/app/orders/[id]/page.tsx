@@ -154,9 +154,13 @@ export default function OrderDetailPage() {
             <div className="space-y-2">
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">Status</span>
-                <Badge variant={String(mainOrder.paymentStatus || "PENDING").toUpperCase() === "PAID" || String(mainOrder.paymentStatus).toUpperCase() === "SUCCESS" ? "success" : String(mainOrder.paymentStatus).toUpperCase() === "PENDING" ? "warning" : "error"}>
-                  {mainOrder.paymentStatus || "PENDING"}
-                </Badge>
+                {items.some(it => it.settlement?.paymentProofUrl) ? (
+                  <Badge variant="success">PAID</Badge>
+                ) : (
+                  <Badge variant={String(mainOrder.paymentStatus || "PENDING").toUpperCase() === "PAID" || String(mainOrder.paymentStatus).toUpperCase() === "SUCCESS" ? "success" : String(mainOrder.paymentStatus).toUpperCase() === "PENDING" ? "warning" : "error"}>
+                    {mainOrder.paymentStatus || "PENDING"}
+                  </Badge>
+                )}
               </div>
 
               {mainOrder.payments?.[0]?.proofUrl && (
@@ -170,6 +174,22 @@ export default function OrderDetailPage() {
                   >
                     <FileText className="h-3 w-3" />
                     View Buyer's Proof
+                  </a>
+                </div>
+              )}
+
+              {/* Admin Payout Proof */}
+              {items.find(it => it.settlement?.paymentProofUrl) && (
+                <div className="pt-2 border-t border-border/10 mt-2">
+                  <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-1.5 leading-none font-sans text-green-600">Admin Payout Proof</p>
+                  <a 
+                    href={items.find(it => it.settlement?.paymentProofUrl).settlement.paymentProofUrl} 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="text-xs text-green-600 underline hover:text-green-700 flex items-center gap-1.5 font-medium"
+                  >
+                    <Upload className="h-3 w-3" />
+                    View Admin's Payout Proof
                   </a>
                 </div>
               )}
