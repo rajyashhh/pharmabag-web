@@ -333,95 +333,97 @@ export default function Navbar({
       {/* Mobile Menu Drawer */}
       <AnimatePresence>
         {isMobileMenuOpen && (
-          <>
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="fixed inset-0 bg-black/20 backdrop-blur-sm z-40 lg:hidden"
-              onClick={() => setIsMobileMenuOpen(false)}
-            />
-            <motion.div
-              initial={{ x: "100%" }}
-              animate={{ x: 0 }}
-              exit={{ x: "100%" }}
-              transition={{ type: "spring", damping: 25, stiffness: 300 }}
-              className="fixed top-0 right-0 bottom-0 w-[280px] bg-white z-50 shadow-2xl lg:hidden flex flex-col pt-20"
-            >
-              <div className="flex-1 overflow-y-auto p-4 space-y-2">
+          <motion.div
+            key="mobile-menu-backdrop"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/20 backdrop-blur-sm z-40 lg:hidden"
+            onClick={() => setIsMobileMenuOpen(false)}
+          />
+        )}
+        {isMobileMenuOpen && (
+          <motion.div
+            key="mobile-menu-panel"
+            initial={{ x: "100%" }}
+            animate={{ x: 0 }}
+            exit={{ x: "100%" }}
+            transition={{ type: "spring", damping: 25, stiffness: 300 }}
+            className="fixed top-0 right-0 bottom-0 w-[280px] bg-white z-50 shadow-2xl lg:hidden flex flex-col pt-20"
+          >
+            <div className="flex-1 overflow-y-auto p-4 space-y-2">
+              <Link
+                href="/products"
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="block px-4 py-3 text-sm font-bold text-gray-800 hover:bg-gray-50 rounded-xl"
+              >
+                All Products
+              </Link>
+              {categories.map((category: Category) => (
                 <Link
-                  href="/products"
+                  key={category.id}
+                  href={`/products?categoryId=${category.id}`}
                   onClick={() => setIsMobileMenuOpen(false)}
                   className="block px-4 py-3 text-sm font-bold text-gray-800 hover:bg-gray-50 rounded-xl"
                 >
-                  All Products
+                  {category.name}
                 </Link>
-                {categories.map((category: Category) => (
+              ))}
+              <Link
+                href="/blogs"
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="block px-4 py-3 text-sm font-bold text-gray-800 hover:bg-gray-50 rounded-xl"
+              >
+                Insights
+              </Link>
+
+              {isAuthenticated && (
+                <>
+                  <div className="h-px bg-gray-100 my-4" />
                   <Link
-                    key={category.id}
-                    href={`/products?categoryId=${category.id}`}
+                    href="/profile"
                     onClick={() => setIsMobileMenuOpen(false)}
-                    className="block px-4 py-3 text-sm font-bold text-gray-800 hover:bg-gray-50 rounded-xl"
+                    className="flex items-center gap-3 px-4 py-3 text-sm font-bold text-gray-800 hover:bg-gray-50 rounded-xl"
                   >
-                    {category.name}
+                    <User className="w-4 h-4" />
+                    My Profile
                   </Link>
-                ))}
-                <Link
-                  href="/blogs"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                  className="block px-4 py-3 text-sm font-bold text-gray-800 hover:bg-gray-50 rounded-xl"
-                >
-                  Insights
-                </Link>
-
-                {isAuthenticated && (
-                  <>
-                    <div className="h-px bg-gray-100 my-4" />
-                    <Link
-                      href="/profile"
-                      onClick={() => setIsMobileMenuOpen(false)}
-                      className="flex items-center gap-3 px-4 py-3 text-sm font-bold text-gray-800 hover:bg-gray-50 rounded-xl"
-                    >
-                      <User className="w-4 h-4" />
-                      My Profile
-                    </Link>
-                    <Link
-                      href="/orders"
-                      onClick={() => setIsMobileMenuOpen(false)}
-                      className="flex items-center gap-3 px-4 py-3 text-sm font-bold text-gray-800 hover:bg-gray-50 rounded-xl"
-                    >
-                      <ClipboardList className="w-4 h-4" />
-                      My Orders
-                    </Link>
-                    <button
-                      onClick={() => {
-                        handleLogout();
-                        setIsMobileMenuOpen(false);
-                      }}
-                      className="w-full flex items-center gap-3 px-4 py-3 text-sm font-bold text-red-600 hover:bg-red-50 rounded-xl text-left"
-                    >
-                      <LogOut className="w-4 h-4" />
-                      Logout
-                    </button>
-                  </>
-                )}
-              </div>
-
-              {!isAuthenticated && (
-                <div className="p-4 border-t border-gray-100 pb-10">
+                  <Link
+                    href="/orders"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="flex items-center gap-3 px-4 py-3 text-sm font-bold text-gray-800 hover:bg-gray-50 rounded-xl"
+                  >
+                    <ClipboardList className="w-4 h-4" />
+                    My Orders
+                  </Link>
                   <button
                     onClick={() => {
+                      handleLogout();
                       setIsMobileMenuOpen(false);
-                      onLoginClick?.();
                     }}
-                    className="w-full py-3 rounded-full bg-[#ddff85] font-bold text-gray-900 text-sm shadow-lg shadow-lime-200"
+                    className="w-full flex items-center gap-3 px-4 py-3 text-sm font-bold text-red-600 hover:bg-red-50 rounded-xl text-left"
                   >
-                    Login / Sign Up
+                    <LogOut className="w-4 h-4" />
+                    Logout
                   </button>
-                </div>
+                </>
               )}
-            </motion.div>
-          </>
+            </div>
+
+            {!isAuthenticated && (
+              <div className="p-4 border-t border-gray-100 pb-10">
+                <button
+                  onClick={() => {
+                    setIsMobileMenuOpen(false);
+                    onLoginClick?.();
+                  }}
+                  className="w-full py-3 rounded-full bg-[#ddff85] font-bold text-gray-900 text-sm shadow-lg shadow-lime-200"
+                >
+                  Login / Sign Up
+                </button>
+              </div>
+            )}
+          </motion.div>
         )}
       </AnimatePresence>
 

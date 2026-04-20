@@ -46,8 +46,15 @@ export function CustomOrderModal({ isOpen, onClose, productName, productId }: Cu
   return (
     <AnimatePresence>
       {isOpen && (
-        <div className="fixed inset-0 z-[110] flex items-center justify-center p-4">
+        <motion.div
+          key="custom-order-overlay"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="fixed inset-0 z-[110] flex items-center justify-center p-4"
+        >
           <motion.div
+            key="custom-order-backdrop"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -56,6 +63,7 @@ export function CustomOrderModal({ isOpen, onClose, productName, productId }: Cu
           />
           
           <motion.div
+            key="custom-order-modal"
             initial={{ opacity: 0, scale: 0.9, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.9, y: 20 }}
@@ -126,7 +134,7 @@ export function CustomOrderModal({ isOpen, onClose, productName, productId }: Cu
               )}
             </div>
           </motion.div>
-        </div>
+        </motion.div>
       )}
     </AnimatePresence>
   );
