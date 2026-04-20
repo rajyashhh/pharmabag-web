@@ -50,6 +50,8 @@ export default function AdminDashboardPage() {
     pendingSettlements: d?.pendingSettlements ?? 0,
     openTickets: d?.openTickets ?? 0,
     blockedUsers: d?.blockedUsers ?? 0,
+    referralCount: d?.referralCount ?? 0,
+    referralRevenue: d?.referralRevenue ?? 0,
   };
   const recentOrders = d?.recentOrders ?? [];
 
@@ -108,6 +110,12 @@ export default function AdminDashboardPage() {
         <StatCard title="Pending Orders" value={String(stats.pendingOrders)} change="Need processing" icon={Clock} iconClass="bg-yellow-50 text-yellow-600 dark:bg-yellow-900/20" alert delay={0.35} href="/orders" />
         <StatCard title="Pending Payments" value={String(stats.pendingPayments)} change="Awaiting verification" icon={AlertTriangle} iconClass="bg-red-50 text-red-500 dark:bg-red-900/20" alert delay={0.42} href="/settlements" />
         <StatCard title="Open Tickets" value={String(stats.openTickets)} change="Unresolved" icon={Flag} iconClass="bg-pink-50 text-pink-600 dark:bg-pink-900/20" alert delay={0.49} href="/tickets" />
+      </div>
+
+      {/* Referral Stats */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+        <StatCard title="Successful Referrals" value={String(stats.referralCount)} change="Delivered" icon={TrendingUp} iconClass="bg-indigo-50 text-indigo-600 dark:bg-indigo-900/20" delay={0.56} href="/referrals" />
+        <StatCard title="Referral Revenue" value={`₹${formatCompact(stats.referralRevenue)}`} change="Total value" icon={ShoppingBag} iconClass="bg-rose-50 text-rose-600 dark:bg-rose-900/20" delay={0.63} href="/referrals" />
       </div>
 
       {/* Recent orders table */}

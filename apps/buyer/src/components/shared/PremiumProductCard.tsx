@@ -56,6 +56,8 @@ export default function PremiumProductCard({
   const [isEditingQty, setIsEditingQty] = useState(false);
   const [editValue, setEditValue] = useState('');
   const [imageError, setImageError] = useState(false);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+
   const actionClicked = useRef(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -156,7 +158,7 @@ export default function PremiumProductCard({
 
   return (
     <div
-      className="relative flex flex-col w-full rounded-[18px] sm:rounded-[22px] bg-[#f2fbf5] overflow-visible shadow-sm hover:shadow-md transition-all duration-300 cursor-pointer group border border-gray-100/60 p-3 pt-6"
+      className={`relative flex flex-col w-full rounded-[18px] sm:rounded-[22px] bg-[#f2fbf5] overflow-visible shadow-sm hover:shadow-md transition-all duration-300 cursor-pointer group border border-gray-100/60 p-3 pt-6 ${isMenuOpen ? 'z-50' : 'z-auto'}`}
       onClick={handleCardClick}
     >
       {/* Discount Tag - overlapping the top-left corner */}
@@ -170,13 +172,14 @@ export default function PremiumProductCard({
       )}
 
       {/* Share Button (Top Left) - Slightly lower to match Plus button and avoid tag */}
-      <div className="absolute top-[14px] left-[6px] z-10 w-7 h-7 flex items-center justify-center">
+      <div className="absolute top-[14px] left-[6px] z-30 w-7 h-7 flex items-center justify-center">
         <ShareButton
           productName={name}
           productPrice={Number(price)}
           productImage={image}
           productId={productId || ''}
           className="p-1 opacity-70 hover:opacity-100"
+          onOpenChange={setIsMenuOpen}
         />
       </div>
 
@@ -355,7 +358,7 @@ export default function PremiumProductCard({
                 {(product as any).sellerCount} SELLERS
               </span>
             ) : (
-              <span className="text-[9px] xs:text-[10px] sm:text-[12px] font-medium text-gray-600 uppercase tracking-wide text-center flex-1">MOQ {moq}</span>
+              <span className="text-[9px] xs:text-[10px] sm:text-[12px] font-medium text-gray-600 uppercase tracking-wide text-center flex-1">MOQ</span>
             )}
             <span className="text-[9px] xs:text-[10px] sm:text-[12px] font-medium text-gray-600 uppercase tracking-wide flex-1 text-right whitespace-nowrap">
               {(product as any)?.sellerCount > 1 ? 'FROM' : rateLabel}
@@ -371,7 +374,11 @@ export default function PremiumProductCard({
                 <>₹{Math.round(Number(mrp || price))}</>
               )}
             </span>
-            <span className="text-[11px] xs:text-[12px] sm:text-[14px] text-transparent text-center flex-1 select-none pointer-events-none">-</span>
+            {(product as any)?.sellerCount > 1 ? (
+              <span className="text-[11px] xs:text-[12px] sm:text-[14px] text-transparent text-center flex-1 select-none pointer-events-none">-</span>
+            ) : (
+              <span className="text-[11px] xs:text-[12px] sm:text-[14px] font-[900] text-gray-800 text-center flex-1">{moq}</span>
+            )}
             <span className="text-[11px] xs:text-[12px] sm:text-[14px] font-[900] text-gray-900 truncate flex-1 text-right">
                {product?.sellerCount === 0 ? (
                 <span className="text-[9px] text-gray-400 font-bold">NOT AVAILABLE</span>

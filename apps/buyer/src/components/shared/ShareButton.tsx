@@ -3,6 +3,7 @@
 import { Share2, Copy, MessageCircle, Mail, Check } from 'lucide-react';
 import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { generateProductSlug } from '@pharmabag/utils';
 
 interface ShareButtonProps {
   productName: string;
@@ -12,6 +13,7 @@ interface ShareButtonProps {
   discount?: number;
   className?: string;
   iconClassName?: string;
+  onOpenChange?: (open: boolean) => void;
 }
 
 export function ShareButton({
@@ -22,6 +24,7 @@ export function ShareButton({
   discount,
   className = '',
   iconClassName = 'w-[18px] h-[18px]',
+  onOpenChange,
 }: ShareButtonProps) {
   const [showMenu, setShowMenu] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -38,12 +41,14 @@ export function ShareButton({
       document.addEventListener('mousedown', handleClickOutside);
     }
     
+    onOpenChange?.(showMenu);
+
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
-  }, [showMenu]);
+  }, [showMenu, onOpenChange]);
 
-  const deepLink = `${typeof window !== 'undefined' ? window.location.origin : ''}/products/${productId}`;
+  const deepLink = `${typeof window !== 'undefined' ? window.location.origin : ''}/products/${generateProductSlug(productName, productId)}`;
   const shareText = `Check out ${productName} at ₹${productPrice}${discount ? ` (${discount}% OFF)` : ''} on PharmaBag`;
 
   const handleNativeShare = async (e: React.MouseEvent) => {
@@ -120,7 +125,7 @@ export function ShareButton({
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.9, y: -8 }}
             transition={{ duration: 0.15 }}
-            className="absolute top-full right-0 mt-2 bg-white rounded-lg shadow-2xl border border-gray-200 p-1 z-[60] min-w-[160px]"
+            className="absolute top-full left-0 mt-2 bg-white rounded-lg shadow-2xl border border-gray-200 p-1 z-[100] min-w-[160px]"
             onClick={(e) => e.stopPropagation()}
           >
             <button

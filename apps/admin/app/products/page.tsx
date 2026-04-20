@@ -28,6 +28,13 @@ export default function AdminProductsPage() {
   const filtered = products.filter((p: any) => {
     const matchesSearch = !search || (p.name ?? "").toLowerCase().includes(search.toLowerCase()) || (p.manufacturer ?? "").toLowerCase().includes(search.toLowerCase());
     if (!matchesSearch) return false;
+
+    // Filter: only show when a single seller available
+    // if masterProduct exists, products count must be 1
+    // if no masterProduct, we assume it's unique
+    const isSingleSeller = !p.masterProduct || p.masterProduct?._count?.products <= 1;
+    if (!isSingleSeller) return false;
+
     if (filter === "all") return true;
     if (filter === "pending") return p.approvalStatus === "PENDING" || p.approvalStatus === "pending";
     if (filter === "active") return p.isActive;
@@ -91,7 +98,7 @@ export default function AdminProductsPage() {
       <div className="space-y-6">
         <div>
           <h1 className="font-semibold text-2xl text-foreground">Product Management</h1>
-          <p className="text-sm text-muted-foreground mt-0.5">{products.length} total products · {products.filter((p: any) => p.isActive).length} active</p>
+          <p className="text-sm text-muted-foreground mt-0.5">{filtered.length} unique products shown · {filtered.filter((p: any) => p.isActive).length} active</p>
         </div>
 
         <div className="flex flex-col sm:flex-row gap-3">

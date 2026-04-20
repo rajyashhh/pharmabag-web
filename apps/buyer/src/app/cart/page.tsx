@@ -12,7 +12,7 @@ import EmptyState from '@/components/shared/EmptyState';
 import { useCart, useUpdateCartItem, useRemoveCartItem, useClearCart } from '@/hooks/useCart';
 import { usePlatformConfig } from '@/hooks/usePlatformConfig';
 import { useToast } from '@/components/shared/Toast';
-import { formatCurrency } from '@pharmabag/utils';
+import { formatCurrency, generateProductSlug } from '@pharmabag/utils';
 
 export default function CartPage() {
   const [isLoginOpen, setIsLoginOpen] = useState(false);
@@ -133,7 +133,7 @@ export default function CartPage() {
                       >
                         <div className="flex gap-3 sm:gap-4">
                           {/* Image */}
-                          <Link href={`/products/${item.productId}`} className="flex-shrink-0">
+                          <Link href={`/products/${generateProductSlug(itemName, item.productId)}`} className="flex-shrink-0">
                             <div className="relative w-20 h-20 sm:w-24 sm:h-24 bg-gray-50 rounded-xl overflow-hidden">
                               {itemImage ? (
                                 <Image src={itemImage} alt={itemName} fill className="object-cover" sizes="96px" />
@@ -148,7 +148,7 @@ export default function CartPage() {
                           {/* Details */}
                           <div className="flex-1 min-w-0">
                             <div className="flex justify-between items-start">
-                              <Link href={`/products/${item.productId}`}>
+                              <Link href={`/products/${generateProductSlug(itemName, item.productId)}`}>
                                 <h3 className="font-semibold text-gray-900 line-clamp-2 hover:text-emerald-600 transition-colors">
                                   {itemName}
                                 </h3>

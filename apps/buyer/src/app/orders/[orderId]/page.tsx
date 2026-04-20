@@ -10,6 +10,7 @@ import Link from 'next/link';
 import { useOrderById, useCancelOrder } from '@/hooks/useOrders';
 import { useClearCart } from '@/hooks/useCart';
 import AuthGuard from '@/components/shared/AuthGuard';
+import { generateProductSlug } from '@pharmabag/utils';
 
 const STATUS_ORDER = ['PLACED', 'ACCEPTED', 'PAYMENT_RECEIVED', 'READY_TO_SHIP', 'DISPATCHED_FROM_SELLER', 'RECEIVED_AT_WAREHOUSE', 'SHIPPED', 'OUT_FOR_DELIVERY', 'DELIVERED'];
 
@@ -228,30 +229,33 @@ export default function OrderIdPage({ params }: { params: { orderId: string } })
                       const itemImage = formatImageUrl(rawImage);
 
                       return (
-                        <div key={item.id} className="flex items-center justify-between py-4 border-b border-gray-50 last:border-0">
-                          <div className="flex items-center gap-4">
-                            <div className="w-14 h-14 bg-gray-50 rounded-2xl flex-shrink-0 overflow-hidden flex items-center justify-center border border-gray-100">
-                              {itemImage ? (
-                                <img src={itemImage} alt={itemName} className="w-full h-full object-cover" />
-                              ) : (
-                                <div className="p-3 bg-lime-50 rounded-xl">
-                                  <Package className="w-6 h-6 text-lime-600" />
+                          <Link 
+                            href={`/products/${generateProductSlug(itemName, item.productId || item.product?.id)}`}
+                            className="flex items-center justify-between py-4 border-b border-gray-50 last:border-0 hover:bg-gray-50/50 transition-colors w-full text-left"
+                          >
+                            <div className="flex items-center gap-4">
+                              <div className="w-14 h-14 bg-gray-50 rounded-2xl flex-shrink-0 overflow-hidden flex items-center justify-center border border-gray-100">
+                                {itemImage ? (
+                                  <img src={itemImage} alt={itemName} className="w-full h-full object-cover" />
+                                ) : (
+                                  <div className="p-3 bg-lime-50 rounded-xl">
+                                    <Package className="w-6 h-6 text-lime-600" />
+                                  </div>
+                                )}
+                              </div>
+                              <div>
+                                <p className="font-bold text-gray-900 line-clamp-1">{itemName}</p>
+                                <div className="flex items-center gap-2 mt-0.5">
+                                  <span className="text-xs text-gray-400 font-bold">Qty: {item.quantity || 1}</span>
+                                  <span className="text-[10px] text-gray-300">•</span>
+                                  <span className="text-xs text-gray-400 font-bold">₹{(item.price || item.unitPrice || (itemTotal / (item.quantity || 1))).toLocaleString('en-IN')}/unit</span>
                                 </div>
-                              )}
-                            </div>
-                            <div>
-                              <p className="font-bold text-gray-900 line-clamp-1">{itemName}</p>
-                              <div className="flex items-center gap-2 mt-0.5">
-                                <span className="text-xs text-gray-400 font-bold">Qty: {item.quantity || 1}</span>
-                                <span className="text-[10px] text-gray-300">•</span>
-                                <span className="text-xs text-gray-400 font-bold">₹{(item.price || item.unitPrice || (itemTotal / (item.quantity || 1))).toLocaleString('en-IN')}/unit</span>
                               </div>
                             </div>
-                          </div>
-                          <div className="text-right">
-                            <p className="font-bold text-gray-900 tracking-tight">₹{itemTotal.toLocaleString('en-IN')}</p>
-                          </div>
-                        </div>
+                            <div className="text-right">
+                              <p className="font-bold text-gray-900 tracking-tight">₹{itemTotal.toLocaleString('en-IN')}</p>
+                            </div>
+                          </Link>
                       );
                     })}
                   </div>

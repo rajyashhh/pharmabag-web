@@ -12,8 +12,9 @@ import { NotifyStockAlertModal } from '@/components/shared/NotifyStockAlertModal
 import { CustomOrderModal } from '@/components/shared/CustomOrderModal';
 import { useAddToCart, useCart } from '@/hooks/useCart';
 import { useProductById } from '@/hooks/useProducts';
-import { calculatePricing, getSellingPrice, getEffectiveDiscountPercent } from '@pharmabag/utils';
+import { calculatePricing, getSellingPrice, getEffectiveDiscountPercent, generateProductSlug } from '@pharmabag/utils';
 import type { Product } from '@pharmabag/utils';
+import { usePlatformConfig } from '@/hooks/usePlatformConfig';
 
 interface QuickViewModalProps {
   product: Product | null;
@@ -33,6 +34,8 @@ export function QuickViewModal({ product, isOpen, onClose }: QuickViewModalProps
   const { toast } = useToast();
   const addToCart = useAddToCart();
   const { data: cartData } = useCart();
+  const { data: config } = usePlatformConfig();
+  const minOrderAmount = config?.min_order_amount ?? 20000;
   const [showStockAlert, setShowStockAlert] = useState(false);
   const [showCustomOrder, setShowCustomOrder] = useState(false);
   const [isBookmarked, setIsBookmarked] = useState(false);
@@ -71,7 +74,7 @@ export function QuickViewModal({ product, isOpen, onClose }: QuickViewModalProps
                   </p>
                 </div>
 
-                <div className="flex items-center gap-4 mr-16">
+                <div className="flex items-center gap-4 mr-16 relative z-30">
                    <ShareButton 
                       productName={displayProduct.name}
                       productId={displayProduct.id}
@@ -157,6 +160,10 @@ export function QuickViewModal({ product, isOpen, onClose }: QuickViewModalProps
                     {listings.map((listing: any) => {
                       const inStock = (listing.stock || 0) > 0;
                       const cartItem = cartData?.items?.find((item: any) => item.productId === listing.id);
+                      const sellerMoq = listing.moq || listing.minimumOrderQuantity || 1;
+                      const minQty = listing.price > 0
+                        ? Math.max(sellerMoq, Math.ceil(minOrderAmount / listing.price))
+                        : sellerMoq;
                       
                       return (
                         <div key={listing.id} className="flex flex-col sm:flex-row sm:items-center justify-between p-5 rounded-2xl bg-white border border-gray-100 shadow-sm hover:border-teal-200 transition-all gap-4">
@@ -210,7 +217,7 @@ export function QuickViewModal({ product, isOpen, onClose }: QuickViewModalProps
                                    <button 
                                      onClick={() => addToCart.mutate({ 
                                        productId: listing.id, 
-                                       quantity: listing.moq || 1,
+                                       quantity: minQty,
                                        productName: displayProduct.name,
                                        price: listing.price,
                                        mrp: displayProduct.mrp
@@ -251,6 +258,21 @@ export function QuickViewModal({ product, isOpen, onClose }: QuickViewModalProps
                       </div>
                     )}
                   </div>
+
+                  {listings.length > 0 && (
+                    <div className="mt-4 flex justify-center">
+                      <button
+                        onClick={() => setShowCustomOrder(true)}
+                        className="group flex items-center gap-2 text-[12px] font-bold text-gray-500 hover:text-teal-600 transition-all"
+                      >
+                        <span className="w-1.5 h-1.5 rounded-full bg-teal-500 animate-pulse" />
+                        Didn't find your preferred deal? 
+                        <span className="underline underline-offset-4 decoration-teal-200 decoration-2 group-hover:decoration-teal-500">
+                          Request Custom Order
+                        </span>
+                      </button>
+                    </div>
+                  )}
                 </div>
 
                 {/* Footer Badges */}
@@ -274,7 +296,7 @@ export function QuickViewModal({ product, isOpen, onClose }: QuickViewModalProps
                       </div>
                    </div>
                    <Link 
-                      href={`/products/${displayProduct.id}`}
+                      href={`/products/${generateProductSlug(displayProduct.name, displayProduct.id)}`}
                       onClick={onClose}
                       className="px-6 py-2.5 bg-gray-900 text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-black transition-all ml-auto"
                    >

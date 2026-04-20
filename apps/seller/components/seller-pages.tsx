@@ -45,7 +45,7 @@ function OrderTable({ orders, settlements = [], showConfirm = false, updateFn }:
   return (
     <div className="overflow-x-auto">
       <table className="w-full" aria-label="Seller orders">
-        <thead><tr className="border-b border-border/50 bg-muted/20">{["Order #", "Items", "Amount", "Payment", "Status", "Settlement", "Action"].map(h => <th key={h} scope="col" className={cn("px-5 py-3.5 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider", h === "Action" && "text-right")}>{h}</th>)}</tr></thead>
+        <thead><tr className="border-b border-border/50 bg-muted/20">{["Order #", "Items", "Amount", "Settlement", "Action"].map(h => <th key={h} scope="col" className={cn("px-5 py-3.5 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider", h === "Action" && "text-right")}>{h}</th>)}</tr></thead>
         <tbody className="divide-y divide-border/30">
           {orders.map((o: any, i: number) => (
             <motion.tr key={o.orderId || o.id} initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.03 }} className="hover:bg-accent/30 transition-colors">
@@ -61,8 +61,6 @@ function OrderTable({ orders, settlements = [], showConfirm = false, updateFn }:
 
                     <td className="px-5 py-4 text-xs text-muted-foreground">{order.items?.length ?? 0} items</td>
                     <td className="px-5 py-4 text-sm font-semibold text-foreground">{formatCurrency(order.sellerTotal ?? order.totalAmount ?? order.total ?? 0)}</td>
-                    <td className="px-5 py-4"><Badge variant={String(order.paymentStatus || "PENDING").toUpperCase() === "PAID" || String(order.paymentStatus).toUpperCase() === "SUCCESS" ? "success" : String(order.paymentStatus).toUpperCase() === "PENDING" ? "warning" : "error"}>{order.paymentStatus || "PENDING"}</Badge></td>
-                    <td className="px-5 py-4"><OrderStatusBadge status={order.orderStatus || order.status} /></td>
 
                     <td className="px-5 py-4">
                       {(() => {

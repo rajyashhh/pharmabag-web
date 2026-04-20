@@ -13,7 +13,7 @@ import { SkeletonCard } from '@/components/shared/LoaderSkeleton';
 import { useWishlist, useRemoveFromWishlist } from '@/hooks/useWishlist';
 import { useAddToCart } from '@/hooks/useCart';
 import { useToast } from '@/components/shared/Toast';
-import { formatCurrency } from '@pharmabag/utils';
+import { formatCurrency, generateProductSlug } from '@pharmabag/utils';
 
 export default function WishlistPage() {
   const [isLoginOpen, setIsLoginOpen] = useState(false);
@@ -92,7 +92,7 @@ export default function WishlistPage() {
                       className="bg-white/80 backdrop-blur-xl rounded-2xl border border-white/60 shadow-sm overflow-hidden group"
                     >
                       {/* Product Image */}
-                      <Link href={`/products/${item.productId}`} className="block relative h-48 bg-gray-50 overflow-hidden">
+                      <Link href={`/products/${generateProductSlug(product?.name || 'Product', item.productId)}`} className="block relative h-48 bg-gray-50 overflow-hidden">
                         {product?.images?.[0] ? (
                           <Image
                             src={(typeof product.images[0] === 'string' ? product.images[0] : (product.images[0] as any)?.url) || '/products/pharma_bottle.png'}
@@ -110,7 +110,7 @@ export default function WishlistPage() {
 
                       {/* Product Info */}
                       <div className="p-5 space-y-3">
-                        <Link href={`/products/${item.productId}`}>
+                        <Link href={`/products/${generateProductSlug(product?.name || 'Product', item.productId)}`}>
                           <h3 className="font-semibold text-gray-900 line-clamp-2 hover:text-emerald-600 transition-colors">
                             {product?.name ?? 'Product'}
                           </h3>

@@ -12,20 +12,26 @@ import { useToast } from '@/components/shared/Toast';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
-import { calculatePricing, getSellingPrice, getEffectiveDiscountPercent } from '@pharmabag/utils';
+import { CustomOrderModal } from '@/components/shared/CustomOrderModal';
+import { calculatePricing, getSellingPrice, getEffectiveDiscountPercent, parseProductIdFromSlug } from '@pharmabag/utils';
+import { usePlatformConfig } from '@/hooks/usePlatformConfig';
 
-export default function ProductDetailPage({ params }: { params: { productId: string } }) {
-  const { data: productRaw, isLoading, isError } = useProductById(params.productId);
+export default function ProductDetailPage({ params }: { params: { productSlug: string } }) {
+  const productId = parseProductIdFromSlug(params.productSlug);
+  const { data: productRaw, isLoading, isError } = useProductById(productId);
   const product = productRaw as any;
   const addToCart = useAddToCart();
   const removeCartItem = useRemoveCartItem();
   const { data: cartData } = useCart();
   const { data: wishlistData } = useWishlist();
+  const { data: config } = usePlatformConfig();
+  const minOrderAmount = config?.min_order_amount ?? 20000;
   const addToWishlist = useAddToWishlist();
   const removeFromWishlist = useRemoveFromWishlist();
   const { toast } = useToast();
   const [quantity, setQuantity] = useState(1);
   const [added, setAdded] = useState(false);
+  const [showCustomOrder, setShowCustomOrder] = useState(false);
 
   // Sync quantity with cart only ONCE when product loads
   const [initialSyncDone, setInitialSyncDone] = useState(false);
@@ -45,12 +51,12 @@ export default function ProductDetailPage({ params }: { params: { productId: str
   }, [product?.id, cartData?.items, initialSyncDone]);
 
   const wishlistItems = wishlistData?.items ?? [];
-  const wishlistEntry = wishlistItems.find((w) => w.productId === params.productId || w.product?.id === params.productId);
-  const isWishlisted = !!wishlistEntry;
-
-  const handleToggleWishlist = () => {
-    if (isWishlisted && wishlistEntry) {
-      removeFromWishlist.mutate(wishlistEntry.productId || params.productId, {
+    const wishlistEntry = wishlistItems.find((w) => w.productId === productId || w.product?.id === productId);
+    const isWishlisted = !!wishlistEntry;
+  
+    const handleToggleWishlist = () => {
+      if (isWishlisted && wishlistEntry) {
+        removeFromWishlist.mutate(wishlistEntry.productId || productId, {
         onSuccess: () => toast('Removed from wishlist', 'success'),
         onError: () => toast('Failed to update wishlist', 'error'),
       });
@@ -284,16 +290,29 @@ export default function ProductDetailPage({ params }: { params: { productId: str
 
             {/* Product Info */}
             <div className="space-y-4 sm:space-y-6 md:space-y-8 lg:col-span-2">
-              <div>
-                {product.category && (
-                  <span className="text-[10px] font-bold text-lime-700 bg-lime-100 px-3 py-1 rounded-2xl uppercase tracking-widest">
-                    {typeof product.category === 'object' ? (product.category as any).name : product.category}
-                  </span>
-                )}
-                <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 tracking-tight mt-3 sm:mt-4">{product.name}</h1>
-                {product.manufacturer && (
-                  <p className="text-gray-500 font-medium mt-2">by {product.manufacturer}</p>
-                )}
+              <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-6">
+                <div>
+                  {product.category && (
+                    <span className="text-[10px] font-bold text-lime-700 bg-lime-100 px-3 py-1 rounded-2xl uppercase tracking-widest">
+                      {typeof product.category === 'object' ? (product.category as any).name : product.category}
+                    </span>
+                  )}
+                  <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 tracking-tight mt-3 sm:mt-4">{product.name}</h1>
+                  {product.manufacturer && (
+                    <p className="text-gray-500 font-medium mt-2">by {product.manufacturer}</p>
+                  )}
+                </div>
+
+                <div className="flex flex-col items-end gap-2 pt-2">
+                  <button
+                    onClick={() => setShowCustomOrder(true)}
+                    className="group flex items-center gap-2 px-6 py-3 bg-white/60 backdrop-blur-md border border-teal-200 rounded-2xl shadow-sm hover:border-teal-500 hover:bg-white transition-all active:scale-95"
+                  >
+                    <div className="w-2 h-2 rounded-full bg-teal-500 animate-pulse" />
+                    <span className="text-[13px] font-black text-teal-600 uppercase tracking-widest">Place Custom Order</span>
+                  </button>
+                  <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mr-2">Don't see the right deal?</p>
+                </div>
               </div>
 
               {/* Unified Product Details Section (Promoted to Top) */}
@@ -342,13 +361,6 @@ export default function ProductDetailPage({ params }: { params: { productId: str
 
 
 
-              {/* Description */}
-              {product.description && (
-                <div className="bg-white/40 backdrop-blur-xl p-4 sm:p-6 md:p-8 rounded-2xl sm:rounded-3xl border border-white/40 shadow-lg">
-                  <h2 className="text-base sm:text-lg font-bold text-gray-900 mb-3 sm:mb-4">Description</h2>
-                  <p className="text-gray-600 leading-relaxed font-medium whitespace-pre-wrap">{product.description}</p>
-                </div>
-              )}
             </div>
           </div>
 
@@ -381,7 +393,11 @@ export default function ProductDetailPage({ params }: { params: { productId: str
                 {listings.map((l: any, idx: number) => {
                   const listingInStock = (l.stock || 0) > 0;
                   const listingCartItem = cartData?.items?.find((item: any) => item.productId === l.id);
-                  const minQty = l.moq || l.minimumOrderQuantity || 1;
+                  // MOQ = max(seller's MOQ, units needed to hit min order amount)
+                  const sellerMoq = l.moq || l.minimumOrderQuantity || 1;
+                  const minQty = l.price > 0
+                    ? Math.max(sellerMoq, Math.ceil(minOrderAmount / l.price))
+                    : sellerMoq;
                   
                   // Calculate or fetch discount for the pill
                   const mrp = l.mrp || product.mrp || l.price || 0;
@@ -485,14 +501,52 @@ export default function ProductDetailPage({ params }: { params: { productId: str
               </div>
               </div>
             </div>
+          </div>
+        )}
+
+        {listings.length === 0 && !isLoading && (
+          <div className="flex flex-col items-center justify-center py-20 px-6 rounded-[32px] sm:rounded-[40px] bg-white/40 backdrop-blur-md border-2 border-dashed border-gray-200 text-center gap-6 mt-4">
+            <Package className="w-12 h-12 text-gray-300" />
+            <div className="space-y-2">
+              <h3 className="text-xl font-black text-gray-800">Looking for better deals on {product.name}?</h3>
+              <p className="text-[14px] text-gray-500 max-w-[400px] mx-auto leading-relaxed font-medium">We currently don't have active marketplace offers for this item. Our sourcing team can find the best professional sellers for you.</p>
             </div>
+            <button 
+              onClick={() => setShowCustomOrder(true)}
+              className="px-10 py-4 bg-teal-600 text-white rounded-2xl text-[13px] font-black uppercase tracking-widest hover:bg-teal-700 transition-all shadow-xl active:scale-95"
+            >
+              Request Custom Quote for {product.name}
+            </button>
+          </div>
+        )}
+
+
+        {/* DescriptionSection - Below Marketplace */}
+        <div className="bg-white/40 backdrop-blur-xl p-6 sm:p-8 rounded-[32px] sm:rounded-[40px] border border-white/60 shadow-xl mt-4 space-y-6">
+          <div className="flex items-center justify-between border-b border-gray-100 pb-4">
+            <div>
+              <h2 className="text-[14px] font-black text-gray-400 uppercase tracking-widest">Product Description</h2>
+              <p className="text-[11px] text-gray-400 font-medium mt-0.5">Detailed information and specifications</p>
+            </div>
+          </div>
+          {product.description ? (
+            <p className="text-gray-600 leading-relaxed font-medium whitespace-pre-wrap text-[15px]">{product.description}</p>
+          ) : (
+            <p className="text-gray-400 italic text-[14px]">No detailed description available for this product.</p>
           )}
+        </div>
 
           {/* Reviews Section */}
           {/* <ReviewsSection productId={params.productId} /> */}
         </motion.div>
       </div>
 
+      <CustomOrderModal
+        isOpen={showCustomOrder}
+        onClose={() => setShowCustomOrder(false)}
+        productName={product.name}
+        productId={product.id}
+      />
     </main>
   );
 }

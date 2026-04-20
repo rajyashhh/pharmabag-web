@@ -70,3 +70,5 @@ export {
 } from './validators';
 
 export type { ProductFormValues } from './validators';
+// Slugs
+export { generateProductSlug, parseProductIdFromSlug } from './slugs';

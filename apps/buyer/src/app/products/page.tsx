@@ -17,8 +17,9 @@ import { useDebounce } from '@/hooks/useDebounce';
 import { useAddToCart, useCart, useRemoveCartItem, useUpdateCartItem } from '@/hooks/useCart';
 import { useWishlist, useAddToWishlist, useRemoveFromWishlist } from '@/hooks/useWishlist';
 import { useToast } from '@/components/shared/Toast';
-import { calculatePricing, getSellingPrice, getEffectiveDiscountPercent } from '@pharmabag/utils';
+import { calculatePricing, getSellingPrice, getEffectiveDiscountPercent, generateProductSlug } from '@pharmabag/utils';
 import { useSearchParams } from 'next/navigation';
+import { usePlatformConfig } from '@/hooks/usePlatformConfig';
 
 function ProductsPageContent() {
   const searchParams = useSearchParams();
@@ -73,6 +74,8 @@ function ProductsPageContent() {
   const updateCartItem = useUpdateCartItem();
   const { toast } = useToast();
   const { data: cartData } = useCart();
+  const { data: config } = usePlatformConfig();
+  const minOrderAmount = config?.min_order_amount ?? 20000;
 
   const addToWishlist = useAddToWishlist();
   const removeFromWishlist = useRemoveFromWishlist();
@@ -511,7 +514,10 @@ function ProductsPageContent() {
                       }
 
                       setPendingCartProducts(prev => new Set(prev).add(product.id));
-                      const moq = product.moq || product.minimumOrderQuantity || 1;
+                      const sellerMoq = product.moq || product.minimumOrderQuantity || 1;
+                      const moq = computedSellingPrice > 0
+                        ? Math.max(sellerMoq, Math.ceil(minOrderAmount / computedSellingPrice))
+                        : sellerMoq;
 
                       const cleanupPending = () => {
                         setPendingCartProducts(prev => {
@@ -619,7 +625,7 @@ function ProductsPageContent() {
                           mrp={product.mrp}
                           image={image}
                           stock={product.stock ?? 999}
-                          moq={product.moq || product.minimumOrderQuantity || 1}
+                          moq={computedSellingPrice > 0 ? Math.max(product.moq || product.minimumOrderQuantity || 1, Math.ceil(minOrderAmount / computedSellingPrice)) : (product.moq || product.minimumOrderQuantity || 1)}
                           ptr={computedPtr}
                           discountTag={computedDiscountTag}
                           cartQuantity={cartQuantityMap.get(product.id) ?? null}
@@ -634,7 +640,7 @@ function ProductsPageContent() {
                           onQuickView={() => {
                             setQuickViewProduct(product);
                           }}
-                          onClick={() => window.location.href = `/products/${product.id}`}
+                          onClick={() => window.location.href = `/products/${generateProductSlug(product.name, product.id)}`}
                           onCartChange={handleCartChange}
                         />
                       </div>
