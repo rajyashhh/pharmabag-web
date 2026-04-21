@@ -12,7 +12,7 @@ export default function Footer() {
     { label: 'Contact', href: '#' },
     // { label: 'Support', href: '#' },
     { label: 'About', href: '#' },
-    { label: 'Blog', href: '/blogs' },
+    { label: 'blog.pharmabag.in', href: '/blogs' },
   ];
 
   return (

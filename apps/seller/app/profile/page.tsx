@@ -74,7 +74,7 @@ export default function ProfilePage() {
           <h3 className="font-semibold text-foreground mb-4 flex items-center gap-2"><Building2 className="h-4 w-4 text-primary" />Business Information</h3>
           <div>
             <InfoRow label="Business Name" value={sellerProfile.companyName} />
-            <InfoRow label="Owner Name" value={sellerProfile.ownerName || p.name} />
+            {/* <InfoRow label="Owner Name" value={sellerProfile.ownerName || p.name} /> */}
             <InfoRow label="Phone" value={p.phone} mono />
             <InfoRow label="Email" value={p.email} />
             <InfoRow label="Registration Date" value={sellerProfile.createdAt ? new Date(sellerProfile.createdAt).toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric" }) : undefined} />
