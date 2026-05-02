@@ -132,6 +132,9 @@ export default function UserDetailPage() {
   const isSeller = user.role === "SELLER";
   const isBuyer = user.role === "BUYER";
 
+  const isBoarded = isSeller ? !!sp?.companyName : !!bp?.legalName;
+  const canApprove = (user.status === "PENDING" || user.status === "REJECTED") && isBoarded;
+
   return (
     <AdminLayout>
       <div className="space-y-6">
@@ -151,8 +154,7 @@ export default function UserDetailPage() {
             </div>
           </div>
           <div className="flex items-center gap-2">
-            {((user.status === "PENDING" || user.status === "NEW" || user.status === "REJECTED") && 
-              (user.buyerProfile?.gstNumber || user.buyerProfile?.panNumber || user.sellerProfile?.gstNumber || user.sellerProfile?.panNumber || user.gstNumber || user.panNumber)) && (
+            {canApprove && (
               <>
                 <Button size="sm" variant="primary" onClick={() => handleAction("approve")} leftIcon={<UserCheck className="h-4 w-4" />}>Approve</Button>
                 <Button size="sm" variant="danger" onClick={() => handleAction("reject")} leftIcon={<UserX className="h-4 w-4" />}>Reject</Button>
@@ -278,7 +280,7 @@ export default function UserDetailPage() {
               <KycCard label="GST Verification" status={sp.gstVerified ? "verified" : "pending"} value={sp.gstNumber} />
               <KycCard label="Drug License" status={sp.drugLicenseVerified ? "verified" : "pending"} value={sp.drugLicenseNumber} />
             </div>
-            {user.status !== "APPROVED" && (
+            {canApprove && (
               <div className="mt-6 pt-6 border-t border-border flex gap-3">
                 <Button variant="primary" onClick={() => handleAction("approve")} leftIcon={<UserCheck className="h-4 w-4" />}>Approve Seller</Button>
                 <Button variant="danger" onClick={() => handleAction("reject")} leftIcon={<UserX className="h-4 w-4" />}>Reject Seller</Button>
@@ -304,7 +306,7 @@ export default function UserDetailPage() {
                 </pre>
               </div>
             )}
-            {user.status !== "APPROVED" && (
+            {canApprove && (
               <div className="mt-6 pt-6 border-t border-border flex gap-3">
                 <Button variant="primary" onClick={() => handleAction("approve")} leftIcon={<UserCheck className="h-4 w-4" />}>Approve Buyer</Button>
                 <Button variant="danger" onClick={() => handleAction("reject")} leftIcon={<UserX className="h-4 w-4" />}>Reject Buyer</Button>

@@ -3,8 +3,7 @@
 import { useState, useEffect, Suspense } from 'react';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X } from 'lucide-react';
-import { Search, Filter, SlidersHorizontal, ChevronRight, LayoutGrid, List, Truck, ShieldCheck, ArrowUpDown, Check } from 'lucide-react';
+import { X, Search, Filter, SlidersHorizontal, ChevronRight, LayoutGrid, List, Truck, ShieldCheck, ArrowUpDown, Check } from 'lucide-react';
 import Image from 'next/image';
 import Navbar from '@/components/landing/Navbar';
 import LoginModal from '@/components/landing/LoginModal';
@@ -106,7 +105,7 @@ function ProductsPageContent() {
 
   // Derive sort params from sortOption
   const sortBy = sortOption === 'price_low_high' || sortOption === 'price_high_low' ? 'price'
-    : sortOption === 'newest' ? 'createdAt'
+    : sortOption === 'newest' ? 'newest'
       : undefined;
   const sortOrder = sortOption === 'price_low_high' ? 'asc' as const
     : sortOption === 'price_high_low' || sortOption === 'newest' ? 'desc' as const
@@ -120,11 +119,9 @@ function ProductsPageContent() {
   const manufacturers = Array.isArray(manufacturersData) ? manufacturersData : [];
   const cities = Array.isArray(citiesData) ? citiesData : [];
 
-  // Map category slug to ID for API call if needed
   const categoryObject = categories.find((c: any) => c.slug === selectedCategory || c.id === selectedCategory);
   const effectiveCategoryId = categoryObject?.id || selectedCategory;
 
-  // Real API calls with mock fallbacks (only APPROVED products are returned)
   const { data: productsData, isLoading, isError } = useProducts({
     page,
     limit: 24,
@@ -135,35 +132,25 @@ function ProductsPageContent() {
     minPrice: priceRange[0] > 0 ? priceRange[0] : undefined,
     maxPrice: priceRange[1] < 10000 ? priceRange[1] : undefined,
     city: selectedCity ?? undefined,
+    sortBy: sortBy ?? undefined,
+    sortOrder: sortOrder ?? undefined,
+    isNew: filterNewItems || undefined,
+    isDiscounted: filterDiscountItems || undefined,
+    isBestSelling: filterBestSelling || undefined,
   });
 
   let products = productsData?.data ?? [];
   const totalProducts = productsData?.total ?? 0;
   const totalPages = Math.ceil(totalProducts / 24) || 1;
 
-  // Client-side filtering for checkbox filters
-  if (filterNewItems) {
-    const sevenDaysAgo = new Date();
-    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-    products = products.filter((p: any) => p.createdAt && new Date(p.createdAt) >= sevenDaysAgo);
-  }
-  if (filterDiscountItems) {
-    products = products.filter((p: any) => p.discountType || (p.discountMeta?.discountPercent && p.discountMeta.discountPercent > 0) || (p.discountMeta?.get && p.discountMeta.get > 0));
-  }
   if (discountType === 'ptr_only') {
     products = products.filter((p: any) => p.discountType === 'PTR_DISCOUNT' || p.discountType === 'PTR_PLUS_SAME_PRODUCT_BONUS' || p.discountType === 'PTR_PLUS_DIFFERENT_PRODUCT_BONUS');
   }
 
-  // Calculate the effective selling price for sorting. 
-  // It should match the pricing logic used in the PremiumProductCard render loop.
   const getSortablePrice = (p: any) => {
-    // If sellingPrice is already on the object from backend, use it
     if (p.sellingPrice && p.sellingPrice > 0) return p.sellingPrice;
-
-    // Fallback to manual discount calculation to ensure sort matches UI
     const mrp = p.mrp || p.price || 0;
     const discount = p.discountMeta || p.discountDetails || p.discountFormDetails;
-
     if (discount && mrp > 0) {
       if (discount.discountPercent > 0) {
         return mrp * (1 - (discount.discountPercent / 100));
@@ -171,26 +158,23 @@ function ProductsPageContent() {
         return discount.specialPrice;
       }
     }
-
     return mrp || p.price || p.ptr || 0;
   };
 
-  // Mandatory Client-side Sorting for accurate UX
   if (sortOption === 'price_low_high') {
     products = [...products].sort((a: any, b: any) => getSortablePrice(a) - getSortablePrice(b));
   } else if (sortOption === 'price_high_low') {
     products = [...products].sort((a: any, b: any) => getSortablePrice(b) - getSortablePrice(a));
   } else if (sortOption === 'newest') {
     products = [...products].sort((a: any, b: any) => {
-      const timeA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
-      const timeB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+      const timeA = new Date(a.updatedAt || a.createdAt || 0).getTime();
+      const timeB = new Date(b.updatedAt || b.createdAt || 0).getTime();
       return timeB - timeA;
     });
   }
 
   return (
     <main className="min-h-screen bg-[#f2fcf6] relative flex flex-col">
-      {/* Vibrant Glass Mesh Background Elements */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none select-none z-0">
         <div className="absolute top-[-20%] left-[-10%] w-[60vw] h-[60vw] bg-cyan-300 rounded-full mix-blend-multiply filter blur-[120px] opacity-60 animate-pulse pointer-events-none" style={{ animationDuration: '8s' }}></div>
         <div className="absolute bottom-[-10%] left-[-5%] w-[50vw] h-[50vw] bg-[#e6fa64] rounded-full mix-blend-multiply filter blur-[150px] opacity-50 animate-pulse pointer-events-none" style={{ animationDuration: '10s', animationDelay: '2s' }}></div>
@@ -205,9 +189,6 @@ function ProductsPageContent() {
         />
       </div>
 
-
-
-      {/* Mobile Breadcrumb Bar - Products Page Only */}
       <div className="lg:hidden fixed bottom-12 left-0 right-0 z-40 flex justify-start px-2 sm:px-4 py-2">
         <div className="w-[92vw] mx-auto ml-0 flex items-center justify-start text-[11px] font-semibold text-gray-400 gap-3 bg-white/80 backdrop-blur-md px-3 py-2 rounded-full border border-gray-100/50 shadow-sm">
           <Link href="/" className="text-gray-500 hover:text-gray-700 transition-colors">Home</Link>
@@ -220,15 +201,22 @@ function ProductsPageContent() {
 
       <div className="pt-8 lg:pt-[108px] pb-6 sm:pb-20 w-[96vw] sm:w-[92vw] mx-auto relative z-10">
         <div className="flex flex-col lg:flex-row gap-4 sm:gap-6 lg:gap-8">
-          {/* Desktop Sidebar */}
           <aside className="hidden lg:block w-[260px] flex-shrink-0 space-y-6 sticky top-[108px] self-start max-h-[calc(100vh-120px)] overflow-y-auto no-scrollbar pb-4">
-            {/* Sort Filter - Integrated into Sidebar */}
             <div className="bg-white/80 backdrop-blur-xl rounded-2xl p-6 shadow-sm border border-white/60">
               <h3 className="text-[11px] font-bold text-gray-800 uppercase tracking-widest mb-4">Sort By</h3>
               <div className="relative">
                 <select
                   value={sortOption}
-                  onChange={(e) => { setSortOption(e.target.value); }}
+                  onChange={(e) => { 
+                    const val = e.target.value;
+                    setSortOption(val); 
+                    setPage(1); 
+                    if (val === 'newest') {
+                      setFilterNewItems(true);
+                    } else {
+                      setFilterNewItems(false);
+                    }
+                  }}
                   className="appearance-none w-full bg-gray-50/50 border border-gray-100 rounded-lg p-3 text-xs text-gray-700 font-bold focus:ring-1 focus:ring-emerald-400 outline-none cursor-pointer"
                 >
                   <option value="default">Default</option>
@@ -241,44 +229,7 @@ function ProductsPageContent() {
                 </div>
               </div>
             </div>
-            {/* Filter by Price */}
-            {/* <div className="bg-white/80 backdrop-blur-xl rounded-2xl p-6 shadow-sm border border-white/60">
-              <h3 className="text-[11px] font-bold text-gray-800 uppercase tracking-widest mb-4">Filter By Price</h3>
-              <div className="flex flex-col gap-3">
-                <input type="number" placeholder="Min" value={priceRange[0] || ''} onChange={(e) => { setPriceRange([Number(e.target.value) || 0, priceRange[1]]); setPage(1); }} className="w-full bg-gray-50/50 border border-gray-100 rounded-lg p-2 text-center text-xs text-gray-700 font-medium outline-none focus:ring-1 focus:ring-emerald-400" />
-                <input type="number" placeholder="Max" value={priceRange[1] === 10000 ? '' : priceRange[1]} onChange={(e) => { setPriceRange([priceRange[0], Number(e.target.value) || 10000]); setPage(1); }} className="w-full bg-gray-50/50 border border-gray-100 rounded-lg p-2 text-center text-xs text-gray-700 font-medium outline-none focus:ring-1 focus:ring-emerald-400" />
-              </div>
-            </div> */}
-            {/* <div className="bg-white/80 backdrop-blur-xl rounded-2xl p-6 shadow-sm border border-white/60">
-              <h3 className="text-[11px] font-black text-gray-900 uppercase tracking-[0.15em] mb-6">Filter By</h3>
-              <div className="space-y-5">
-                <label onClick={() => { setFilterNewItems(!filterNewItems); setPage(1); }} className="flex items-center gap-3 cursor-pointer group">
-                  <div className={`w-4 h-4 rounded-md border-2 transition-colors flex items-center justify-center ${filterNewItems ? 'bg-lime-400 border-lime-500' : 'border-gray-200 group-hover:border-lime-400 bg-white'}`}>
-                    {filterNewItems && <Check className="w-3 h-3 text-white" strokeWidth={3} />}
-                  </div>
-                  <span className={`text-[13px] font-bold transition-colors tracking-tight ${filterNewItems ? 'text-gray-900' : 'text-gray-500 group-hover:text-gray-900'}`}>New Items</span>
-                </label>
-                <label onClick={() => { setFilterBestSelling(!filterBestSelling); setPage(1); }} className="flex items-center gap-3 cursor-pointer group">
-                  <div className={`w-4 h-4 rounded-md border-2 transition-colors flex items-center justify-center ${filterBestSelling ? 'bg-lime-400 border-lime-500' : 'border-gray-200 group-hover:border-lime-400 bg-white'}`}>
-                    {filterBestSelling && <Check className="w-3 h-3 text-white" strokeWidth={3} />}
-                  </div>
-                  <span className={`text-[13px] font-bold transition-colors tracking-tight ${filterBestSelling ? 'text-gray-900' : 'text-gray-500 group-hover:text-gray-900'}`}>Best Selling</span>
-                </label>
-                <label onClick={() => { setFilterDiscountItems(!filterDiscountItems); setPage(1); }} className="flex items-center gap-3 cursor-pointer group">
-                  <div className={`w-4 h-4 rounded-md border-2 transition-colors flex items-center justify-center ${filterDiscountItems ? 'bg-lime-400 border-lime-500' : 'border-gray-200 group-hover:border-lime-400 bg-white'}`}>
-                    {filterDiscountItems && <Check className="w-3 h-3 text-white" strokeWidth={3} />}
-                  </div>
-                  <span className={`text-[13px] font-bold transition-colors tracking-tight ${filterDiscountItems ? 'text-gray-900' : 'text-gray-500 group-hover:text-gray-900'}`}>Discount Items</span>
-                </label>
-              </div>
-            </div> */}
-            {/* <div className="bg-white/80 backdrop-blur-xl rounded-2xl p-6 shadow-sm border border-white/60">
-              <h3 className="text-[11px] font-bold text-gray-800 uppercase tracking-widest mb-4">Categories</h3>
-              <div className="space-y-2 max-h-64 overflow-y-auto">
-                <button onClick={() => { setSelectedCategory(null); setSelectedSubCategory(null); setPage(1); }} className={`w-full text-left text-sm font-medium px-2 py-1.5 rounded transition-colors ${!selectedCategory ? 'text-gray-900 bg-gray-100/50' : 'text-gray-600 hover:text-gray-900'}`}>All Products</button>
-                {categories.map((cat: any) => (<button key={cat.id} onClick={() => { setSelectedCategory(cat.slug || cat.id); setSelectedSubCategory(null); setPage(1); }} className={`w-full text-left text-sm font-medium px-2 py-1.5 rounded transition-colors ${(selectedCategory === cat.slug || selectedCategory === cat.id) ? 'text-gray-900 bg-gray-100/50' : 'text-gray-600 hover:text-gray-900'}`}>{cat.name}</button>))}
-              </div>
-            </div> */}
+
             <div className="bg-white/80 backdrop-blur-xl rounded-2xl p-6 shadow-sm border border-white/60">
               <h3 className="text-[11px] font-bold text-gray-800 uppercase tracking-widest mb-4">Manufacturer</h3>
               <div className="space-y-2 max-h-48 overflow-y-auto">
@@ -286,10 +237,12 @@ function ProductsPageContent() {
                 {manufacturers.map((mfr: any) => (<button key={mfr.id} onClick={() => { setSelectedManufacturer(mfr.name); setPage(1); }} className={`w-full text-left text-sm font-medium px-2 py-1.5 rounded transition-colors ${selectedManufacturer === mfr.name ? 'text-gray-900 bg-gray-100/50' : 'text-gray-600 hover:text-gray-900'}`}>{mfr.name} {mfr.productCount ? <span className="text-xs text-gray-400">({mfr.productCount})</span> : null}</button>))}
               </div>
             </div>
+
             <div className="bg-white/80 backdrop-blur-xl rounded-2xl p-6 shadow-sm border border-white/60">
               <h3 className="text-[11px] font-bold text-gray-800 uppercase tracking-widest mb-4">Location</h3>
               <select value={selectedCity ?? ''} onChange={(e) => { setSelectedCity(e.target.value || null); setPage(1); }} className="w-full bg-gray-50/50 border border-gray-100 rounded-lg p-3 text-xs text-gray-700 font-medium focus:ring-1 focus:ring-emerald-400 outline-none"><option value="">Any Location</option>{cities.map((city: any) => (<option key={city.id} value={city.name}>{city.name}, {city.state}</option>))}</select>
             </div>
+
             <div className="bg-white/80 backdrop-blur-xl rounded-2xl p-6 shadow-sm border border-white/60">
               <h3 className="text-[11px] font-bold text-gray-800 uppercase tracking-widest mb-4">Discount Type</h3>
               <div className="space-y-4">
@@ -309,12 +262,8 @@ function ProductsPageContent() {
             </div>
           </aside>
 
-          {/* Product Grid Container */}
           <div className="flex-1 w-full relative top-0 sm:-top-1 lg:-top-2">
-
-            {/* Top Navigation Bar: Breadcrumbs & Search */}
             <div className="hidden sm:flex sm:flex-row sm:items-center justify-between gap-4 mb-2 lg:mb-3 w-full pl-1">
-              {/* Dynamic Breadcrumbs */}
               <div className="flex items-center gap-2 text-[13px] font-bold text-gray-800 tracking-tight whitespace-nowrap overflow-hidden text-ellipsis">
                 <Link href="/" className="text-gray-400 hover:text-gray-600 transition-colors">Home</Link>
                 <ChevronRight className="w-3.5 h-3.5 text-gray-300 flex-shrink-0" strokeWidth={3} />
@@ -333,7 +282,6 @@ function ProductsPageContent() {
                 )}
               </div>
 
-              {/* Minimal Search Bar */}
               <div className="relative w-full sm:max-w-[260px]">
                 <input
                   type="text"
@@ -411,27 +359,7 @@ function ProductsPageContent() {
                         ? (typeof product.images[0] === 'string' ? product.images[0] : product.images[0]?.url)
                         : '/products/pharma_bottle.png');
 
-                    // Compute pricing from discount details if available
-                    const backendTypeMap: Record<string, string> = {
-                      "PTR_DISCOUNT": "ptr_discount",
-                      "SAME_PRODUCT_BONUS": "same_product_bonus",
-                      "PTR_PLUS_SAME_PRODUCT_BONUS": "ptr_discount_and_same_product_bonus",
-                      "DIFFERENT_PRODUCT_BONUS": "different_product_bonus",
-                      "PTR_PLUS_DIFFERENT_PRODUCT_BONUS": "ptr_discount_and_different_product_bonus",
-                      "SPECIAL_PRICE": "special_price",
-                    };
-                    const mappedType = product.discountType ? backendTypeMap[product.discountType] : undefined;
-
-                    const dd = product.discountDetails || product.discountFormDetails || (mappedType ? {
-                      type: mappedType,
-                      ...product.discountMeta
-                    } : null);
-
-                    let computedPtr = product.ptr;
-                    let computedSellingPrice = product.sellingPrice || product.ptr || product.price || product.mrp || 0;
                     let computedDiscountTag = "";
-
-                    // Rebuild exactly matching the image UI
                     if (product.discountType) {
                       const d = product.discountMeta;
                       if (product.discountType === "PTR_DISCOUNT" && (d?.discountPercent ?? 0) > 0) {
@@ -459,67 +387,28 @@ function ProductsPageContent() {
                       } else if (product.discountType === "SPECIAL_PRICE") {
                         computedDiscountTag = `Special Price`;
                       }
-                    } else if (dd?.discountPercent || dd?.buy) {
-                      // Fallback for older schemas
-                      if ((dd.discountPercent ?? 0) > 0 && (dd.get ?? 0) > 0) {
-                        computedDiscountTag = `${dd.discountPercent}% Off (${dd.buy}+${dd.get})`;
-                      } else if ((dd.discountPercent ?? 0) > 0) {
-                        computedDiscountTag = `${dd.discountPercent}% Off`;
-                      } else if ((dd.get ?? 0) > 0) {
-                        computedDiscountTag = `(${dd.buy}+${dd.get}) Free`;
-                      }
                     }
 
-                    // Final safety - if tag is empty string, don't use it
                     if (!computedDiscountTag) {
                       computedDiscountTag = product.discountTag || product.discountMeta?.tag || "";
                     }
 
-                    if (dd?.type && product.mrp && product.gstPercent != null) {
-                      try {
-                        const pricing = calculatePricing(product.mrp, product.gstPercent, dd);
-                        const sp = getSellingPrice(pricing);
-                        computedPtr = pricing.ptr;
-                        computedSellingPrice = sp;
-                      } catch {
-                        // Fallback to raw product values if pricing computation fails
-                      }
-                    }
-
-                    // If selling price is still 0 or invalid, fall back to MRP (no discount)
-                    if (!computedSellingPrice || computedSellingPrice <= 0) {
-                      computedSellingPrice = product.mrp || 0;
-                    }
-
+                    const computedSellingPrice = product.sellingPrice || product.ptr || product.price || product.mrp || 0;
                     const cartItemObj = cartData?.items?.find((item: any) => item.productId === product.id);
 
-                    const handleCartChange = (quantity: number | null, overrideId?: string) => {
+                    const handleCartChange = (quantity: number | null) => {
                       if (quantity === null || quantity <= 0) {
-                        // Remove from cart
                         if (cartItemObj) {
                           removeCartItem.mutate(cartItemObj.id, {
-                            onSuccess: () => {
-                              toast(`${product.name} removed from bag`, 'success');
-                            },
-                            onError: () => {
-                              toast('Failed to remove item', 'error');
-                            }
+                            onSuccess: () => toast(`${product.name} removed from bag`, 'success'),
+                            onError: () => toast('Failed to remove item', 'error')
                           });
                         }
                         return;
                       }
 
-                      // Prevent duplicate requests for the same product
-                      if (pendingCartProducts.has(product.id)) {
-                        return;
-                      }
-
+                      if (pendingCartProducts.has(product.id)) return;
                       setPendingCartProducts(prev => new Set(prev).add(product.id));
-
-                      const sellerMoq = product.moq || product.minimumOrderQuantity || 1;
-                      const minQty = computedSellingPrice > 0
-                        ? Math.max(sellerMoq, Math.ceil(minOrderAmount / computedSellingPrice))
-                        : sellerMoq;
 
                       const cleanupPending = () => {
                         setPendingCartProducts(prev => {
@@ -530,7 +419,6 @@ function ProductsPageContent() {
                       };
 
                       if (cartItemObj) {
-                        // Product is already in cart, update absolute quantity
                         updateCartItem.mutate({ itemId: cartItemObj.id, quantity }, {
                           onSuccess: () => {
                             toast(`Quantity updated to ${quantity}`, 'success');
@@ -542,19 +430,16 @@ function ProductsPageContent() {
                           }
                         });
                       } else {
-                        // Product not in cart, add it
                         addToCart.mutate(
                           {
-                            productId: overrideId || product.id,
+                            productId: product.id,
                             quantity,
                             productName: product.name,
                             price: computedSellingPrice,
                             mrp: product.mrp,
                             imageUrl: image,
                             stock: product.stock,
-                            moq: product.moq || product.minimumOrderQuantity || 1,
-                            minimumOrderQuantity: product.minimumOrderQuantity,
-                            maximumOrderQuantity: product.maximumOrderQuantity
+                            moq: product.moq || product.minimumOrderQuantity || 1
                           },
                           {
                             onSuccess: () => {
@@ -562,31 +447,7 @@ function ProductsPageContent() {
                               cleanupPending();
                             },
                             onError: (err: any) => {
-                              const status = err?.response?.status || err?.status;
-                              const message = err?.response?.data?.message || err?.message || '';
-                              let errorMsg = 'Failed to add to bag';
-                              let isSuccess = false;
-
-                              if (status === 401 || status === 403) {
-                                errorMsg = 'Please log in to add items to bag';
-                              } else if (status === 429) {
-                                errorMsg = 'Too many requests. Please try again in a moment';
-                              } else if (status === 400) {
-                                if (message.includes('already in bag')) {
-                                  errorMsg = 'Product quantity has been updated in bag';
-                                  isSuccess = true;
-                                } else if (message.includes('Minimum order quantity')) {
-                                  const match = message.match(/(\d+)/);
-                                  const requiredQty = match ? match[1] : '1';
-                                  errorMsg = `Minimum order quantity is ${requiredQty}. Please add at least ${requiredQty} items.`;
-                                } else {
-                                  errorMsg = message;
-                                }
-                              } else if (message) {
-                                errorMsg = message;
-                              }
-
-                              toast(errorMsg, isSuccess ? 'success' : 'error');
+                              toast(err?.response?.data?.message || err?.message || 'Failed to add to bag', 'error');
                               cleanupPending();
                             },
                           }
@@ -598,23 +459,12 @@ function ProductsPageContent() {
                       if (bookmarked) {
                         addToWishlist.mutate(product, {
                           onSuccess: () => toast(`${product.name} added to wishlist!`, 'success'),
-                          onError: (err: any) => {
-                            const status = err?.response?.status || err?.status;
-                            const message = err?.response?.data?.message || err?.message || 'Unknown error';
-                            if (status === 401 || status === 403) {
-                              toast('Please log in to add to wishlist', 'error');
-                            } else {
-                              toast(message, 'error');
-                            }
-                          }
+                          onError: () => toast('Failed to add to wishlist', 'error')
                         });
                       } else {
                         removeFromWishlist.mutate(product.id, {
                           onSuccess: () => toast(`${product.name} removed from wishlist`, 'success'),
-                          onError: (err: any) => {
-                            const message = err?.response?.data?.message || err?.message || 'Unknown error';
-                            toast(message, 'error');
-                          }
+                          onError: () => toast('Failed to remove from wishlist', 'error')
                         });
                       }
                     };
@@ -627,21 +477,16 @@ function ProductsPageContent() {
                           mrp={product.mrp}
                           image={image}
                           stock={product.stock ?? 999}
-                          moq={computedSellingPrice > 0 ? Math.max(product.moq || product.minimumOrderQuantity || 1, Math.ceil(minOrderAmount / computedSellingPrice)) : (product.moq || product.minimumOrderQuantity || 1)}
-                          ptr={computedPtr}
+                          moq={product.moq || product.minimumOrderQuantity || 1}
+                          ptr={product.ptr}
                           discountTag={computedDiscountTag}
                           cartQuantity={cartQuantityMap.get(product.id) ?? null}
-                          plusColor={product.plusColor}
-                          rateLabel={computedPtr ? 'PTR' : (product.rateLabel || 'N. RATE')}
-                          infoIcon={product.infoIcon}
                           productId={product.id}
                           product={product}
                           isBookmarked={wishlistSet.has(product.id)}
                           onBookmark={handleBookmark}
                           isLoadingCart={pendingCartProducts.has(product.id)}
-                          onQuickView={() => {
-                            setQuickViewProduct(product);
-                          }}
+                          onQuickView={() => setQuickViewProduct(product)}
                           onClick={() => router.push(`/products/${generateProductSlug(product.name, product.id)}`)}
                           onCartChange={handleCartChange}
                         />
@@ -652,7 +497,6 @@ function ProductsPageContent() {
               )}
             </AnimatePresence>
 
-            {/* Pagination Controls */}
             {totalPages > 1 && (
               <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mt-10 mb-6">
                 <div className="flex items-center gap-1 sm:gap-2">
@@ -660,7 +504,6 @@ function ProductsPageContent() {
                     onClick={() => setPage(1)}
                     disabled={page <= 1}
                     className="p-2 sm:px-3 sm:py-2 text-xs font-bold rounded-xl bg-white/60 border border-white/60 text-gray-700 hover:bg-white disabled:opacity-40 disabled:cursor-not-allowed transition-all"
-                    title="First Page"
                   >
                     «
                   </button>
@@ -676,23 +519,15 @@ function ProductsPageContent() {
                 <div className="flex items-center gap-1 sm:gap-2 overflow-x-auto pb-2 sm:pb-0 px-2 max-w-[90vw] sm:max-w-none no-scrollbar">
                   {Array.from({ length: Math.min(totalPages, 7) }, (_, i) => {
                     let pageNum: number;
-                    if (totalPages <= 7) {
-                      pageNum = i + 1;
-                    } else if (page <= 4) {
-                      pageNum = i + 1;
-                    } else if (page >= totalPages - 3) {
-                      pageNum = totalPages - 6 + i;
-                    } else {
-                      pageNum = page - 3 + i;
-                    }
+                    if (totalPages <= 7) pageNum = i + 1;
+                    else if (page <= 4) pageNum = i + 1;
+                    else if (page >= totalPages - 3) pageNum = totalPages - 6 + i;
+                    else pageNum = page - 3 + i;
                     return (
                       <button
                         key={pageNum}
                         onClick={() => setPage(pageNum)}
-                        className={`w-9 h-9 sm:w-10 sm:h-10 text-xs sm:text-sm font-bold rounded-xl transition-all flex-shrink-0 ${page === pageNum
-                          ? 'bg-emerald-500 text-white shadow-md'
-                          : 'bg-white/60 border border-white/60 text-gray-700 hover:bg-white text-[10px] sm:text-sm'
-                          }`}
+                        className={`w-9 h-9 sm:w-10 sm:h-10 text-xs sm:text-sm font-bold rounded-xl transition-all flex-shrink-0 ${page === pageNum ? 'bg-emerald-500 text-white shadow-md' : 'bg-white/60 border border-white/60 text-gray-700 hover:bg-white'}`}
                       >
                         {pageNum}
                       </button>
@@ -712,7 +547,6 @@ function ProductsPageContent() {
                     onClick={() => setPage(totalPages)}
                     disabled={page >= totalPages}
                     className="p-2 sm:px-3 sm:py-2 text-xs font-bold rounded-xl bg-white/60 border border-white/60 text-gray-700 hover:bg-white disabled:opacity-40 disabled:cursor-not-allowed transition-all"
-                    title="Last Page"
                   >
                     »
                   </button>
@@ -725,7 +559,6 @@ function ProductsPageContent() {
 
       <LoginModal isOpen={isLoginOpen} onClose={() => setIsLoginOpen(false)} />
 
-      {/* Mobile Filter Drawer - Moved here to show above Navbar */}
       <AnimatePresence>
         {showMobileFilters && (
           <>
@@ -751,13 +584,18 @@ function ProductsPageContent() {
               </button>
               <h2 className="text-lg font-bold text-gray-900">Filters</h2>
 
-              {/* Sort Filter - Integrated into Sidebar */}
               <div className="bg-white/80 backdrop-blur-xl rounded-2xl p-6 shadow-sm border border-white/60">
                 <h3 className="text-[11px] font-bold text-gray-800 uppercase tracking-widest mb-4">Sort By</h3>
                 <div className="relative">
                   <select
                     value={sortOption}
-                    onChange={(e) => { setSortOption(e.target.value); }}
+                    onChange={(e) => { 
+                      const val = e.target.value;
+                      setSortOption(val); 
+                      setPage(1); 
+                      if (val === 'newest') setFilterNewItems(true);
+                      else setFilterNewItems(false);
+                    }}
                     className="appearance-none w-full bg-gray-50/50 border border-gray-100 rounded-lg p-3 text-xs text-gray-700 font-bold focus:ring-1 focus:ring-emerald-400 outline-none cursor-pointer"
                   >
                     <option value="default">Default</option>
@@ -771,111 +609,19 @@ function ProductsPageContent() {
                 </div>
               </div>
 
-              {/* Filter by Price */}
-              <div className="bg-white/80 backdrop-blur-xl rounded-2xl p-6 shadow-sm border border-white/60">
-                <h3 className="text-[11px] font-bold text-gray-800 uppercase tracking-widest mb-4">Filter By Price</h3>
-                <div className="flex flex-col gap-3">
-                  <input
-                    type="number"
-                    placeholder="Min"
-                    value={priceRange[0] || ''}
-                    onChange={(e) => { setPriceRange([Number(e.target.value) || 0, priceRange[1]]); setPage(1); }}
-                    className="w-full bg-gray-50/50 border border-gray-100 rounded-lg p-2 text-center text-xs text-gray-700 font-medium outline-none focus:ring-1 focus:ring-emerald-400"
-                  />
-                  <input
-                    type="number"
-                    placeholder="Max"
-                    value={priceRange[1] === 10000 ? '' : priceRange[1]}
-                    onChange={(e) => { setPriceRange([priceRange[0], Number(e.target.value) || 10000]); setPage(1); }}
-                    className="w-full bg-gray-50/50 border border-gray-100 rounded-lg p-2 text-center text-xs text-gray-700 font-medium outline-none focus:ring-1 focus:ring-emerald-400"
-                  />
-                </div>
-              </div>
-
-              <div className="bg-white/80 backdrop-blur-xl rounded-2xl p-6 shadow-sm border border-white/60">
-                <h3 className="text-[11px] font-black text-gray-900 uppercase tracking-[0.15em] mb-6">Filter By</h3>
-                <div className="space-y-5">
-                  <label onClick={() => { setFilterNewItems(!filterNewItems); setPage(1); }} className="flex items-center gap-3 cursor-pointer group">
-                    <div className={`w-4 h-4 rounded-md border-2 transition-colors flex items-center justify-center ${filterNewItems ? 'bg-lime-400 border-lime-500' : 'border-gray-200 group-hover:border-lime-400 bg-white'}`}>
-                      {filterNewItems && <Check className="w-3 h-3 text-white" strokeWidth={3} />}
-                    </div>
-                    <span className={`text-[13px] font-bold transition-colors tracking-tight ${filterNewItems ? 'text-gray-900' : 'text-gray-500 group-hover:text-gray-900'}`}>New Items</span>
-                  </label>
-                  <label onClick={() => { setFilterBestSelling(!filterBestSelling); setPage(1); }} className="flex items-center gap-3 cursor-pointer group">
-                    <div className={`w-4 h-4 rounded-md border-2 transition-colors flex items-center justify-center ${filterBestSelling ? 'bg-lime-400 border-lime-500' : 'border-gray-200 group-hover:border-lime-400 bg-white'}`}>
-                      {filterBestSelling && <Check className="w-3 h-3 text-white" strokeWidth={3} />}
-                    </div>
-                    <span className={`text-[13px] font-bold transition-colors tracking-tight ${filterBestSelling ? 'text-gray-900' : 'text-gray-500 group-hover:text-gray-900'}`}>Best Selling</span>
-                  </label>
-                  <label onClick={() => { setFilterDiscountItems(!filterDiscountItems); setPage(1); }} className="flex items-center gap-3 cursor-pointer group">
-                    <div className={`w-4 h-4 rounded-md border-2 transition-colors flex items-center justify-center ${filterDiscountItems ? 'bg-lime-400 border-lime-500' : 'border-gray-200 group-hover:border-lime-400 bg-white'}`}>
-                      {filterDiscountItems && <Check className="w-3 h-3 text-white" strokeWidth={3} />}
-                    </div>
-                    <span className={`text-[13px] font-bold transition-colors tracking-tight ${filterDiscountItems ? 'text-gray-900' : 'text-gray-500 group-hover:text-gray-900'}`}>Discount Items</span>
-                  </label>
-                </div>
-              </div>
-
-              {/* Category Filter */}
-              <div className="bg-white/80 backdrop-blur-xl rounded-2xl p-6 shadow-sm border border-white/60">
-                <h3 className="text-[11px] font-bold text-gray-800 uppercase tracking-widest mb-4">Categories</h3>
-                <div className="space-y-2 max-h-64 overflow-y-auto">
-                  <button
-                    onClick={() => { setSelectedCategory(null); setPage(1); }}
-                    className={`w-full text-left text-sm font-medium px-2 py-1.5 rounded transition-colors ${!selectedCategory ? 'text-gray-900 bg-gray-100/50' : 'text-gray-600 hover:text-gray-900'}`}
-                  >
-                    All Products
-                  </button>
-                  {categories.map((cat: any) => (
-                    <button
-                      key={cat.id}
-                      onClick={() => { setSelectedCategory(cat.slug); setPage(1); }}
-                      className={`w-full text-left text-sm font-medium px-2 py-1.5 rounded transition-colors ${selectedCategory === cat.slug ? 'text-gray-900 bg-gray-100/50' : 'text-gray-600 hover:text-gray-900'}`}
-                    >
-                      {cat.name}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Manufacturer Filter */}
               <div className="bg-white/80 backdrop-blur-xl rounded-2xl p-6 shadow-sm border border-white/60">
                 <h3 className="text-[11px] font-bold text-gray-800 uppercase tracking-widest mb-4">Manufacturer</h3>
                 <div className="space-y-2 max-h-48 overflow-y-auto">
-                  <button
-                    onClick={() => { setSelectedManufacturer(null); setPage(1); }}
-                    className={`w-full text-left text-sm font-medium px-2 py-1.5 rounded transition-colors ${!selectedManufacturer ? 'text-gray-900 bg-gray-100/50' : 'text-gray-600 hover:text-gray-900'}`}
-                  >
-                    All Manufacturers
-                  </button>
-                  {manufacturers.map((mfr: any) => (
-                    <button
-                      key={mfr.id}
-                      onClick={() => { setSelectedManufacturer(mfr.name); setPage(1); }}
-                      className={`w-full text-left text-sm font-medium px-2 py-1.5 rounded transition-colors ${selectedManufacturer === mfr.name ? 'text-gray-900 bg-gray-100/50' : 'text-gray-600 hover:text-gray-900'}`}
-                    >
-                      {mfr.name} {mfr.productCount ? <span className="text-xs text-gray-400">({mfr.productCount})</span> : null}
-                    </button>
-                  ))}
+                  <button onClick={() => { setSelectedManufacturer(null); setPage(1); }} className={`w-full text-left text-sm font-medium px-2 py-1.5 rounded transition-colors ${!selectedManufacturer ? 'text-gray-900 bg-gray-100/50' : 'text-gray-600 hover:text-gray-900'}`}>All Manufacturers</button>
+                  {manufacturers.map((mfr: any) => (<button key={mfr.id} onClick={() => { setSelectedManufacturer(mfr.name); setPage(1); }} className={`w-full text-left text-sm font-medium px-2 py-1.5 rounded transition-colors ${selectedManufacturer === mfr.name ? 'text-gray-900 bg-gray-100/50' : 'text-gray-600 hover:text-gray-900'}`}>{mfr.name}</button>))}
                 </div>
               </div>
 
-              {/* Location / City Filter */}
               <div className="bg-white/80 backdrop-blur-xl rounded-2xl p-6 shadow-sm border border-white/60">
                 <h3 className="text-[11px] font-bold text-gray-800 uppercase tracking-widest mb-4">Location</h3>
-                <select
-                  value={selectedCity ?? ''}
-                  onChange={(e) => { setSelectedCity(e.target.value || null); setPage(1); }}
-                  className="w-full bg-gray-50/50 border border-gray-100 rounded-lg p-3 text-xs text-gray-700 font-medium focus:ring-1 focus:ring-emerald-400 outline-none"
-                >
-                  <option value="">Any Location</option>
-                  {cities.map((city: any) => (
-                    <option key={city.id} value={city.name}>{city.name}, {city.state}</option>
-                  ))}
-                </select>
+                <select value={selectedCity ?? ''} onChange={(e) => { setSelectedCity(e.target.value || null); setPage(1); }} className="w-full bg-gray-50/50 border border-gray-100 rounded-lg p-3 text-xs text-gray-700 font-medium focus:ring-1 focus:ring-emerald-400 outline-none"><option value="">Any Location</option>{cities.map((city: any) => (<option key={city.id} value={city.name}>{city.name}</option>))}</select>
               </div>
 
-              {/* Discount Type */}
               <div className="bg-white/80 backdrop-blur-xl rounded-2xl p-6 shadow-sm border border-white/60">
                 <h3 className="text-[11px] font-bold text-gray-800 uppercase tracking-widest mb-4">Discount Type</h3>
                 <div className="space-y-4">
@@ -898,13 +644,11 @@ function ProductsPageContent() {
         )}
       </AnimatePresence>
 
-      {/* Quick View Modal - Now using separate component */}
       <QuickViewModal
         product={quickViewProduct}
         isOpen={!!quickViewProduct}
         onClose={() => setQuickViewProduct(null)}
       />
-
     </main>
   );
 }

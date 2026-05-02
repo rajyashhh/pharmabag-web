@@ -14,8 +14,6 @@ interface Props {
 
 export function CategorySelector({ selectedCategoryIds, onChangeCategories, selectedSubcategoryIds, onChangeSubcategories, error }: Props) {
   const { data: categories, isLoading } = useCategories();
-  const [showAllSubcats, setShowAllSubcats] = useState(false);
-  const [showAllCategories, setShowAllCategories] = useState(false);
 
   // Safe default: assuming data is array of { id: string, name: string, subcategories?: ... }
   const safeCategories = Array.isArray(categories)
@@ -23,19 +21,15 @@ export function CategorySelector({ selectedCategoryIds, onChangeCategories, sele
     : [];
 
   const toggleCategory = (id: string) => {
-    if (selectedCategoryIds.includes(id)) {
-      onChangeCategories(selectedCategoryIds.filter(x => x !== id));
-    } else {
-      onChangeCategories([...selectedCategoryIds, id]);
-    }
+    // If something is already selected, don't allow clicking anything else or toggling
+    if (selectedCategoryIds.length > 0) return;
+    onChangeCategories([...selectedCategoryIds, id]);
   };
 
   const toggleSubcategory = (id: string) => {
-    if (selectedSubcategoryIds.includes(id)) {
-      onChangeSubcategories(selectedSubcategoryIds.filter(x => x !== id));
-    } else {
-      onChangeSubcategories([...selectedSubcategoryIds, id]);
-    }
+    // If something is already selected, don't allow clicking anything else or toggling
+    if (selectedSubcategoryIds.length > 0) return;
+    onChangeSubcategories([...selectedSubcategoryIds, id]);
   };
 
   if (isLoading) {
@@ -68,11 +62,11 @@ export function CategorySelector({ selectedCategoryIds, onChangeCategories, sele
       }).filter((sc: any) => sc && sc.id && sc.name) : [];
     });
 
-  const subcatsToDisplay = showAllSubcats || selectedSubcategoryIds.length === 0
+  const subcatsToDisplay = selectedSubcategoryIds.length === 0
     ? availableSubcats 
     : availableSubcats.filter((sc: any) => selectedSubcategoryIds.includes(sc.id));
 
-  const categoriesToDisplay = showAllCategories || selectedCategoryIds.length === 0
+  const categoriesToDisplay = selectedCategoryIds.length === 0
     ? safeCategories
     : safeCategories.filter((c: any) => selectedCategoryIds.includes(c.id));
 
@@ -80,7 +74,9 @@ export function CategorySelector({ selectedCategoryIds, onChangeCategories, sele
     <div className="space-y-4">
       <div className="space-y-2">
         <div className="flex items-center justify-between">
-          <label className="block text-sm font-medium text-foreground">Categories</label>
+          <div className="flex items-center gap-2">
+            <label className="block text-sm font-medium text-foreground">Categories</label>
+          </div>
         </div>
         <div className="flex flex-wrap gap-2">
           {categoriesToDisplay.map((c: any) => {
@@ -89,7 +85,7 @@ export function CategorySelector({ selectedCategoryIds, onChangeCategories, sele
               <button
                 key={c.id}
                 type="button"
-                onClick={() => { toggleCategory(c.id); setShowAllSubcats(true); }}
+                onClick={() => { toggleCategory(c.id); }}
                 className={cn(
                   "px-3 py-1.5 rounded-full text-sm font-medium border transition-colors flex items-center gap-1.5",
                   isSelected ? "bg-primary text-primary-foreground border-primary" : "bg-background text-muted-foreground border-border hover:bg-accent hover:text-foreground"

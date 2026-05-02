@@ -15,6 +15,9 @@ export function useProducts(params?: {
   minPrice?: number;
   maxPrice?: number;
   city?: string;
+  isNew?: boolean;
+  isDiscounted?: boolean;
+  isBestSelling?: boolean;
 }) {
   return useQuery({
     queryKey: ['products', params],
