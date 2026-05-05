@@ -427,7 +427,7 @@ export function useDeleteBanner() {
 
 // ─── Referral Codes ──────────────────────────────────
 
-export function useReferralCodes(params: { page?: number; limit?: number } = {}) {
+export function useReferralCodes(params: { page?: number; limit?: number; dateFrom?: string; dateTo?: string } = {}) {
   return useQuery({ queryKey: ["admin", "referrals", params], queryFn: () => getReferralCodes(params), staleTime: 60_000, retry: 1 });
 }
 
