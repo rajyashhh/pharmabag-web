@@ -12,7 +12,7 @@ const PERMISSION_LABELS: Record<string, string> = {
   "1": "View Users", "2": "Manage Users", "3": "View Products", "4": "Manage Products",
   "5": "View Orders", "6": "Manage Orders", "7": "View Payments", "8": "Manage Payments",
   "9": "View Settlements", a: "Manage Settlements", b: "View Tickets", c: "Manage Tickets",
-  d: "View Suggestions", e: "Manage Suggestions", f: "View Product Requests", g: "Manage Product Requests",
+  d: "View CSV Upload", e: "Manage CSV Upload", f: "View Product Requests", g: "Manage Product Requests",
   h: "View Marketing", i: "Manage Marketing", j: "View Notifications", k: "Manage Notifications",
   l: "View Referrals", m: "Manage Referrals", n: "View Custom Orders", o: "Manage Custom Orders",
   p: "View Analytics", q: "Manage Analytics", r: "View Settings", s: "Manage Settings",

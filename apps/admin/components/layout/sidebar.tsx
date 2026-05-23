@@ -10,7 +10,7 @@ import { useState } from "react";
 const NAV = [
   { icon: LayoutDashboard, label: "Dashboard", href: "/dashboard" },
   { icon: Users, label: "Users", href: "/users" },
-  { icon: FileSpreadsheet, label: "Upload CSV File", href: "/suggestions" },
+  { icon: FileSpreadsheet, label: "Upload CSV File", href: "/csv-upload" },
   { icon: Package, label: "Products", href: "/products" },
   { icon: PackagePlus, label: "Product Requests", href: "/product-requests" },
   { icon: ClipboardList, label: "Orders", href: "/orders" },
