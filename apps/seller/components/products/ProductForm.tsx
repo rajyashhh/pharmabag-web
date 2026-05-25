@@ -136,6 +136,9 @@ export function ProductForm({ defaultValues, productId }: { defaultValues?: Part
     setSelectedMasterId(suggestion.id);
     setValue("product_name", suggestion.productName, { shouldDirty: true });
     setValue("company_name", suggestion.companyName, { shouldDirty: true });
+    if (suggestion.sku) {
+      setValue("sku", suggestion.sku, { shouldDirty: true });
+    }
     if (suggestion.chemicalCombination) {
       setValue("chemical_combination", suggestion.chemicalCombination, { shouldDirty: true });
     }
@@ -235,6 +238,7 @@ export function ProductForm({ defaultValues, productId }: { defaultValues?: Part
       const mappedDiscountType = formDiscountType ? discountTypeMap[formDiscountType as keyof typeof discountTypeMap] : undefined;
 
       const backendPayload: Record<string, any> = {
+        sku: data.sku,
         name: data.product_name,
         mrp: data.product_price,
         manufacturer: data.company_name,
@@ -332,9 +336,10 @@ export function ProductForm({ defaultValues, productId }: { defaultValues?: Part
         <div className="glass-card rounded-2xl p-6 space-y-4 relative z-[45] transition-opacity duration-300">
           <h2 className="font-semibold text-lg text-foreground border-b border-border/50 pb-2">Basic Information</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <Input label="SKU (Optional)" error={errors.sku?.message} {...register("sku")} disabled={!!selectedMasterId} />
             <Input label="Product Name *" error={errors.product_name?.message} {...register("product_name")} disabled={!!selectedMasterId} />
             <Input label="Company / Manufacturer *" error={errors.company_name?.message} {...register("company_name")} disabled={!!selectedMasterId} />
-            <div className="md:col-span-2">
+            <div className="md:col-span-1">
               <Textarea label="Chemical Combination" error={errors.chemical_combination?.message} {...register("chemical_combination")} disabled={!!selectedMasterId} />
             </div>
           </div>

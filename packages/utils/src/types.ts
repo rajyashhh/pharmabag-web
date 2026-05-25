@@ -253,6 +253,7 @@ export type DiscountDetails = {
 /** Suggestion / catalog item returned from search */
 export interface Suggestion {
   id: string;
+  sku?: string;
   productName: string;
   companyName: string;
   chemicalCombination?: string;

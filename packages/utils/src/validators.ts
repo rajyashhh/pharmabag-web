@@ -93,6 +93,7 @@ export const discountFormDetailsSchema = z.object({
 });
 
 export const productFormSchema = z.object({
+  sku: z.string().optional(),
   product_name: z.string().min(2, 'Product name must be at least 2 characters'),
   product_price: z.number().min(0.01, 'MRP must be greater than 0'),
   company_name: z.string().min(2, 'Company name is required'),

@@ -138,10 +138,10 @@ export default function AdminProductsPage() {
                         ) : (
                           <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center text-xl flex-shrink-0" aria-hidden>💊</div>
                         )}
-                        <div>
-                          <div className="text-sm font-semibold text-foreground">{p.name}</div>
-                          <div className="text-xs text-muted-foreground">{p.chemicalComposition ?? "—"}</div>
-                        </div>
+                          <div className="max-w-[200px] min-w-[120px]">
+                            <div className="text-sm font-semibold text-foreground truncate" title={p.name}>{p.name}</div>
+                            <div className="text-xs text-muted-foreground truncate" title={p.chemicalComposition ?? ""}>{p.chemicalComposition ?? "—"}</div>
+                          </div>
                       </div>
                     </td>
                     <td className="px-5 py-4 text-sm text-muted-foreground">{p.manufacturer ?? "—"}</td>

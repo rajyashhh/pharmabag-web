@@ -63,7 +63,7 @@ export default function ProfilePage() {
               <VerificationBadge status={p.status} />
             </div>
             <p className="text-sm text-muted-foreground mt-0.5">{sellerProfile.companyName || ""}</p>
-            {p.email && <p className="text-xs text-muted-foreground mt-1">{p.email}</p>}
+            {(p.user?.email || p.email) && <p className="text-xs text-muted-foreground mt-1">{p.user?.email || p.email}</p>}
           </div>
         </div>
       </motion.div>
@@ -76,7 +76,7 @@ export default function ProfilePage() {
             <InfoRow label="Business Name" value={sellerProfile.companyName} />
             {/* <InfoRow label="Owner Name" value={sellerProfile.ownerName || p.name} /> */}
             <InfoRow label="Phone" value={p.phone} mono />
-            <InfoRow label="Email" value={p.email} />
+            <InfoRow label="Email" value={p.user?.email || p.email} />
             <InfoRow label="Registration Date" value={sellerProfile.createdAt ? new Date(sellerProfile.createdAt).toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric" }) : undefined} />
           </div>
         </motion.div>

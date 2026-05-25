@@ -159,7 +159,7 @@ export default function UserDetailPage() {
             <h2 className="font-semibold text-foreground mb-4">Contact Information</h2>
             <div className="space-y-4">
               <InfoRow icon={Phone} label="Phone" value={user.phone ?? "—"} />
-              <InfoRow icon={Mail} label="Email" value={user.email ?? "—"} />
+              <InfoRow icon={Mail} label="Email" value={user.email || user.sellerProfile?.email || user.buyerProfile?.email || "—"} />
               <InfoRow icon={Calendar} label="Joined" value={user.createdAt ? new Date(user.createdAt).toLocaleDateString("en-IN", { year: "numeric", month: "long", day: "numeric" }) : "—"} />
               {user.lastLoginAt && <InfoRow icon={Calendar} label="Last Login" value={new Date(user.lastLoginAt).toLocaleDateString("en-IN")} />}
             </div>

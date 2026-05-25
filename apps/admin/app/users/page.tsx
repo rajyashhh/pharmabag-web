@@ -245,7 +245,7 @@ export default function UsersPage() {
     const s = search.toLowerCase();
     const matchesId = (u.id ?? "").toLowerCase().includes(s);
     const matchesPhone = (u.phone ?? "").includes(search);
-    const matchesEmail = (u.email ?? "").toLowerCase().includes(s);
+    const matchesEmail = (u.email || u.sellerProfile?.email || u.buyerProfile?.email || "").toLowerCase().includes(s);
     const matchesBiz = (
       (u.sellerProfile?.companyName ?? "").toLowerCase().includes(s) ||
       (u.sellerProfile?.businessName ?? "").toLowerCase().includes(s) ||
@@ -363,7 +363,7 @@ export default function UsersPage() {
                         <td className="px-5 py-4">
                           <Badge variant={u.role === "BUYER" ? "success" : u.role === "SELLER" ? "info" : "orange"}>{u.role}</Badge>
                         </td>
-                        <td className="px-5 py-4 text-sm text-muted-foreground">{u.email ?? "—"}</td>
+                        <td className="px-5 py-4 text-sm text-muted-foreground text-center">{u.email || u.sellerProfile?.email || u.buyerProfile?.email || "—"}</td>
                         <td className="px-5 py-4">
                           <div className="flex items-center gap-1.5">
                             <Badge variant={u.status === "APPROVED" ? "success" : u.status === "PENDING" ? "warning" : "error"}>{u.status}</Badge>

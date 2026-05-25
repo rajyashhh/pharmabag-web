@@ -117,6 +117,15 @@ export default function Navbar({
     logout();
   };
 
+  const openDrawer = (drawerName: 'cart' | 'wishlist' | 'notifications' | 'menu') => {
+    setIsCartOpen(drawerName === 'cart');
+    setIsWishlistOpen(drawerName === 'wishlist');
+    setIsNotificationsOpen(drawerName === 'notifications');
+    setIsMobileMenuOpen(drawerName === 'menu');
+    setIsProfileDropdownOpen(false);
+  };
+
+
   return (
     <>
       {/* Navbar */}
@@ -197,7 +206,7 @@ export default function Navbar({
               <div className="flex items-center gap-1 sm:gap-2">
                 {/* Notification */}
                 <button
-                  onClick={() => setIsNotificationsOpen(true)}
+                  onClick={() => openDrawer('notifications')}
                   className="relative p-1.5 text-gray-700 hover:text-sky-600"
                 >
                   <Bell className="w-4 h-4 sm:w-5 sm:h-5" />
@@ -211,7 +220,7 @@ export default function Navbar({
 
                 {/* Wishlist */}
                 <button
-                  onClick={() => setIsWishlistOpen(true)}
+                  onClick={() => openDrawer('wishlist')}
                   className="relative p-1.5 text-gray-700 hover:text-sky-600"
                 >
                   <Bookmark className="w-4 h-4 sm:w-5 sm:h-5" />
@@ -225,7 +234,7 @@ export default function Navbar({
 
                 {/* Cart */}
                 <button
-                  onClick={() => setIsCartOpen(true)}
+                  onClick={() => openDrawer('cart')}
                   className="relative p-1.5 text-gray-700 hover:text-sky-600"
                 >
                   <ShoppingBag className="w-4 h-4 sm:w-5 sm:h-5" />
@@ -312,11 +321,7 @@ export default function Navbar({
 
             {/* MENU BUTTON */}
             <button
-              onClick={() =>
-                setIsMobileMenuOpen(
-                  !isMobileMenuOpen
-                )
-              }
+              onClick={() => isMobileMenuOpen ? openDrawer(null as any) : openDrawer('menu')}
               className="lg:hidden p-1.5 text-gray-700 hover:text-gray-900 ml-1 sm:ml-2"
             >
               {isMobileMenuOpen ? (

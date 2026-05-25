@@ -461,7 +461,7 @@ function ProductsPageContent() {
                           price={computedSellingPrice}
                           mrp={product.mrp}
                           image={image}
-                          stock={product.stock ?? 999}
+                          stock={product.hasSellers ? (product.stock ?? 999) : 0}
                           moq={product.moq || product.minimumOrderQuantity || 1}
                           ptr={product.ptr}
                           discountTag={computedDiscountTag}

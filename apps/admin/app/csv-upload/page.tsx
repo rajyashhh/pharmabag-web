@@ -31,6 +31,7 @@ export default function MasterCatalogPage() {
   const [file, setFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
   const [results, setResults] = useState<{ successCount: number; failCount: number; errors: string[] } | null>(null);
 
   // --- Catalog Functions ---
@@ -106,6 +107,7 @@ export default function MasterCatalogPage() {
     }
 
     setIsUploading(true);
+    setUploadProgress(0);
     setResults(null);
     
     const formData = new FormData();
@@ -120,6 +122,12 @@ export default function MasterCatalogPage() {
     try {
       const response = await apiClient.post(endpointMap[activeTab], formData, {
         headers: { "Content-Type": "multipart/form-data" },
+        timeout: 0, // No timeout for large CSV uploads
+        onUploadProgress: (progressEvent) => {
+          if (progressEvent.total) {
+            setUploadProgress(Math.round((progressEvent.loaded * 100) / progressEvent.total));
+          }
+        },
       });
       
       const data = response.data?.data;
@@ -136,6 +144,7 @@ export default function MasterCatalogPage() {
       toast.error("An error occurred during upload.");
     } finally {
       setIsUploading(false);
+      setUploadProgress(0);
       setFile(null);
       const fileInput = document.getElementById("csv-upload") as HTMLInputElement;
       if (fileInput) fileInput.value = "";
@@ -385,16 +394,16 @@ export default function MasterCatalogPage() {
                 )}
               </div>
 
-              <div className="flex justify-end pt-2">
+              <div className="flex flex-col items-end pt-2">
                 <button
                   onClick={handleUpload}
                   disabled={!file || isUploading}
-                  className="flex items-center gap-2 bg-primary text-primary-foreground px-8 py-3 rounded-xl font-semibold hover:bg-primary/90 transition-all shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="flex items-center justify-center gap-2 bg-primary text-primary-foreground px-8 py-3 rounded-xl font-semibold hover:bg-primary/90 transition-all shadow-sm disabled:opacity-50 disabled:cursor-not-allowed min-w-[180px]"
                 >
                   {isUploading ? (
                     <>
                       <div className="h-5 w-5 rounded-full border-2 border-current border-t-transparent animate-spin" />
-                      Processing...
+                      {uploadProgress < 100 ? `Uploading ${uploadProgress}%` : `Processing...`}
                     </>
                   ) : (
                     <>
@@ -403,6 +412,14 @@ export default function MasterCatalogPage() {
                     </>
                   )}
                 </button>
+                {isUploading && (
+                  <div className="w-full max-w-[180px] bg-muted rounded-full h-1.5 mt-3 overflow-hidden">
+                    <div 
+                      className="bg-primary h-1.5 rounded-full transition-all duration-300" 
+                      style={{ width: `${uploadProgress}%` }}
+                    />
+                  </div>
+                )}
               </div>
 
               {results && (
