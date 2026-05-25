@@ -142,6 +142,11 @@ export default function PremiumNavbar({ onLoginClick }: PremiumNavbarProps) {
           </div>
 
           {/* Right Icons */}
+          <div className="flex items-center gap-3 sm:gap-6">
+            <button className="text-black hover:text-gray-600 transition-colors">
+              <svg width="20" height="20" className="sm:w-[22px] sm:h-[22px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z" /></svg>
+            </button>
+
             {/* Cart Button */}
             <div className="flex items-center gap-2 sm:gap-4 ml-2 sm:ml-4 border-l border-gray-100 pl-2 sm:pl-4">
               <button className="text-black hover:text-gray-600 transition-colors hidden sm:block">
@@ -158,15 +163,6 @@ export default function PremiumNavbar({ onLoginClick }: PremiumNavbarProps) {
                     {cartItemCount}
                   </span>
                 )}
-              </button>
-
-              {/* Mobile hamburger */}
-              <button
-                onClick={() => isMobileMenuOpen ? openDrawer(null) : openDrawer('menu')}
-                className="lg:hidden p-1.5 rounded-lg hover:bg-gray-100 transition-colors"
-                aria-label="Toggle menu"
-              >
-              {isMobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
               </button>
             </div>
             <Link href="/profile" className="hidden lg:flex text-black hover:text-gray-600 transition-colors">
@@ -200,7 +196,7 @@ export default function PremiumNavbar({ onLoginClick }: PremiumNavbarProps) {
 
             {/* Mobile hamburger */}
             <button
-              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              onClick={() => isMobileMenuOpen ? openDrawer(null) : openDrawer('menu')}
               className="lg:hidden p-1.5 rounded-lg hover:bg-gray-100 transition-colors"
               aria-label="Toggle menu"
             >
