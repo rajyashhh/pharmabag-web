@@ -219,7 +219,8 @@ export function QuickViewModal({ product, isOpen, onClose }: QuickViewModalProps
                                        quantity: minQty,
                                        productName: displayProduct.name,
                                        price: listing.price,
-                                       mrp: displayProduct.mrp
+                                       mrp: displayProduct.mrp,
+                                       gstPercent: displayProduct.gstPercent
                                      })}
                                      className="px-6 h-10 rounded-xl bg-teal-600 text-white font-black text-xs uppercase tracking-widest hover:bg-teal-700 transition-all shadow-lg active:scale-95"
                                    >

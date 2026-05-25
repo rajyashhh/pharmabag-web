@@ -117,7 +117,7 @@ export default function Navbar({
     logout();
   };
 
-  const openDrawer = (drawerName: 'cart' | 'wishlist' | 'notifications' | 'menu') => {
+  const openDrawer = (drawerName: 'cart' | 'wishlist' | 'notifications' | 'menu' | null) => {
     setIsCartOpen(drawerName === 'cart');
     setIsWishlistOpen(drawerName === 'wishlist');
     setIsNotificationsOpen(drawerName === 'notifications');
@@ -342,7 +342,7 @@ export default function Navbar({
             key="mobile-menu-backdrop"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
+            exit={{ opacity: 0, transitionEnd: { display: "none" } }}
             className="fixed inset-0 bg-black/20 backdrop-blur-sm z-40 lg:hidden"
             onClick={() => setIsMobileMenuOpen(false)}
           />
@@ -352,7 +352,7 @@ export default function Navbar({
             key="mobile-menu-panel"
             initial={{ x: "100%" }}
             animate={{ x: 0 }}
-            exit={{ x: "100%" }}
+            exit={{ x: "100%", transitionEnd: { display: "none" } }}
             transition={{ type: "spring", damping: 25, stiffness: 300 }}
             className="fixed top-0 right-0 bottom-0 w-[280px] bg-white z-50 shadow-2xl lg:hidden flex flex-col pt-20"
           >
@@ -435,19 +435,17 @@ export default function Navbar({
       {/* Drawers */}
       <CartDrawer
         isOpen={isCartOpen}
-        onClose={() => setIsCartOpen(false)}
+        onClose={() => openDrawer(null)}
       />
 
       <WishlistDrawer
         isOpen={isWishlistOpen}
-        onClose={() => setIsWishlistOpen(false)}
+        onClose={() => openDrawer(null)}
       />
 
       <NotificationDrawer
         isOpen={isNotificationsOpen}
-        onClose={() =>
-          setIsNotificationsOpen(false)
-        }
+        onClose={() => openDrawer(null)}
       />
 
       {/* GLOBAL MEGA MENU - Outside scroll context to prevent clipping */}

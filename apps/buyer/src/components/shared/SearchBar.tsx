@@ -7,6 +7,7 @@ import { useDebounce } from '@/hooks/useDebounce';
 import { useRouter } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
 import { getProducts } from '@pharmabag/api-client';
+import { generateProductSlug } from '@pharmabag/utils';
 
 const RECENT_SEARCHES_KEY = 'pharmabag_recent_searches';
 const MAX_RECENT = 5;
@@ -58,7 +59,7 @@ export default function SearchBar() {
     if (query.trim()) saveRecentSearch(query.trim());
     setIsFocused(false);
     setQuery('');
-    router.push(`/products/${product.slug || product.id}`);
+    router.push(`/products/${generateProductSlug(product.name, product.id)}`);
   };
 
   const handleFullSearch = (searchQuery: string) => {

@@ -83,12 +83,14 @@ function ProductsPageContent() {
 
   const debouncedSearch = useDebounce(searchTerm, 500);
 
-  // Create a map of productId to cart quantity for quick lookup
+  // Create a map of masterProductId (or productId) to cart quantity for quick lookup
   const cartQuantityMap = new Map<string, number>();
   if (cartData?.items) {
     cartData.items.forEach((item: any) => {
-      if (item.productId) {
-        cartQuantityMap.set(item.productId, item.quantity);
+      const keyId = item.product?.masterProductId || item.productId;
+      if (keyId) {
+        const existing = cartQuantityMap.get(keyId) || 0;
+        cartQuantityMap.set(keyId, existing + item.quantity);
       }
     });
   }
@@ -379,9 +381,17 @@ function ProductsPageContent() {
                     }
 
                     const computedSellingPrice = product.sellingPrice || product.ptr || product.price || product.mrp || 0;
-                    const cartItemObj = cartData?.items?.find((item: any) => item.productId === product.id);
 
-                    const handleCartChange = (quantity: number | null) => {
+                    const handleCartChange = (quantity: number | null, activeId?: string) => {
+                      const targetId = activeId || product.bestListingId;
+                      if (!targetId) {
+                        toast('Please select a seller to add this product to bag', 'error');
+                        router.push(`/products/${generateProductSlug(product.name, product.id)}`);
+                        return;
+                      }
+
+                      const cartItemObj = cartData?.items?.find((item: any) => item.productId === targetId);
+
                       if (quantity === null || quantity <= 0) {
                         if (cartItemObj) {
                           removeCartItem.mutate(cartItemObj.id, {
@@ -392,13 +402,13 @@ function ProductsPageContent() {
                         return;
                       }
 
-                      if (pendingCartProducts.has(product.id)) return;
-                      setPendingCartProducts(prev => new Set(prev).add(product.id));
+                      if (pendingCartProducts.has(targetId)) return;
+                      setPendingCartProducts(prev => new Set(prev).add(targetId));
 
                       const cleanupPending = () => {
                         setPendingCartProducts(prev => {
                           const next = new Set(prev);
-                          next.delete(product.id);
+                          next.delete(targetId);
                           return next;
                         });
                       };
@@ -417,11 +427,12 @@ function ProductsPageContent() {
                       } else {
                         addToCart.mutate(
                           {
-                            productId: product.id,
+                            productId: targetId,
                             quantity,
                             productName: product.name,
                             price: computedSellingPrice,
                             mrp: product.mrp,
+                            gstPercent: product.gstPercent,
                             imageUrl: image,
                             stock: product.stock,
                             moq: product.moq || product.minimumOrderQuantity || 1

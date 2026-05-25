@@ -53,14 +53,18 @@ export default function CartDrawer({ isOpen, onClose }: { isOpen: boolean; onClo
   const { isAuthenticated } = useAuth();
   const router = useRouter();
 
-  const gstRate = (config?.gst_rate ?? 12) / 100;
+  const fallbackGst = config?.gst_rate ?? 12;
   const items = cart?.items ?? [];
-  const subtotal = Math.round(items.reduce((acc, item: any) => {
+  
+  let subtotal = 0;
+  
+  items.forEach((item: any) => {
     const price = item.product?.price ?? item.price ?? 0;
-    return acc + price * item.quantity;
-  }, 0));
-  const gst = Math.round(subtotal * gstRate);
-  const total = Math.round(subtotal + gst);
+    subtotal += price * item.quantity;
+  });
+  
+  subtotal = Math.round(subtotal);
+  const total = subtotal;
 
   return (
     <AnimatePresence>
@@ -69,7 +73,7 @@ export default function CartDrawer({ isOpen, onClose }: { isOpen: boolean; onClo
           key="cart-backdrop"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
+          exit={{ opacity: 0, transitionEnd: { display: "none" } }}
           onClick={onClose}
           className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[100]"
         />
@@ -79,7 +83,7 @@ export default function CartDrawer({ isOpen, onClose }: { isOpen: boolean; onClo
           key="cart-drawer-panel"
           initial={{ x: '100%' }}
           animate={{ x: 0 }}
-          exit={{ x: '100%' }}
+          exit={{ x: '100%', transitionEnd: { display: "none" } }}
           transition={{ type: 'spring', damping: 25, stiffness: 200 }}
           className="fixed top-0 right-0 h-full w-[280px] sm:w-[320px] md:w-[400px] bg-white shadow-2xl z-[101] flex flex-col"
         >

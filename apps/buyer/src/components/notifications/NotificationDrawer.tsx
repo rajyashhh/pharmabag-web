@@ -66,7 +66,7 @@ export default function NotificationDrawer({ isOpen, onClose }: { isOpen: boolea
           key="notification-backdrop"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
+          exit={{ opacity: 0, transitionEnd: { display: "none" } }}
           onClick={onClose}
           className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[100]"
         />
@@ -76,7 +76,7 @@ export default function NotificationDrawer({ isOpen, onClose }: { isOpen: boolea
           key="notification-panel"
           initial={{ x: '100%' }}
           animate={{ x: 0 }}
-          exit={{ x: '100%' }}
+          exit={{ x: '100%', transitionEnd: { display: "none" } }}
           transition={{ type: 'spring', damping: 25, stiffness: 200 }}
           className="fixed top-0 right-0 h-full w-[280px] sm:w-[320px] md:w-[400px] bg-white shadow-2xl z-[101] flex flex-col"
         >

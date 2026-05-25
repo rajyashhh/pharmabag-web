@@ -89,14 +89,33 @@ export function useSyncCart() {
     mutationFn: async () => {
       if (!isAuthenticated) return null;
       const local = localCart.get();
-      if (local.items.length === 0) return null;
 
       // 1. Fetch current backend cart to see what's already there
       const backendCart = await getCart();
       const backendItems = backendCart.items || [];
       const errors: string[] = [];
 
-      // 2. Sync local items to backend
+      // If local is completely empty, clear backend
+      if (local.items.length === 0) {
+        if (backendItems.length > 0) {
+          await clearCart();
+        }
+        return await getCart();
+      }
+
+      // 2. Find items in backend that are NOT in local, and delete them
+      for (const bItem of backendItems) {
+        const existsLocally = local.items.find((lItem) => lItem.productId === bItem.productId || lItem.productId === bItem.product?.id);
+        if (!existsLocally) {
+          try {
+            await removeCartItem(bItem.id);
+          } catch (e: any) {
+            console.error(`Failed to remove item ${bItem.id}`, e);
+          }
+        }
+      }
+
+      // 3. Sync local items to backend
       for (const item of local.items) {
         if (!item.productId) continue;
 
@@ -108,7 +127,6 @@ export function useSyncCart() {
 
           if (existingBackendItem) {
             // If it exists, update it (PATCH)
-            // Note: We use the ID of the cart item specifically
             await updateCartItem(existingBackendItem.id, item.quantity);
           } else {
             // If it doesn't exist, add it (POST)
@@ -129,7 +147,10 @@ export function useSyncCart() {
       
       return getCart();
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
+      if (data) {
+        localCart.set(data);
+      }
       queryClient.invalidateQueries({ queryKey: ['cart'] });
     }
   });

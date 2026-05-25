@@ -31,8 +31,17 @@ export default function WishlistPage() {
     });
   };
 
-  const handleAddToCart = (productId: string) => {
-    addToCart.mutate({ productId, quantity: 1 }, {
+  const handleAddToCart = (item: any) => {
+    const product = item.product || {};
+    addToCart.mutate({
+      productId: item.productId,
+      quantity: product.moq || product.minimumOrderQuantity || 1,
+      productName: product.name,
+      price: product.price || product.mrp || 0,
+      mrp: product.mrp || 0,
+      gstPercent: product.gstPercent,
+      imageUrl: product.images?.[0]
+    }, {
       onSuccess: () => toast('Added to bag', 'success'),
       onError: () => toast('Failed to add to bag', 'error'),
     });
@@ -138,7 +147,7 @@ export default function WishlistPage() {
                         {/* Actions */}
                         <div className="flex gap-2 pt-2">
                           <button
-                            onClick={() => handleAddToCart(item.productId)}
+                            onClick={() => handleAddToCart(item)}
                             disabled={addToCart.isPending || (product?.stock !== undefined && product.stock <= 0)}
                             className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-emerald-500 text-white text-sm font-semibold rounded-xl hover:bg-emerald-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                           >

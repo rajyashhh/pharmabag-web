@@ -64,7 +64,7 @@ export default function PremiumNavbar({ onLoginClick }: PremiumNavbarProps) {
   // Close mobile menu on resize to desktop
   useEffect(() => {
     const handleResize = () => {
-      if (window.innerWidth >= 1024) setIsMobileMenuOpen(false);
+      if (window.innerWidth >= 1024) openDrawer(null);
     };
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
@@ -215,7 +215,7 @@ export default function PremiumNavbar({ onLoginClick }: PremiumNavbarProps) {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               className="fixed inset-0 bg-black/20 backdrop-blur-sm z-40 lg:hidden"
-              onClick={() => setIsMobileMenuOpen(false)}
+              onClick={() => openDrawer(null)}
             />
             <motion.div
               initial={{ x: '100%' }}
@@ -227,7 +227,7 @@ export default function PremiumNavbar({ onLoginClick }: PremiumNavbarProps) {
               <div className="flex items-center justify-between p-4 border-b border-gray-100">
                 <span className="text-lg font-black text-black italic">P</span>
                 <button
-                  onClick={() => setIsMobileMenuOpen(false)}
+                  onClick={() => openDrawer(null)}
                   className="p-2 rounded-full hover:bg-gray-100 transition-colors"
                 >
                   <X className="w-5 h-5" />
@@ -245,7 +245,7 @@ export default function PremiumNavbar({ onLoginClick }: PremiumNavbarProps) {
                           <div className="flex items-center justify-between">
                             <Link
                               href={item.href}
-                              onClick={() => setIsMobileMenuOpen(false)}
+                              onClick={() => openDrawer(null)}
                               className="flex-1 block px-4 py-3 text-sm font-semibold text-gray-800 hover:text-black transition-colors"
                             >
                               {item.label}
@@ -273,7 +273,7 @@ export default function PremiumNavbar({ onLoginClick }: PremiumNavbarProps) {
                                 <div className="py-2">
                                   <Link
                                     href={item.href}
-                                    onClick={() => setIsMobileMenuOpen(false)}
+                                    onClick={() => openDrawer(null)}
                                     className="block px-6 py-2.5 text-[13px] font-bold text-black hover:bg-gray-100"
                                   >
                                     Show all {item.label}
@@ -282,7 +282,7 @@ export default function PremiumNavbar({ onLoginClick }: PremiumNavbarProps) {
                                     <Link
                                       key={sub.id}
                                       href={`/products?category=${(item as any).categoryId}&subCategory=${sub.id}`}
-                                      onClick={() => setIsMobileMenuOpen(false)}
+                                      onClick={() => openDrawer(null)}
                                       className="block px-6 py-2 text-[13px] text-gray-600 hover:text-black hover:bg-gray-100"
                                     >
                                       - {sub.name}
@@ -296,7 +296,7 @@ export default function PremiumNavbar({ onLoginClick }: PremiumNavbarProps) {
                       ) : (
                         <Link
                           href={item.type === 'menu' || item.type === 'category' ? '/products' : item.href}
-                          onClick={() => setIsMobileMenuOpen(false)}
+                          onClick={() => openDrawer(null)}
                           className="block px-4 py-3 text-sm font-semibold text-gray-800 hover:bg-gray-50 transition-colors rounded-xl"
                         >
                           {item.label}
@@ -310,7 +310,7 @@ export default function PremiumNavbar({ onLoginClick }: PremiumNavbarProps) {
                 <div className="p-4 border-t border-gray-100">
                   {!isAuthenticated ? (
                     <button
-                      onClick={() => { setIsMobileMenuOpen(false); onLoginClick?.(); }}
+                      onClick={() => { openDrawer(null); onLoginClick?.(); }}
                       className="w-full px-5 py-3 rounded-full bg-black text-white hover:bg-gray-800 font-medium text-sm transition-all"
                     >
                       Sign In
@@ -319,7 +319,7 @@ export default function PremiumNavbar({ onLoginClick }: PremiumNavbarProps) {
                     <div className="flex items-center justify-between">
                       <span className="text-xs font-bold text-gray-900">{user?.phone}</span>
                       <button
-                        onClick={() => { logout(); setIsMobileMenuOpen(false); }}
+                        onClick={() => { logout(); openDrawer(null); }}
                         className="px-4 py-2 rounded-full bg-gray-100 hover:bg-gray-200 text-sm font-medium transition-colors"
                       >
                         Logout
@@ -346,7 +346,7 @@ export default function PremiumNavbar({ onLoginClick }: PremiumNavbarProps) {
         categories={categories}
       />
 
-      <CartDrawer isOpen={isCartOpen} onClose={() => setIsCartOpen(false)} />
+      <CartDrawer isOpen={isCartOpen} onClose={() => openDrawer(null)} />
     </>
   );
 }

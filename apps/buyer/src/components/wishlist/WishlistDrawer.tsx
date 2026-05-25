@@ -27,6 +27,11 @@ export default function WishlistDrawer({ isOpen, onClose }: { isOpen: boolean; o
     const cartItem = {
       productId: item.productId || item.product?.id || item.id,
       quantity: 1,
+      productName: item.product?.name ?? item.productName ?? item.name,
+      price: item.product?.price ?? item.price ?? 0,
+      mrp: item.product?.mrp ?? item.mrp ?? 0,
+      gstPercent: item.product?.gstPercent ?? item.gstPercent,
+      imageUrl: item.product?.images?.[0] || item.imageUrl || item.image,
     };
     addToCart.mutate(cartItem, {
       onSuccess: () => {
@@ -42,17 +47,17 @@ export default function WishlistDrawer({ isOpen, onClose }: { isOpen: boolean; o
           key="wishlist-backdrop"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
+          exit={{ opacity: 0, transitionEnd: { display: "none" } }}
           onClick={onClose}
           className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[100]"
         />
       )}
       {isOpen && (
         <motion.div
-          key="wishlist-panel"
+          key="wishlist-drawer-panel"
           initial={{ x: '100%' }}
           animate={{ x: 0 }}
-          exit={{ x: '100%' }}
+          exit={{ x: '100%', transitionEnd: { display: "none" } }}
           transition={{ type: 'spring', damping: 25, stiffness: 200 }}
           className="fixed top-0 right-0 h-full w-[280px] sm:w-[320px] md:w-[400px] bg-white shadow-2xl z-[101] flex flex-col"
         >

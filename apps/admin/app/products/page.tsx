@@ -136,7 +136,7 @@ export default function AdminProductsPage() {
                             <img src={p.images[0]} alt={p.name} className="w-full h-full object-cover" />
                           </div>
                         ) : (
-                          <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center text-xl flex-shrink-0" aria-hidden>💊</div>
+                          <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center text-xl font-bold flex-shrink-0 text-primary" aria-hidden>{p.name?.[0]?.toUpperCase() ?? 'P'}</div>
                         )}
                           <div className="max-w-[200px] min-w-[120px]">
                             <div className="text-sm font-semibold text-foreground truncate" title={p.name}>{p.name}</div>

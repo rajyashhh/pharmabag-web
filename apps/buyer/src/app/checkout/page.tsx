@@ -80,9 +80,16 @@ export default function CheckoutPage() {
   const subtotal = Math.round(cart.total ?? 0);
   const shippingThreshold = platformConfig?.shipping_threshold ?? 5000;
   const shippingFee = platformConfig?.shipping_fee ?? 250;
-  const gstRate = (platformConfig?.gst_rate ?? 12) / 100;
+  const fallbackGst = platformConfig?.gst_rate ?? 12;
   const shipping = subtotal > shippingThreshold ? 0 : shippingFee;
-  const gst = Math.round(subtotal * gstRate);
+  
+  let gst = 0;
+  items.forEach((item: any) => {
+    const price = item.product?.price ?? item.price ?? 0;
+    const itemGstPercent = item.product?.gstPercent ?? item.gstPercent ?? fallbackGst;
+    gst += (price * item.quantity) * (itemGstPercent / 100);
+  });
+  gst = Math.round(gst);
   const total = Math.round(subtotal + shipping + gst);
 
   const handlePlaceOrder = () => {
@@ -404,10 +411,10 @@ export default function CheckoutPage() {
                   </div>
                   <span>{shipping === 0 ? 'FREE' : `₹${shipping}`}</span>
                 </div>
-                <div className="flex justify-between text-gray-600 font-medium">
-                  <span>GST ({platformConfig?.gst_rate ?? 12}%)</span>
-                  <span>₹{gst.toLocaleString()}</span>
-                </div>
+                  <div className="flex justify-between text-gray-600 font-medium">
+                    <span>GST</span>
+                    <span>₹{gst.toLocaleString()}</span>
+                  </div>
                 <div className="flex justify-between text-xl sm:text-2xl md:text-[28px] font-black text-gray-900 pt-4 border-t border-gray-100">
                   <span>Total</span>
                   <span>₹{total.toLocaleString()}</span>

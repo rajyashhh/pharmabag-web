@@ -187,7 +187,7 @@ export default function PremiumProductCard({
       </div>
 
       {/* Top Right - Status/Cart - Aligned with Share button */}
-      {(product?.sellerCount > 0) && (
+      {(product?.sellerCount > 0 && (stock === undefined || stock > 0)) && (
         <div
           className="absolute top-[14px] right-2 z-20"
           onPointerDown={(e) => e.stopPropagation()}
