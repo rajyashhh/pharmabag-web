@@ -36,7 +36,8 @@ export async function getSellerProducts(params: { page?: number; limit?: number;
     };
   });
 
-  return { ...data, data: products }; // Return standardized paginated object
+  const meta = data.data?.meta ?? data.meta;
+  return { ...data, data: products, meta };
 }
 
 export async function createSellerProduct(input: ProductPayload | Record<string, any>) {
