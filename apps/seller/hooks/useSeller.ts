@@ -86,7 +86,7 @@ export function useCreateSellerProduct() { const qc = useQueryClient(); return u
 
 export function useUpdateSellerProduct() { const qc = useQueryClient(); return useMutation({ mutationFn: ({ productId, input }: { productId: string; input: Partial<ProductPayload> }) => updateSellerProduct(productId, input), onSuccess: () => void qc.invalidateQueries({ queryKey: ["seller", "products"] }) }); }
 
-export function useDeleteSellerProduct() { const qc = useQueryClient(); return useMutation({ mutationFn: (productId: string) => deleteSellerProduct(productId), onSuccess: () => void qc.invalidateQueries({ queryKey: ["seller", "products"] }) }); }
+export function useDeleteSellerProduct() { const qc = useQueryClient(); return useMutation({ mutationFn: (productId: string) => deleteSellerProduct(productId), onSuccess: () => { void qc.invalidateQueries({ queryKey: ["seller", "products"] }); void qc.invalidateQueries({ queryKey: ["seller", "dashboard"] }); } }); }
 
 export function useSellerProduct(id: string) { return useQuery({ queryKey: ["seller", "product", id], queryFn: () => getSellerProductById(id), enabled: !!id && id !== "new", retry: 1 }); }
 
