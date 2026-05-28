@@ -31,6 +31,7 @@ export default function MasterCatalogPage() {
   const [file, setFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
+  const [isActivating, setIsActivating] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [results, setResults] = useState<{ successCount: number; failCount: number; errors: string[] } | null>(null);
 
@@ -148,6 +149,19 @@ export default function MasterCatalogPage() {
       setFile(null);
       const fileInput = document.getElementById("csv-upload") as HTMLInputElement;
       if (fileInput) fileInput.value = "";
+    }
+  };
+
+  const handleActivateAll = async () => {
+    setIsActivating(true);
+    try {
+      const response = await apiClient.patch("/master-products/bulk/activate-all");
+      toast.success(`Activated ${response.data?.data?.count ?? 0} master products`);
+    } catch (error) {
+      console.error(error);
+      toast.error("Failed to activate products");
+    } finally {
+      setIsActivating(false);
     }
   };
 
@@ -334,20 +348,34 @@ export default function MasterCatalogPage() {
                 ))}
               </div>
               
-              {(activeTab === "UPDATE" || activeTab === "DELETE") && (
+              <div className="flex items-center gap-2">
                 <button
-                  onClick={handleExport}
-                  disabled={isExporting}
-                  className="flex items-center gap-2 text-sm text-secondary-foreground px-3 py-1.5 rounded-lg font-medium hover:bg-accent transition-colors disabled:opacity-50"
+                  onClick={handleActivateAll}
+                  disabled={isActivating}
+                  className="flex items-center gap-2 text-sm text-green-700 px-3 py-1.5 rounded-lg font-medium hover:bg-green-50 border border-green-200 transition-colors disabled:opacity-50"
                 >
-                  {isExporting ? (
+                  {isActivating ? (
                     <div className="h-4 w-4 rounded-full border-2 border-current border-t-transparent animate-spin" />
                   ) : (
-                    <FileDown className="h-4 w-4" />
+                    <span>✓</span>
                   )}
-                  Export Existing CSV
+                  Activate All Products
                 </button>
-              )}
+                {(activeTab === "UPDATE" || activeTab === "DELETE") && (
+                  <button
+                    onClick={handleExport}
+                    disabled={isExporting}
+                    className="flex items-center gap-2 text-sm text-secondary-foreground px-3 py-1.5 rounded-lg font-medium hover:bg-accent transition-colors disabled:opacity-50"
+                  >
+                    {isExporting ? (
+                      <div className="h-4 w-4 rounded-full border-2 border-current border-t-transparent animate-spin" />
+                    ) : (
+                      <FileDown className="h-4 w-4" />
+                    )}
+                    Export Existing CSV
+                  </button>
+                )}
+              </div>
             </div>
 
             <div className="p-6 space-y-6">
