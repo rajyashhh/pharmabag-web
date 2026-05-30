@@ -191,7 +191,7 @@ export default function Navbar({
                 href="/blogs"
                 className="text-[14px] font-bold text-gray-600 hover:text-sky-600 transition-colors tracking-tight flex-shrink-0"
               >
-                Insights
+                Blog
               </Link>
             </div>
 
@@ -379,7 +379,7 @@ export default function Navbar({
                 onClick={() => setIsMobileMenuOpen(false)}
                 className="block px-4 py-3 text-sm font-bold text-gray-800 hover:bg-gray-50 rounded-xl"
               >
-                Insights
+                Blog
               </Link>
 
               {isAuthenticated && (

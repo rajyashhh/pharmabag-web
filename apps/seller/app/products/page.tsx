@@ -78,7 +78,7 @@ export default function ProductsPage() {
                 <table className="w-full" aria-label="Products">
                   <thead>
                     <tr className="border-b border-border/50 bg-muted/20">
-                      {["Product","Category","Price","Stock","GST","Status","Actions"].map(h=>(
+                      {["Product","Category","Price","Stock","GST","SKU","Actions"].map(h=>(
                         <th key={h} scope="col" className="px-5 py-3.5 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">{h}</th>
                       ))}
                     </tr>
@@ -112,7 +112,7 @@ export default function ProductsPage() {
                           </span>
                         </td>
                         <td className="px-5 py-4 text-sm font-medium text-muted-foreground">{p.gstPercent ?? p.gst ?? 0}%</td>
-                        <td className="px-5 py-4"><ApprovalBadge status={p.approvalStatus ?? "PENDING"}/></td>
+                        <td className="px-5 py-4 font-mono text-sm text-muted-foreground">{p.sku || "—"}</td>
                         <td className="px-5 py-4">
                           <div className="flex items-center gap-1">
                             <Link href={`/products/${p.id}`} aria-label={`View ${p.name}`} className="h-7 w-7 rounded-lg flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-accent/60 transition-colors"><Eye className="h-3.5 w-3.5"/></Link>

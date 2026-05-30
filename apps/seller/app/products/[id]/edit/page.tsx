@@ -31,6 +31,7 @@ export default function EditProductPage() {
             <ProductForm 
               productId={product.id} 
               defaultValues={{
+                sku: product.sku || "",
                 product_name: product.name,
                 product_price: product.mrp ?? product.price,
                 company_name: product.manufacturer || "",

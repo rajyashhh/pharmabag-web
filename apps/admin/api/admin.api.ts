@@ -515,6 +515,12 @@ export async function uploadSettlementProof(file: File) {
 
   return data.data.url;
 }
+export async function uploadKycDocument(file: File) {
+  const formData = new FormData();
+  formData.append("file", file);
+  const { data } = await apiClient.post<{ data: { key: string } }>("/storage/kyc", formData);
+  return data.data.key;
+}
 
 // ─── Custom Orders ───────────────────────────────────
 export async function getAdminCustomOrders(params: { page?: number; limit?: number } = {}) {

@@ -18,7 +18,7 @@ import {
   broadcastNotification, getNotificationHistory, getMyBroadcastHistory, sendUserNotification,
   getPlatformSettings, updatePlatformSettings,
   getRevenueChart, getOrdersChart, getTopProducts, getTopSellers, getPresignedUrl,
-  getMarketingProducts, addMarketingProduct, removeMarketingProduct, uploadSettlementProof,
+  getMarketingProducts, addMarketingProduct, removeMarketingProduct, uploadSettlementProof, uploadKycDocument,
   getAdminCustomOrders, updateCustomOrderStatus, deleteCustomOrder,
   getProductRequests, updateProductRequestStatus,
 } from "@/api/admin.api";
@@ -92,7 +92,10 @@ export function useAffirmUserStatus() {
 
       return result;
     },
-    onSuccess: () => void qc.invalidateQueries({ queryKey: ["admin", "users"] }),
+    onSuccess: (_, variables) => {
+      void qc.invalidateQueries({ queryKey: ["admin", "users"] });
+      void qc.invalidateQueries({ queryKey: ["admin", "user", variables.userId] });
+    },
   });
 }
 
@@ -230,7 +233,7 @@ export function useUpdateUser() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: ({ userId, payload }: { userId: string; payload: Record<string, any> }) => updateUser(userId, payload),
-    onSuccess: () => { void qc.invalidateQueries({ queryKey: ["admin", "users"] }); void qc.invalidateQueries({ queryKey: ["admin", "buyers"] }); void qc.invalidateQueries({ queryKey: ["admin", "sellers"] }); },
+    onSuccess: (_, variables) => { void qc.invalidateQueries({ queryKey: ["admin", "users"] }); void qc.invalidateQueries({ queryKey: ["admin", "buyers"] }); void qc.invalidateQueries({ queryKey: ["admin", "sellers"] }); void qc.invalidateQueries({ queryKey: ["admin", "user", variables.userId] }); },
   });
 }
 
@@ -238,7 +241,7 @@ export function useDeleteUser() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (userId: string) => deleteUser(userId),
-    onSuccess: () => { void qc.invalidateQueries({ queryKey: ["admin", "users"] }); void qc.invalidateQueries({ queryKey: ["admin", "buyers"] }); void qc.invalidateQueries({ queryKey: ["admin", "sellers"] }); },
+    onSuccess: (_, variables) => { void qc.invalidateQueries({ queryKey: ["admin", "users"] }); void qc.invalidateQueries({ queryKey: ["admin", "buyers"] }); void qc.invalidateQueries({ queryKey: ["admin", "sellers"] }); void qc.invalidateQueries({ queryKey: ["admin", "user", variables] }); },
   });
 }
 
@@ -246,7 +249,7 @@ export function useUpdateUserStatus() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: ({ userId, statusLevel }: { userId: string; statusLevel: number }) => updateUserStatus(userId, statusLevel),
-    onSuccess: () => { void qc.invalidateQueries({ queryKey: ["admin", "users"] }); void qc.invalidateQueries({ queryKey: ["admin", "buyers"] }); void qc.invalidateQueries({ queryKey: ["admin", "sellers"] }); },
+    onSuccess: (_, variables) => { void qc.invalidateQueries({ queryKey: ["admin", "users"] }); void qc.invalidateQueries({ queryKey: ["admin", "buyers"] }); void qc.invalidateQueries({ queryKey: ["admin", "sellers"] }); void qc.invalidateQueries({ queryKey: ["admin", "user", variables.userId] }); },
   });
 }
 
@@ -255,10 +258,11 @@ export function useUpdateGstPanStatus() {
   return useMutation({
     mutationFn: ({ userId, role, data }: { userId: string; role: 'BUYER' | 'SELLER'; data: { verified: boolean; creditTier?: 'PREPAID' | 'EMI' | 'FULLCREDIT' } }) => 
       updateGstPanStatus(userId, role, data),
-    onSuccess: () => { 
+    onSuccess: (_, variables) => { 
       void qc.invalidateQueries({ queryKey: ["admin", "users"] }); 
       void qc.invalidateQueries({ queryKey: ["admin", "buyers"] }); 
       void qc.invalidateQueries({ queryKey: ["admin", "sellers"] }); 
+      void qc.invalidateQueries({ queryKey: ["admin", "user", variables.userId] }); 
     },
   });
 }
@@ -507,6 +511,11 @@ export function usePresignedUrl(key: string | null | undefined) {
 export function useUploadSettlementProof() {
   return useMutation({
     mutationFn: uploadSettlementProof,
+  });
+}
+export function useUploadKycDocument() {
+  return useMutation({
+    mutationFn: uploadKycDocument,
   });
 }
 
