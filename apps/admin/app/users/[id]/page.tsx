@@ -16,7 +16,7 @@ const getFullUrl = (url: string) => {
   return `${base}${url.startsWith("/") ? "" : "/"}${url}`;
 };
 
-function SecureDocViewer({ url, label, number, expiry, onEdit }: { url: string; label: string; number?: string; expiry?: string; onEdit?: () => void }) {
+function SecureDocViewer({ url, label, number, expiry, onEdit, onEditNumber, onEditExpiry }: { url: string; label: string; number?: string; expiry?: string; onEdit?: () => void; onEditNumber?: () => void; onEditExpiry?: () => void; }) {
   const { data: presignedUrl, isLoading } = usePresignedUrl(url);
   const displayUrl = presignedUrl || getFullUrl(url);
   const isImage = /\.(jpe?g|png|webp)$/i.test(url);
@@ -30,11 +30,27 @@ function SecureDocViewer({ url, label, number, expiry, onEdit }: { url: string; 
           <FileText className="h-3 w-3" /> {label}
         </div>
         <div className="flex flex-col">
-          {number && <p className="text-sm font-mono font-bold text-foreground">{number}</p>}
+          {number && (
+            <div className="flex items-center gap-2">
+              <p className="text-sm font-mono font-bold text-foreground">{number}</p>
+              {onEditNumber && (
+                <button onClick={onEditNumber} className="p-1 rounded hover:bg-accent text-muted-foreground hover:text-foreground transition-colors">
+                  <Pencil className="h-3 w-3" />
+                </button>
+              )}
+            </div>
+          )}
           {expiry && (
-            <p className="text-[10px] text-muted-foreground">
-              Expires: <span className="font-semibold text-foreground">{new Date(expiry).toLocaleDateString('en-IN', { month: 'long', year: 'numeric' })}</span>
-            </p>
+            <div className="flex items-center gap-2">
+              <p className="text-[10px] text-muted-foreground">
+                Expires: <span className="font-semibold text-foreground">{new Date(expiry).toLocaleDateString('en-IN', { month: 'long', year: 'numeric' })}</span>
+              </p>
+              {onEditExpiry && (
+                <button onClick={onEditExpiry} className="p-1 rounded hover:bg-accent text-muted-foreground hover:text-foreground transition-colors">
+                  <Pencil className="h-3 w-3" />
+                </button>
+              )}
+            </div>
           )}
         </div>
       </div>
@@ -79,14 +95,14 @@ export default function UserDetailPage() {
   const updateUserMutation = useUpdateUser();
   const uploadKycDoc = useUploadKycDocument();
   const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [editModal, setEditModal] = useState<{ open: boolean; title: string; fieldPath: string; currentValue: string; type: "text" | "file" } | null>(null);
+  const [editModal, setEditModal] = useState<{ open: boolean; title: string; fieldPath: string; currentValue: string; type: "text" | "file" | "date" } | null>(null);
 
   const handleEditSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!editModal || !user) return;
     const formData = new FormData(e.target as HTMLFormElement);
     
-    let newValue = "";
+    let newValue: any = "";
     if (editModal.type === "file") {
       const file = formData.get("file") as File;
       if (!file || file.size === 0) {
@@ -101,6 +117,9 @@ export default function UserDetailPage() {
       }
     } else {
       newValue = formData.get("value") as string;
+      if (editModal.type === "date" && newValue) {
+        newValue = new Date(newValue).toISOString();
+      }
     }
     
     const keys = editModal.fieldPath.split(".");
@@ -235,33 +254,49 @@ export default function UserDetailPage() {
             {isSeller && sp ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <InfoRow icon={Building2} label="Company" value={sp.companyName ?? sp.businessName ?? "—"} onEdit={() => setEditModal({ open: true, title: "Company Name", fieldPath: "sellerProfile.companyName", currentValue: sp.companyName ?? sp.businessName ?? "", type: "text" })} />
-                <InfoRow icon={FileText} label="GST Number" value={sp.gstNumber ?? "—"} mono />
-                <InfoRow icon={FileText} label="PAN Number" value={sp.panNumber ?? "—"} mono />
-                {sp.email && <InfoRow icon={Mail} label="Business Email" value={sp.email} />}
+                <InfoRow icon={FileText} label="GST Number" value={sp.gstNumber ?? "—"} mono onEdit={() => setEditModal({ open: true, title: "GST Number", fieldPath: "sellerProfile.gstNumber", currentValue: sp.gstNumber ?? "", type: "text" })} />
+                <InfoRow icon={FileText} label="PAN Number" value={sp.panNumber ?? "—"} mono onEdit={() => setEditModal({ open: true, title: "PAN Number", fieldPath: "sellerProfile.panNumber", currentValue: sp.panNumber ?? "", type: "text" })} />
+                {sp.email && <InfoRow icon={Mail} label="Business Email" value={sp.email} onEdit={() => setEditModal({ open: true, title: "Business Email", fieldPath: "sellerProfile.email", currentValue: sp.email ?? "", type: "text" })} />}
                 
                 {sp.drugLicenseUrl && (
-                  <SecureDocViewer url={sp.drugLicenseUrl} label="License 1 (20B)" number={sp.drugLicenseNumber} expiry={sp.drugLicenseExpiry} onEdit={() => setEditModal({ open: true, title: "License 1 (20B)", fieldPath: "sellerProfile.drugLicenseUrl", currentValue: sp.drugLicenseUrl ?? "", type: "file" })} />
+                  <SecureDocViewer 
+                    url={sp.drugLicenseUrl} 
+                    label="License 1 (20B)" 
+                    number={sp.drugLicenseNumber} 
+                    expiry={sp.drugLicenseExpiry} 
+                    onEdit={() => setEditModal({ open: true, title: "License 1 Document", fieldPath: "sellerProfile.drugLicenseUrl", currentValue: sp.drugLicenseUrl ?? "", type: "file" })}
+                    onEditNumber={() => setEditModal({ open: true, title: "License 1 Number", fieldPath: "sellerProfile.drugLicenseNumber", currentValue: sp.drugLicenseNumber ?? "", type: "text" })}
+                    onEditExpiry={() => setEditModal({ open: true, title: "License 1 Expiry", fieldPath: "sellerProfile.drugLicenseExpiry", currentValue: sp.drugLicenseExpiry ? new Date(sp.drugLicenseExpiry).toISOString().split('T')[0] : "", type: "date" })}
+                  />
                 )}
                 {sp.drugLicenseUrl2 && (
-                  <SecureDocViewer url={sp.drugLicenseUrl2} label="License 2 (21B)" number={sp.drugLicenseNumber2} expiry={sp.drugLicenseExpiry2} onEdit={() => setEditModal({ open: true, title: "License 2 (21B)", fieldPath: "sellerProfile.drugLicenseUrl2", currentValue: sp.drugLicenseUrl2 ?? "", type: "file" })} />
+                  <SecureDocViewer 
+                    url={sp.drugLicenseUrl2} 
+                    label="License 2 (21B)" 
+                    number={sp.drugLicenseNumber2} 
+                    expiry={sp.drugLicenseExpiry2} 
+                    onEdit={() => setEditModal({ open: true, title: "License 2 Document", fieldPath: "sellerProfile.drugLicenseUrl2", currentValue: sp.drugLicenseUrl2 ?? "", type: "file" })}
+                    onEditNumber={() => setEditModal({ open: true, title: "License 2 Number", fieldPath: "sellerProfile.drugLicenseNumber2", currentValue: sp.drugLicenseNumber2 ?? "", type: "text" })}
+                    onEditExpiry={() => setEditModal({ open: true, title: "License 2 Expiry", fieldPath: "sellerProfile.drugLicenseExpiry2", currentValue: sp.drugLicenseExpiry2 ? new Date(sp.drugLicenseExpiry2).toISOString().split('T')[0] : "", type: "date" })}
+                  />
                 )}
-                <InfoRow icon={MapPin} label="Address" value={[sp.address, sp.city, sp.state, sp.pincode].filter(Boolean).join(", ") || "—"} className="sm:col-span-2" />
+                <InfoRow icon={MapPin} label="Address" value={[sp.address, sp.city, sp.state, sp.pincode].filter(Boolean).join(", ") || "—"} className="sm:col-span-2" onEdit={() => setEditModal({ open: true, title: "Address", fieldPath: "sellerProfile.address", currentValue: sp.address ?? "", type: "text" })} />
                 {sp.bankAccount && (
                   <>
-                    <InfoRow icon={Building2} label="Bank Detail" value={`${sp.bankAccount.bankName ?? ""} — ${sp.bankAccount.accountNumber ?? ""}`} mono />
+                    <InfoRow icon={Building2} label="Bank Detail" value={`${sp.bankAccount.bankName ?? ""} — ${sp.bankAccount.accountNumber ?? ""}`} mono onEdit={() => setEditModal({ open: true, title: "Account Number", fieldPath: "sellerProfile.bankAccount.accountNumber", currentValue: sp.bankAccount?.accountNumber ?? "", type: "text" })} />
                     <InfoRow icon={UserCheck} label="Account Holder" value={sp.bankAccount.accountHolder ?? "—"} onEdit={() => setEditModal({ open: true, title: "Account Holder", fieldPath: "sellerProfile.bankAccount.accountHolder", currentValue: sp.bankAccount?.accountHolder ?? "", type: "text" })} />
-                    <InfoRow icon={FileText} label="IFSC Code" value={sp.bankAccount.ifsc ?? "—"} mono />
+                    <InfoRow icon={FileText} label="IFSC Code" value={sp.bankAccount.ifsc ?? "—"} mono onEdit={() => setEditModal({ open: true, title: "IFSC Code", fieldPath: "sellerProfile.bankAccount.ifsc", currentValue: sp.bankAccount?.ifsc ?? "", type: "text" })} />
                   </>
                 )}
                 {sp.cancelCheck && (
-                  <SecureDocViewer url={sp.cancelCheck} label="Cancelled Cheque" />
+                  <SecureDocViewer url={sp.cancelCheck} label="Cancelled Cheque" onEdit={() => setEditModal({ open: true, title: "Cancelled Cheque", fieldPath: "sellerProfile.cancelCheck", currentValue: sp.cancelCheck ?? "", type: "file" })} />
                 )}
               </div>
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <InfoRow icon={Building2} label="Legal / Business Name" value={bp?.legalName ?? user.businessName ?? user.name ?? "—"} />
-                <InfoRow icon={FileText} label="GST Number" value={bp?.gstNumber ?? user.gstNumber ?? "—"} mono />
-                <InfoRow icon={FileText} label="PAN Number" value={bp?.panNumber ?? user.panNumber ?? "—"} mono />
+                <InfoRow icon={Building2} label="Legal / Business Name" value={bp?.legalName ?? user.businessName ?? user.name ?? "—"} onEdit={() => setEditModal({ open: true, title: "Business Name", fieldPath: bp ? "buyerProfile.legalName" : "businessName", currentValue: bp?.legalName ?? user.businessName ?? user.name ?? "", type: "text" })} />
+                <InfoRow icon={FileText} label="GST Number" value={bp?.gstNumber ?? user.gstNumber ?? "—"} mono onEdit={() => setEditModal({ open: true, title: "GST Number", fieldPath: bp ? "buyerProfile.gstNumber" : "gstNumber", currentValue: bp?.gstNumber ?? user.gstNumber ?? "", type: "text" })} />
+                <InfoRow icon={FileText} label="PAN Number" value={bp?.panNumber ?? user.panNumber ?? "—"} mono onEdit={() => setEditModal({ open: true, title: "PAN Number", fieldPath: bp ? "buyerProfile.panNumber" : "panNumber", currentValue: bp?.panNumber ?? user.panNumber ?? "", type: "text" })} />
                 
                 {(bp?.drugLicenseUrl ?? user.drugLicenseUrl) && (
                   <SecureDocViewer 
@@ -269,7 +304,9 @@ export default function UserDetailPage() {
                     label="License 1 (20B)" 
                     number={bp?.drugLicenseNumber ?? user.drugLicenseNumber} 
                     expiry={bp?.drugLicenseExpiry ?? user.drugLicenseExpiry}
-                    onEdit={() => setEditModal({ open: true, title: "License 1 (20B)", fieldPath: bp ? "buyerProfile.drugLicenseUrl" : "drugLicenseUrl", currentValue: bp?.drugLicenseUrl ?? user.drugLicenseUrl ?? "", type: "file" })}
+                    onEdit={() => setEditModal({ open: true, title: "License 1 Document", fieldPath: bp ? "buyerProfile.drugLicenseUrl" : "drugLicenseUrl", currentValue: bp?.drugLicenseUrl ?? user.drugLicenseUrl ?? "", type: "file" })}
+                    onEditNumber={() => setEditModal({ open: true, title: "License 1 Number", fieldPath: bp ? "buyerProfile.drugLicenseNumber" : "drugLicenseNumber", currentValue: bp?.drugLicenseNumber ?? user.drugLicenseNumber ?? "", type: "text" })}
+                    onEditExpiry={() => setEditModal({ open: true, title: "License 1 Expiry", fieldPath: bp ? "buyerProfile.drugLicenseExpiry" : "drugLicenseExpiry", currentValue: (bp?.drugLicenseExpiry ?? user.drugLicenseExpiry) ? new Date(bp?.drugLicenseExpiry ?? user.drugLicenseExpiry!).toISOString().split('T')[0] : "", type: "date" })}
                   />
                 )}
                 {(bp?.drugLicenseUrl2 ?? user.drugLicenseUrl2) && (
@@ -278,7 +315,9 @@ export default function UserDetailPage() {
                     label="License 2 (21B)" 
                     number={bp?.drugLicenseNumber2 ?? user.drugLicenseNumber2} 
                     expiry={bp?.drugLicenseExpiry2 ?? user.drugLicenseExpiry2}
-                    onEdit={() => setEditModal({ open: true, title: "License 2 (21B)", fieldPath: bp ? "buyerProfile.drugLicenseUrl2" : "drugLicenseUrl2", currentValue: bp?.drugLicenseUrl2 ?? user.drugLicenseUrl2 ?? "", type: "file" })}
+                    onEdit={() => setEditModal({ open: true, title: "License 2 Document", fieldPath: bp ? "buyerProfile.drugLicenseUrl2" : "drugLicenseUrl2", currentValue: bp?.drugLicenseUrl2 ?? user.drugLicenseUrl2 ?? "", type: "file" })}
+                    onEditNumber={() => setEditModal({ open: true, title: "License 2 Number", fieldPath: bp ? "buyerProfile.drugLicenseNumber2" : "drugLicenseNumber2", currentValue: bp?.drugLicenseNumber2 ?? user.drugLicenseNumber2 ?? "", type: "text" })}
+                    onEditExpiry={() => setEditModal({ open: true, title: "License 2 Expiry", fieldPath: bp ? "buyerProfile.drugLicenseExpiry2" : "drugLicenseExpiry2", currentValue: (bp?.drugLicenseExpiry2 ?? user.drugLicenseExpiry2) ? new Date(bp?.drugLicenseExpiry2 ?? user.drugLicenseExpiry2!).toISOString().split('T')[0] : "", type: "date" })}
                   />
                 )}
                 <InfoRow icon={MapPin} label="Address" value={
@@ -287,9 +326,9 @@ export default function UserDetailPage() {
                         ? [bp.address.street1, bp.address.city, bp.address.state, bp.address.pincode].filter(Boolean).join(", ")
                         : [bp.address, bp.city, bp.state, bp.pincode].filter(Boolean).join(", "))
                     : ([user.address, user.city, user.state, user.pincode].filter(Boolean).join(", ") || "—")
-                } className="sm:col-span-2" />
-                {bp?.email && <InfoRow icon={Mail} label="Email" value={bp.email} />}
-                {bp?.phone && <InfoRow icon={Phone} label="Phone" value={bp.phone} mono />}
+                } className="sm:col-span-2" onEdit={() => setEditModal({ open: true, title: "Address", fieldPath: bp ? "buyerProfile.address" : "address", currentValue: (typeof bp?.address === 'object' ? bp?.address.street1 : bp?.address) ?? user.address ?? "", type: "text" })} />
+                {bp?.email && <InfoRow icon={Mail} label="Email" value={bp.email} onEdit={() => setEditModal({ open: true, title: "Email", fieldPath: "buyerProfile.email", currentValue: bp.email ?? "", type: "text" })} />}
+                {bp?.phone && <InfoRow icon={Phone} label="Phone" value={bp.phone} mono onEdit={() => setEditModal({ open: true, title: "Phone", fieldPath: "buyerProfile.phone", currentValue: bp.phone ?? "", type: "text" })} />}
               </div>
             )}
           </motion.div>
@@ -339,7 +378,7 @@ export default function UserDetailPage() {
             ) : (
               <input 
                 name="value" 
-                type="text"
+                type={editModal?.type === 'date' ? "date" : "text"}
                 defaultValue={editModal?.currentValue} 
                 className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                 required
