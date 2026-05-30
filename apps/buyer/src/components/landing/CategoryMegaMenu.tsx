@@ -17,12 +17,6 @@ export default function CategoryMegaMenu({ category, isOpen, onMouseEnter, onMou
   // If no subcategories, we could show a default list or just not render
   const subCategories = category.subCategories || [];
   
-  // We can group subcategories into columns if there are many, or just show them
-  // For the "Mega Menu" feel, let's have a featured section on the right
-  const featuredProducts = [
-    { name: 'Foliyer', price: '₹545', image: '/products/pharma_bottle.png' },
-    { name: 'Foliyer', price: '₹545', image: '/products/pharma_bottle.png' },
-  ];
 
   return (
     <AnimatePresence>
@@ -45,8 +39,8 @@ export default function CategoryMegaMenu({ category, isOpen, onMouseEnter, onMou
                   <span className="text-lg font-light">›</span>
                 </h3>
                 
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-12">
-                  <div className="md:col-span-2 space-y-6">
+                <div className="grid grid-cols-1 gap-12">
+                  <div className="space-y-6">
                     <h4 className="text-[15px] font-bold text-[#800080] mb-4 flex items-center justify-between group cursor-pointer hover:text-sky-600 transition-colors border-b border-gray-100 pb-2">
                       Sub Categories
                       <span className="text-gray-400 group-hover:text-sky-600 transition-colors">›</span>
@@ -68,56 +62,13 @@ export default function CategoryMegaMenu({ category, isOpen, onMouseEnter, onMou
                     </ul>
                   </div>
 
-                  <div className="space-y-10">
-                    <div>
-                      <h4 className="text-[15px] font-bold text-[#800080] mb-4 border-b border-gray-100 pb-2">Popular in {category.name}</h4>
-                      <ul className="space-y-3">
-                        <li><a href="#" className="text-[14px] text-gray-500 hover:text-sky-600 transition-colors">Best Sellers</a></li>
-                        <li><a href="#" className="text-[14px] text-gray-500 hover:text-sky-600 transition-colors">New Arrivals</a></li>
-                        <li><a href="#" className="text-[14px] text-gray-500 hover:text-sky-600 transition-colors">Top Brands</a></li>
-                      </ul>
-                    </div>
-                  </div>
 
-                  <div className="space-y-10">
-                    <div>
-                      <h4 className="text-[15px] font-bold text-[#800080] mb-4 border-b border-gray-100 pb-2">Resources</h4>
-                      <ul className="space-y-3">
-                        <li><a href="#" className="text-[14px] text-gray-500 hover:text-sky-600 transition-colors">Usage Guide</a></li>
-                        <li><a href="#" className="text-[14px] text-gray-500 hover:text-sky-600 transition-colors">Health Tips</a></li>
-                        <li><a href="#" className="text-[14px] text-gray-500 hover:text-sky-600 transition-colors">Safety Info</a></li>
-                      </ul>
-                    </div>
-                  </div>
+
+
                 </div>
               </div>
 
-              {/* Right Side: Featured (Matches Brands layout) */}
-              <div className="w-[400px] flex flex-col gap-8">
-                <div className="flex justify-between items-center">
-                  <h3 className="text-[15px] font-bold text-[#800080]">Featured Products</h3>
-                  <Link href={`/products?categoryId=${category.id}`} className="text-[12px] font-bold text-sky-600 hover:text-sky-700 flex items-center gap-1">
-                    View All <ArrowRight className="w-3 h-3" />
-                  </Link>
-                </div>
-                
-                <div className="grid grid-cols-2 gap-5">
-                  {featuredProducts.map((product, idx) => (
-                    <div key={idx} className="bg-[#f1f6ea] rounded-3xl p-5 flex flex-col items-center group cursor-pointer hover:shadow-xl hover:bg-[#e9f0e1] transition-all duration-500 ease-out">
-                      <div className="relative w-full aspect-[4/5] mb-4 overflow-hidden rounded-2xl">
-                        <Image
-                          src={product.image}
-                          alt={product.name}
-                          fill
-                          className="object-contain p-2 transform group-hover:scale-110 transition-transform duration-700 ease-out"
-                        />
-                      </div>
-                      <p className="text-[15px] font-bold text-gray-800 mb-1">{product.name}</p>
-                      <p className="text-[14px] font-semibold text-gray-500">{product.price}</p>
-                    </div>
-                  ))}
-                </div>
-              </div>
+
             </div>
           </div>
         </motion.div>

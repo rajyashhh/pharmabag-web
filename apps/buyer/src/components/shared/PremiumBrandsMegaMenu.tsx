@@ -56,25 +56,7 @@ export default function PremiumBrandsMegaMenu({ isOpen, onMouseEnter, onMouseLea
     }
   ];
 
-  const featuredSections = [
-    {
-      title: 'Protocol Clusters',
-      icon: Sparkles,
-      links: ['New Arrivals', 'Summer Essentials', 'Immunity Boosters']
-    },
-    {
-      title: 'Signal Registry',
-      icon: TrendingUp,
-      links: ['Best Sellers', 'Top Rated', 'Expert Picks']
-    }
-  ];
 
-  const highlights = [
-    { name: 'Foliyer', price: '₹545', image: '/products/pharma_bottle.png', tag: 'New' },
-    { name: 'Foliyer', price: '₹545', image: '/products/pharma_bottle.png', tag: 'Hot' },
-    { name: 'Foliyer', price: '₹545', image: '/products/pharma_bottle.png', tag: 'Limit' },
-    { name: 'Foliyer', price: '₹545', image: '/products/pharma_bottle.png', tag: 'Bio' },
-  ];
 
   return (
     <AnimatePresence>
@@ -125,56 +107,7 @@ export default function PremiumBrandsMegaMenu({ isOpen, onMouseEnter, onMouseLea
                 ))}
               </div>
 
-              {/* Curated Signals & Visual Highlights */}
-              <div className="w-[520px] flex gap-12 border-l border-white/60 pl-20">
-                <div className="w-[180px] space-y-14">
-                  {featuredSections.map((section, idx) => (
-                    <div key={idx} className="space-y-6">
-                      <div className="flex items-center gap-3">
-                         <div className="w-10 h-10 bg-gray-950 rounded-2xl flex items-center justify-center text-white shadow-xl">
-                            <section.icon className="w-5 h-5" />
-                         </div>
-                         <h3 className="text-[13px] font-black text-gray-900 uppercase tracking-widest">{section.title}</h3>
-                      </div>
-                      <ul className="space-y-4">
-                        {section.links.map((link, lIdx) => (
-                          <li key={lIdx}>
-                            <a href="#" className="text-[13px] font-black text-gray-400 hover:text-gray-950 flex items-center group/link">
-                              {link}
-                              <ArrowRight className="w-3 h-3 ml-2 opacity-0 -translate-x-2 group-hover/link:opacity-100 group-hover/link:translate-x-0 transition-all" />
-                            </a>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  ))}
-                </div>
 
-                {/* Intelligent Product Grid */}
-                <div className="flex-1 grid grid-cols-2 gap-6">
-                  {highlights.map((product, idx) => (
-                    <motion.div 
-                      key={idx} 
-                      whileHover={{ y: -5 }}
-                      className="bg-white rounded-[32px] p-6 flex flex-col items-center group/card cursor-pointer shadow-xl hover:shadow-[0_24px_48px_-12px_rgba(0,0,0,0.1)] transition-all duration-500 border border-gray-50 relative overflow-hidden"
-                    >
-                      <span className="absolute top-4 right-4 text-[8px] font-black uppercase tracking-[0.2em] px-2 py-1 bg-lime-400 rounded-lg shadow-sm z-10">{product.tag}</span>
-                      <div className="relative w-full aspect-[1/1] mb-6 overflow-hidden rounded-2xl bg-gray-50 border border-gray-100/50 p-4">
-                        <Image
-                          src={product.image}
-                          alt={product.name}
-                          fill
-                          className="object-contain transform group-hover/card:scale-110 transition-transform duration-700"
-                        />
-                      </div>
-                      <div className="text-center">
-                         <p className="text-[13px] font-black text-gray-900 mb-1 uppercase tracking-tight">{product.name}</p>
-                         <p className="text-[12px] font-black text-lime-600">{product.price}</p>
-                      </div>
-                    </motion.div>
-                  ))}
-                </div>
-              </div>
             </div>
             
             {/* Global Footer Banner */}

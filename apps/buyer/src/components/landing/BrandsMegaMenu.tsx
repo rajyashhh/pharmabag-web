@@ -55,23 +55,7 @@ export default function BrandsMegaMenu({ isOpen, onMouseEnter, onMouseLeave }: B
     }
   ];
 
-  const featuredLinks = [
-    {
-      title: 'New & Featured',
-      links: ['New Arrivals', 'Summer Essentials', 'Immunity Boosters']
-    },
-    {
-      title: 'Trending Now',
-      links: ['Best Sellers', 'Top Rated', 'Expert Picks']
-    }
-  ];
 
-  const featuredProducts = [
-    { name: 'Foliyer', price: '₹545', image: '/products/pharma_bottle.png' },
-    { name: 'Foliyer', price: '₹545', image: '/products/pharma_bottle.png' },
-    { name: 'Foliyer', price: '₹545', image: '/products/pharma_bottle.png' },
-    { name: 'Foliyer', price: '₹545', image: '/products/pharma_bottle.png' },
-  ];
 
   return (
     <AnimatePresence>
@@ -120,44 +104,7 @@ export default function BrandsMegaMenu({ isOpen, onMouseEnter, onMouseLeave }: B
                 ))}
               </div>
 
-              {/* Right Side: Featured Products (Matches screenshot layout) */}
-              <div className="w-[480px] flex gap-10">
-                {/* Featured Links */}
-                <div className="w-[160px] space-y-10">
-                  {featuredLinks.map((section, idx) => (
-                    <div key={idx}>
-                      <h3 className="text-[15px] font-bold text-[#800080] mb-5">{section.title}</h3>
-                      <ul className="space-y-3.5">
-                        {section.links.map((link, lIdx) => (
-                          <li key={lIdx}>
-                            <a href="#" className="text-[14px] text-gray-500 hover:text-sky-600 transition-colors duration-200">
-                              {link}
-                            </a>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  ))}
-                </div>
 
-                {/* Product Grid */}
-                <div className="flex-1 grid grid-cols-2 gap-5">
-                  {featuredProducts.map((product, idx) => (
-                    <div key={idx} className="bg-[#f1f6ea] rounded-3xl p-5 flex flex-col items-center group cursor-pointer hover:shadow-xl hover:bg-[#e9f0e1] transition-all duration-500 ease-out">
-                      <div className="relative w-full aspect-[4/5] mb-4 overflow-hidden rounded-2xl">
-                        <Image
-                          src={product.image}
-                          alt={product.name}
-                          fill
-                          className="object-contain p-2 transform group-hover:scale-110 transition-transform duration-700 ease-out"
-                        />
-                      </div>
-                      <p className="text-[15px] font-bold text-gray-800 mb-1">{product.name}</p>
-                      <p className="text-[14px] font-semibold text-gray-500">{product.price}</p>
-                    </div>
-                  ))}
-                </div>
-              </div>
             </div>
           </div>
         </motion.div>

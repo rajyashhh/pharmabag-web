@@ -1,39 +1,55 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Search, CheckCircle, XCircle, Trash2, Eye, ShieldCheck, ShieldX } from "lucide-react";
+import { Search, CheckCircle, XCircle, Trash2, Eye } from "lucide-react";
 import { AdminLayout } from "@/components/layout/admin-layout";
 import { Button, Input, Badge, Pagination } from "@/components/ui";
 import { formatCurrency, calculatePricing } from "@pharmabag/utils";
 import { cn } from "@/lib/utils";
 import toast from "react-hot-toast";
-import { useAdminProducts, useUpdateProductStatus, useDeleteProduct, useApproveProduct, useRejectProduct } from "@/hooks/useAdmin";
+import { useAdminProductsFiltered, useUpdateProductStatus, useDeleteProduct } from "@/hooks/useAdmin";
 
 export default function AdminProductsPage() {
   const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [filter, setFilter] = useState<"all" | "active" | "inactive" | "pending">("all");
   const [page, setPage] = useState(1);
   const limit = 20;
-  const { data: productsData, isLoading } = useAdminProducts(page, limit);
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedSearch(search);
+      setPage(1);
+    }, 500);
+    return () => clearTimeout(handler);
+  }, [search]);
+
+  const queryParams: any = { page, limit };
+  if (debouncedSearch) queryParams.search = debouncedSearch;
+
+  const { data: productsData, isLoading } = useAdminProductsFiltered(queryParams);
   const productToggle = useUpdateProductStatus();
   const productDelete = useDeleteProduct();
-  const productApprove = useApproveProduct();
-  const productReject = useRejectProduct();
 
   // Backend returns { data: [...], total: ... }
   const products: any[] = Array.isArray(productsData) ? productsData : (productsData?.data ?? []);
   const totalProducts = productsData?.total ?? products.length;
   const totalPages = Math.max(1, Math.ceil(totalProducts / limit));
 
-  const filtered = products.filter((p: any) => {
-    const matchesSearch = !search || (p.name ?? "").toLowerCase().includes(search.toLowerCase()) || (p.manufacturer ?? "").toLowerCase().includes(search.toLowerCase());
-    if (!matchesSearch) return false;
+  const groupedProducts: any[] = [];
+  const seenMaster = new Set();
+  for (const p of products) {
+    if (p.masterProduct) {
+      if (seenMaster.has(p.masterProduct.id)) continue;
+      seenMaster.add(p.masterProduct.id);
+    }
+    groupedProducts.push(p);
+  }
 
-    // Filter: only show when a single seller available
-    // if masterProduct exists, products count must be 1
-    // if no masterProduct, we assume it's unique
-    const isSingleSeller = !p.masterProduct || p.masterProduct?._count?.products <= 1;
-    if (!isSingleSeller) return false;
+  const filtered = groupedProducts.filter((p: any) => {
+    // We can still keep the client-side search just in case
+    const matchesSearch = !debouncedSearch || (p.name ?? "").toLowerCase().includes(debouncedSearch.toLowerCase()) || (p.manufacturer ?? "").toLowerCase().includes(debouncedSearch.toLowerCase());
+    if (!matchesSearch) return false;
 
     if (filter === "all") return true;
     if (filter === "pending") return p.approvalStatus === "PENDING" || p.approvalStatus === "pending";
@@ -41,25 +57,7 @@ export default function AdminProductsPage() {
     return !p.isActive;
   });
 
-  const handleApprove = async (id: string, name: string) => {
-    try {
-      await productApprove.mutateAsync(id);
-      toast.success(`"${name}" approved`);
-    } catch {
-      toast.error(`Failed to approve "${name}"`);
-    }
-  };
 
-  const handleReject = async (id: string, name: string) => {
-    const reason = window.prompt(`Reason for rejecting "${name}":`);
-    if (reason === null) return;
-    try {
-      await productReject.mutateAsync({ productId: id, reason: reason || undefined });
-      toast.success(`"${name}" rejected`);
-    } catch {
-      toast.error(`Failed to reject "${name}"`);
-    }
-  };
 
   const toggleStatus = async (id: string, name: string, isActive: boolean) => {
     try {
@@ -118,7 +116,7 @@ export default function AdminProductsPage() {
             <table className="w-full" aria-label="Products">
               <thead>
                 <tr className="border-b border-border/50 bg-muted/20">
-                  {["Product", "Manufacturer", "Category", "MRP", "Pricing", "Stock", "Expiry", "Min Qty", "Max Qty", "Approval", "Status", "Actions"].map(h => (
+                  {["Product", "Manufacturer", "Category", "MRP", "Pricing", "Stock", "Expiry", "Min Qty", "Max Qty", "Sellers", "Status", "Actions"].map(h => (
                     <th key={h} scope="col" className="px-5 py-3.5 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider whitespace-nowrap">{h}</th>
                   ))}
                 </tr>
@@ -176,24 +174,10 @@ export default function AdminProductsPage() {
                     </td>
                     <td className="px-5 py-4 text-sm text-muted-foreground">{p.minimumOrderQuantity ?? 1}</td>
                     <td className="px-5 py-4 text-sm text-muted-foreground">{p.maximumOrderQuantity ?? "—"}</td>
-                    <td className="px-5 py-4">
-                      {(p.approvalStatus === "PENDING" || p.approvalStatus === "pending") ? (
-                        <div className="flex items-center gap-1">
-                          <button onClick={() => void handleApprove(p.id, p.name)} aria-label="Approve" title="Approve"
-                            className="h-7 w-7 rounded-lg flex items-center justify-center text-green-500 hover:text-green-600 hover:bg-green-50 dark:hover:bg-green-900/20 transition-colors">
-                            <ShieldCheck className="h-3.5 w-3.5" />
-                          </button>
-                          <button onClick={() => void handleReject(p.id, p.name)} aria-label="Reject" title="Reject"
-                            className="h-7 w-7 rounded-lg flex items-center justify-center text-red-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors">
-                            <ShieldX className="h-3.5 w-3.5" />
-                          </button>
-                        </div>
-                      ) : (
-                        <Badge variant={p.approvalStatus === "APPROVED" || p.approvalStatus === "approved" ? "success" : p.approvalStatus === "REJECTED" || p.approvalStatus === "rejected" ? "error" : "default"}>
-                          {p.approvalStatus ?? "APPROVED"}
-                        </Badge>
-                      )}
+                    <td className="px-5 py-4 text-sm font-medium text-foreground">
+                      {p.masterProduct?._count?.products ? Math.max(1, p.masterProduct._count.products) : 1}
                     </td>
+
                     <td className="px-5 py-4">
                       <Badge variant={p.isActive ? "success" : "error"}>{p.isActive ? "Active" : "Disabled"}</Badge>
                     </td>
