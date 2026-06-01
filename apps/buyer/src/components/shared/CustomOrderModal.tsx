@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { X, Send, CheckCircle2, Loader2, MessageSquare } from 'lucide-react';
 import { useToast } from '@/components/shared/Toast';
 import { createCustomOrder } from '@pharmabag/api-client';
+import { useRouter } from 'next/navigation';
 
 interface CustomOrderModalProps {
   isOpen: boolean;
@@ -15,6 +16,7 @@ interface CustomOrderModalProps {
 
 export function CustomOrderModal({ isOpen, onClose, productName, productId }: CustomOrderModalProps) {
   const { toast } = useToast();
+  const router = useRouter();
   const [message, setMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
@@ -37,6 +39,13 @@ export function CustomOrderModal({ isOpen, onClose, productName, productId }: Cu
         onClose();
       }, 3000);
     } catch (err: any) {
+      if (err.response?.status === 401) {
+        toast('Please login before request', 'error');
+        setTimeout(() => {
+          router.push('/login');
+        }, 1000);
+        return;
+      }
       toast(err.response?.data?.message || 'Failed to send request. Please try again.', 'error');
     } finally {
       setIsLoading(false);

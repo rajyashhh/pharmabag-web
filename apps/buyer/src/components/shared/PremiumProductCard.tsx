@@ -367,16 +367,22 @@ export default function PremiumProductCard({
           {/* Values Row */}
           <div className="flex justify-between items-center w-full min-w-0 gap-1">
             <span className="text-[11px] xs:text-[12px] sm:text-[14px] font-medium text-gray-800 truncate flex-1 text-left">
-              {product?.sellerCount === 0 ? (
+              {(product?.sellerCount === 0 || product?.hasSellers === false) ? (
                 <span className="text-[9px] text-gray-400 font-bold">N/A</span>
               ) : (
                 <>₹{Math.round(Number(mrp || price))}</>
               )}
             </span>
-            <span className="text-[11px] xs:text-[12px] sm:text-[14px] font-[900] text-gray-800 text-center flex-1">{moq}</span>
+            <span className="text-[11px] xs:text-[12px] sm:text-[14px] font-[900] text-gray-800 text-center flex-1">
+              {(product?.sellerCount === 0 || product?.hasSellers === false) ? (
+                <span className="text-[9px] text-gray-400 font-bold">N/A</span>
+              ) : (
+                <>{moq}</>
+              )}
+            </span>
             <span className="text-[11px] xs:text-[12px] sm:text-[14px] font-[900] text-gray-900 truncate flex-1 text-right">
-               {product?.sellerCount === 0 ? (
-                <span className="text-[9px] text-gray-400 font-bold">NOT AVAILABLE</span>
+               {(product?.sellerCount === 0 || product?.hasSellers === false) ? (
+                <span className="text-[9px] text-gray-400 font-bold">N/A</span>
               ) : (
                 <>₹{Math.round(Number(price))}</>
               )}

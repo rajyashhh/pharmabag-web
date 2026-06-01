@@ -222,7 +222,15 @@ export default function ProductDetailPage({ params }: { params: { productSlug: s
   if (!sellingPrice || sellingPrice <= 0) sellingPrice = product.mrp || 0;
 
   const discount = product.mrp && sellingPrice > 0 ? Math.round(getEffectiveDiscountPercent(product.mrp, sellingPrice)) : 0;
-  const listings = product.listings || [];
+  const uniqueListingsMap = new Map();
+  (product.listings || []).forEach((l: any) => {
+    // Identify seller by sellerId, or seller.id. If neither exists, fallback to listing id to avoid filtering unrelated items.
+    const sellerKey = l.sellerId || l?.seller?.id || l.id;
+    if (!uniqueListingsMap.has(sellerKey)) {
+      uniqueListingsMap.set(sellerKey, l);
+    }
+  });
+  const listings = Array.from(uniqueListingsMap.values());
   const totalStock = listings.length > 0
     ? listings.reduce((sum: number, l: any) => sum + (l.stock || 0), 0)
     : (product.stock ?? 0);
@@ -281,9 +289,12 @@ export default function ProductDetailPage({ params }: { params: { productSlug: s
                 }
 
                 return (
-                  <div className="flex flex-col items-center gap-4 text-gray-300">
-                    <Package className="w-20 h-20" />
-                    <p className="text-sm font-bold">No image available</p>
+                  <div className="flex items-center justify-center w-full h-full p-8 sm:p-12">
+                    <div className="w-full aspect-square bg-[#dcf3e8] rounded-full flex items-center justify-center shadow-inner border border-teal-200/40">
+                      <span className="text-6xl sm:text-8xl md:text-9xl font-black text-[#1bd1d4] tracking-widest drop-shadow-sm select-none">
+                        {product.name ? (product.name.trim()[0] + product.name.trim()[product.name.trim().length - 1]).toUpperCase() : 'NA'}
+                      </span>
+                    </div>
                   </div>
                 );
               })()}

@@ -219,16 +219,24 @@ function ProductsPageContent() {
 
             <div className="bg-white/80 backdrop-blur-xl rounded-2xl p-6 shadow-sm border border-white/60">
               <h3 className="text-[11px] font-bold text-gray-800 uppercase tracking-widest mb-4">Manufacturer</h3>
-              <div className="space-y-2 max-h-48 overflow-y-auto">
-                <button onClick={() => { setSelectedManufacturer(null); setPage(1); }} className={`w-full text-left text-sm font-medium px-2 py-1.5 rounded transition-colors ${!selectedManufacturer ? 'text-gray-900 bg-gray-100/50' : 'text-gray-600 hover:text-gray-900'}`}>All Manufacturers</button>
-                {manufacturers.map((mfr: any) => (<button key={mfr.id} onClick={() => { setSelectedManufacturer(mfr.name); setPage(1); }} className={`w-full text-left text-sm font-medium px-2 py-1.5 rounded transition-colors ${selectedManufacturer === mfr.name ? 'text-gray-900 bg-gray-100/50' : 'text-gray-600 hover:text-gray-900'}`}>{mfr.name} {mfr.productCount ? <span className="text-xs text-gray-400">({mfr.productCount})</span> : null}</button>))}
-              </div>
+              <select 
+                value={selectedManufacturer ?? ''} 
+                onChange={(e) => { setSelectedManufacturer(e.target.value || null); setPage(1); }} 
+                className="w-full bg-gray-50/50 border border-gray-100 rounded-lg p-3 text-xs text-gray-700 font-medium focus:ring-1 focus:ring-emerald-400 outline-none cursor-pointer"
+              >
+                <option value="">All Manufacturers</option>
+                {manufacturers.map((mfr: any) => (
+                  <option key={mfr.id} value={mfr.name}>
+                    {mfr.name.length > 40 ? mfr.name.substring(0, 40) + '...' : mfr.name} {mfr.productCount ? `(${mfr.productCount})` : ''}
+                  </option>
+                ))}
+              </select>
             </div>
 
-            <div className="bg-white/80 backdrop-blur-xl rounded-2xl p-6 shadow-sm border border-white/60">
+            {/* <div className="bg-white/80 backdrop-blur-xl rounded-2xl p-6 shadow-sm border border-white/60">
               <h3 className="text-[11px] font-bold text-gray-800 uppercase tracking-widest mb-4">Location</h3>
               <select value={selectedCity ?? ''} onChange={(e) => { setSelectedCity(e.target.value || null); setPage(1); }} className="w-full bg-gray-50/50 border border-gray-100 rounded-lg p-3 text-xs text-gray-700 font-medium focus:ring-1 focus:ring-emerald-400 outline-none"><option value="">Any Location</option>{cities.map((city: any) => (<option key={city.id} value={city.name}>{city.name}, {city.state}</option>))}</select>
-            </div>
+            </div> */}
 
             <div className="bg-white/80 backdrop-blur-xl rounded-2xl p-6 shadow-sm border border-white/60">
               <h3 className="text-[11px] font-bold text-gray-800 uppercase tracking-widest mb-4">Discount Type</h3>
@@ -605,16 +613,24 @@ function ProductsPageContent() {
 
               <div className="bg-white/80 backdrop-blur-xl rounded-2xl p-6 shadow-sm border border-white/60">
                 <h3 className="text-[11px] font-bold text-gray-800 uppercase tracking-widest mb-4">Manufacturer</h3>
-                <div className="space-y-2 max-h-48 overflow-y-auto">
-                  <button onClick={() => { setSelectedManufacturer(null); setPage(1); }} className={`w-full text-left text-sm font-medium px-2 py-1.5 rounded transition-colors ${!selectedManufacturer ? 'text-gray-900 bg-gray-100/50' : 'text-gray-600 hover:text-gray-900'}`}>All Manufacturers</button>
-                  {manufacturers.map((mfr: any) => (<button key={mfr.id} onClick={() => { setSelectedManufacturer(mfr.name); setPage(1); }} className={`w-full text-left text-sm font-medium px-2 py-1.5 rounded transition-colors ${selectedManufacturer === mfr.name ? 'text-gray-900 bg-gray-100/50' : 'text-gray-600 hover:text-gray-900'}`}>{mfr.name}</button>))}
-                </div>
+                <select 
+                  value={selectedManufacturer ?? ''} 
+                  onChange={(e) => { setSelectedManufacturer(e.target.value || null); setPage(1); }} 
+                  className="w-full bg-gray-50/50 border border-gray-100 rounded-lg p-3 text-xs text-gray-700 font-medium focus:ring-1 focus:ring-emerald-400 outline-none cursor-pointer"
+                >
+                  <option value="">All Manufacturers</option>
+                  {manufacturers.map((mfr: any) => (
+                    <option key={mfr.id} value={mfr.name}>
+                      {mfr.name.length > 40 ? mfr.name.substring(0, 40) + '...' : mfr.name} {mfr.productCount ? `(${mfr.productCount})` : ''}
+                    </option>
+                  ))}
+                </select>
               </div>
 
-              <div className="bg-white/80 backdrop-blur-xl rounded-2xl p-6 shadow-sm border border-white/60">
+              {/* <div className="bg-white/80 backdrop-blur-xl rounded-2xl p-6 shadow-sm border border-white/60">
                 <h3 className="text-[11px] font-bold text-gray-800 uppercase tracking-widest mb-4">Location</h3>
                 <select value={selectedCity ?? ''} onChange={(e) => { setSelectedCity(e.target.value || null); setPage(1); }} className="w-full bg-gray-50/50 border border-gray-100 rounded-lg p-3 text-xs text-gray-700 font-medium focus:ring-1 focus:ring-emerald-400 outline-none"><option value="">Any Location</option>{cities.map((city: any) => (<option key={city.id} value={city.name}>{city.name}</option>))}</select>
-              </div>
+              </div> */}
 
               <div className="bg-white/80 backdrop-blur-xl rounded-2xl p-6 shadow-sm border border-white/60">
                 <h3 className="text-[11px] font-bold text-gray-800 uppercase tracking-widest mb-4">Discount Type</h3>
