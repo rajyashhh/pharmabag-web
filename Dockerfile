@@ -35,10 +35,7 @@ WORKDIR /app
 
 COPY --from=builder /app/apps/${APP_NAME}/.next/standalone ./
 COPY --from=builder /app/apps/${APP_NAME}/.next/static ./apps/${APP_NAME}/.next/static
-
-RUN if [ -d "/app/apps/${APP_NAME}/public" ]; then \
-      cp -r /app/apps/${APP_NAME}/public ./apps/${APP_NAME}/public; \
-    fi 2>/dev/null || true
+COPY --from=builder /app/apps/${APP_NAME}/public ./apps/${APP_NAME}/public
 
 RUN addgroup -S appgroup && adduser -S appuser -G appgroup
 USER appuser
