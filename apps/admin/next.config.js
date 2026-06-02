@@ -1,5 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  output: "standalone",
   eslint: { ignoreDuringBuilds: true },
   transpilePackages: ["@pharmabag/utils"],
   compiler: { removeConsole: process.env.NODE_ENV === "production" },
